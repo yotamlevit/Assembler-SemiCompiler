@@ -1,0 +1,8 @@
+/*
+ * Created by Yotam Levit on 07/07/2024.
+*/
+
+#ifndef ASSEMBLER_SEMICOMPILER_FIRSTPASS_H
+#define ASSEMBLER_SEMICOMPILER_FIRSTPASS_H
+
+#endif
