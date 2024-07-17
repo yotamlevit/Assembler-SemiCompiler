@@ -12,104 +12,193 @@ char line[MAX_LINE_LENGTH];
 char* file_name;
 FILE* fd;
 
-int main(int argc, char** argv)
+
+int validate_input(int argc, char** argv);
+int iterate_input_files(int argc, char** argv);
+int process_file(char* asm_file_name);
+int call_first_pass(FILE* file_handle);
+int validate_memory(int IC, int DC); // after first pass
+int call_second_pass(FILE* file_handle);
+int validate_second_pass();
+void reset_assembler();
+
+
+
+FILE* open_file(char* file);
+
+FILE* open_file(char* file)
 {
-	handle_input(argc, argv);
-	return 0;
+    FILE* fp = fopen(file, "r");
+    if (fp == NULL)
+    {
+        printf("ERROR!! File not found.\n");
+        return NULL;
+    }
+    return fp;
 }
 
-/*This function gets the command line arguments as a parameter and checks if the input is vaild, if vaild it opens each file and send its content to a function that analize it and if no errors are found in the first pass on the file, another pass is made on the file, that also call a function to analize it. And if no errors were detected, the functions for exporting appropriate output is called. one file is open each round.
-Algorithm: creating a "file descriptor"-file pointer for operations on files: fopen(), fscanf(), feof()- in order to know when the file ends, fclose() and more. argc- stores the amount of input parameters in command line. argv[i]- holds each time a file name.*/
-void handle_input(int argc, char** argv)
+
+int validate_input(int argc, char** argv)
 {
-	int i;
-	if (argc == 1)
-	{
-		printf("ERROR!! You must send files.\n");
-		error_flag = ON;
-		exit(0);
-	}
-	/* Loop for all the files the user input */
-	for (i = 1; i < argc; i++)  
-	{
-		file_name = (char*)malloc(strlen(argv[i]) + 4);
-		if (!file_name)
-		{
-			printf("ERROR!! Memory allocation faild\n");
-			error_flag = ON;
-			exit(0);
-		}
-		/*Opening the file in read permission.*/
-		strcpy(file_name, argv[i]);
-		/*Using strcat()- because the user sends the file name without extension*/
-		strcat(file_name, INPUT_FILE_EXTENSION);
-		/*Opening the file in read permission.*/
-		fd = fopen(file_name, "r");
-		if (!fd)
-			printf("ERROR!! File %s cannot be opened. It does not exist or you do not have the appropriate access permission.\n", argv[i]);
-		else
-		{
-			line_counter = 0;
-			error_flag=OFF;
-			/*First pass*/
-			while (!feof(fd))
-			{
-				/*First analize*/
-				analize_input_line(line);
-				line_counter++;
-				/*Get one line from the file V */
-				fgets(line, MAX_LINE_LENGTH, fd); 
-			}
-			/*Checking memory limit exceeded.*/
-			if (IC + DC > MEMORY_SIZE)
-			{
-				printf("ERROR!! The program has exceeded the memory limits.\n");
-				error_flag= ON;
-			}
-			if(!error_flag)
-			{
-				/*Tmpty the first element of the array*/
-				line[0] = '\0';
-				/*Return fd to point on the begining of the file.*/
-				rewind(fd);
-				/*Zero the parameters before the next analize*/
-				line_counter = 0;
-				clean_line(line);
-				I = 0;
-				/*Update the address of the guide labels in the symbal table*/
-				fix_symbol_addresses(); 
-				/*Second pass*/
-				while (!feof(fd))
-				{
-					/*Second analize*/
-					analize_2_second_pass(line);
-					line_counter++;
-					fgets(line, MAX_LINE_LENGTH, fd);
-				}
-				/*Close file*/
-				fclose(fd); 
-				/*If there is no errors build output, else- the errors will be printed to screen*/
-				if (!error_flag)
-				{
-					create_object_file();
-					create_entry_file();
-					create_external_file();
-					printf("The file %s has been successfully compiled\n", argv[i]);
-				}
-				/*Initialization: zero the data table i, code table i, data counter, instruction counter*/
-				D = 0; 
-				I = 0; 
-				DC = DC_INITIAL_VALUE;
-				IC = IC_INITIAL_VALUE;
-				line_counter = 0;
-				/*Clean & Free all tables.*/
-				free(file_name);
-				free_data_table();
-				free_code_table(); 
-				free_symbol_table(); 
-				free_entries_list();
-				free_externals_list();
-			}
-		}
-	}/*End of for loop to open the files which givven from CMD by their names*/
-}/*End of function*/
+    if (argc == 1)
+    {
+        printf("ERROR!! You must send files.\n");
+        return 0;
+    }
+    return 1;
+}
+
+int validate_memory(int IC, int DC)
+{
+    /*Checking memory limit exceeded.*/
+    if (IC + DC > MEMORY_SIZE)
+    {
+        printf("ERROR!! The program has exceeded the memory limits.\n");
+        return 0;
+    }
+
+    return 1;
+}
+
+
+int call_first_pass(FILE* file_handle)
+{
+    line_counter = 0;
+    error_flag=OFF;
+    /*First pass*/
+    while (!feof(file_handle))
+    {
+        /*First analize*/
+        analize_input_line(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, file_handle);
+    }
+
+    //exe_first_pass(file_name);
+    return validate_memory(IC, DC);
+}
+
+int call_second_pass(FILE* file_handle)
+{
+    /*Tmpty the first element of the array*/
+    line[0] = '\0';
+    /*Return fd to point on the begining of the file.*/
+    rewind(file_handle);
+    /*Zero the parameters before the next analize*/
+    line_counter = 0;
+    clean_line(line);
+    I = 0;
+    /*Update the address of the guide labels in the symbal table*/
+    fix_symbol_addresses();
+    /*Second pass*/
+    while (!feof(file_handle))
+    {
+        /*Second analize*/
+        analize_2_second_pass(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, file_handle);
+    }
+
+    return 1;
+}
+
+int validate_second_pass()
+{
+    if (!error_flag)
+    {
+        create_object_file();
+        create_entry_file();
+        create_external_file();
+
+        return 1;
+    }
+
+    return 0;
+}
+
+
+void reset_assembler()
+{
+    /*Initialization: zero the data table i, code table i, data counter, instruction counter*/
+    D = 0;
+    I = 0;
+    DC = DC_INITIAL_VALUE;
+    IC = IC_INITIAL_VALUE;
+    line_counter = 0;
+    /*Clean & Free all tables.*/
+    free(file_name);
+    free_data_table();
+    free_code_table();
+    free_symbol_table();
+    free_entries_list();
+    free_externals_list();
+}
+
+
+int process_file(char* asm_file_name)
+{
+    file_name = (char*)malloc(strlen(asm_file_name) + 4);
+    if (!file_name)
+    {
+        printf("ERROR!! Memory allocation faild\n");
+        error_flag = ON;
+        exit(0);
+    }
+    /*Opening the file in read permission.*/
+    strcpy(file_name, asm_file_name);
+    /*Using strcat()- because the user sends the file name without extension*/
+    strcat(file_name, INPUT_FILE_EXTENSION);
+
+    fd = open_file(file_name);
+
+    if (fd == NULL)
+        return 0;
+
+    if (!call_first_pass(fd))
+        return 0;
+
+    call_second_pass(fd);
+
+    fclose(fd);
+
+    if (!validate_second_pass())
+        return 0;
+
+    printf("The file %s has been successfully compiled\n", file_name);
+
+    reset_assembler();
+
+    return 1;
+}
+
+
+int iterate_input_files(int argc, char** argv)
+{
+    char* asm_file_name;
+    int i;
+    for (i = 1; i < argc; i++)
+    {
+        asm_file_name = argv[i];
+        if (!process_file(asm_file_name))
+            return 0;
+    }
+
+    return 1;
+}
+
+
+int main(int argc, char** argv)
+{
+
+    if (!validate_input(argc, argv))
+        return 0;
+
+    if (iterate_input_files(argc, argv))
+        return 1;
+
+
+    printf("Fail");
+	return 0;
+}
