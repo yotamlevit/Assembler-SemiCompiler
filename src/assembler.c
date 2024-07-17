@@ -31,7 +31,7 @@ FILE* open_file(char* file)
     FILE* fp = fopen(file, "r");
     if (fp == NULL)
     {
-        printf("ERROR!! File not found.\n");
+        printf("ERROR!! File not found or file with extension.\n");
         return NULL;
     }
     return fp;
@@ -199,6 +199,6 @@ int main(int argc, char** argv)
         return 1;
 
 
-    printf("Fail");
+    printf("Failed to compile all the files.\n");
 	return 0;
 }
