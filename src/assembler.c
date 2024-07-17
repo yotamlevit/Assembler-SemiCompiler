@@ -13,6 +13,7 @@ char* file_name;
 FILE* fd;
 
 
+
 int validate_input(int argc, char** argv);
 int iterate_input_files(int argc, char** argv);
 int process_file(char* asm_file_name);
@@ -91,14 +92,16 @@ int call_second_pass(FILE* file_handle)
     I = 0;
     /*Update the address of the guide labels in the symbal table*/
     fix_symbol_addresses();
+
+    fd = file_handle;
     /*Second pass*/
-    while (!feof(file_handle))
+    while (!feof(fd))
     {
         /*Second analize*/
         analize_2_second_pass(line);
         line_counter++;
         /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, file_handle);
+        fgets(line, MAX_LINE_LENGTH, fd);
     }
 
     return 1;
@@ -156,7 +159,7 @@ int process_file(char* asm_file_name)
     if (fd == NULL)
         return 0;
 
-    if (!call_first_pass(fd))
+    if (!call_first_pass(fd) || error_flag) // TODO: When refactoring first_pass make first_pass return true of false and not use global error flag
         return 0;
 
     call_second_pass(fd);
@@ -200,5 +203,5 @@ int main(int argc, char** argv)
 
 
     printf("Failed to compile all the files.\n");
-	return 0;
+    return 0;
 }
