@@ -6,6 +6,8 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 
 #include "../include/auxiliary.h"
 #include "../include/assembler.h"
+#include "../include/validators.h"
+#include "validators.h"
 
 /*Array to get line by line*/
 char line[MAX_LINE_LENGTH]; 
@@ -13,14 +15,12 @@ char* file_name;
 FILE* fd;
 
 
-
-int validate_input(int argc, char** argv);
 int iterate_input_files(int argc, char** argv);
 int process_file(char* asm_file_name);
 int call_first_pass(FILE* file_handle);
-int validate_memory(int IC, int DC); // after first pass
+// after first pass
 int call_second_pass(FILE* file_handle);
-int validate_second_pass();
+
 void reset_assembler();
 
 
@@ -36,29 +36,6 @@ FILE* open_file(char* file)
         return NULL;
     }
     return fp;
-}
-
-
-int validate_input(int argc, char** argv)
-{
-    if (argc == 1)
-    {
-        printf("ERROR!! You must send files.\n");
-        return 0;
-    }
-    return 1;
-}
-
-int validate_memory(int IC, int DC)
-{
-    /*Checking memory limit exceeded.*/
-    if (IC + DC > MEMORY_SIZE)
-    {
-        printf("ERROR!! The program has exceeded the memory limits.\n");
-        return 0;
-    }
-
-    return 1;
 }
 
 
@@ -105,20 +82,6 @@ int call_second_pass(FILE* file_handle)
     }
 
     return 1;
-}
-
-int validate_second_pass()
-{
-    if (!error_flag)
-    {
-        create_object_file();
-        create_entry_file();
-        create_external_file();
-
-        return 1;
-    }
-
-    return 0;
 }
 
 
@@ -184,8 +147,12 @@ int iterate_input_files(int argc, char** argv)
     for (i = 1; i < argc; i++)
     {
         asm_file_name = argv[i];
-        if (!process_file(asm_file_name))
-            return 0;
+
+        printf("\nStart processing file: %s\n", asm_file_name);
+
+        process_file(asm_file_name);
+        //if (!process_file(asm_file_name))
+          //  return 0;
     }
 
     return 1;
@@ -201,7 +168,5 @@ int main(int argc, char** argv)
     if (iterate_input_files(argc, argv))
         return 1;
 
-
-    printf("Failed to compile all the files.\n");
     return 0;
 }
