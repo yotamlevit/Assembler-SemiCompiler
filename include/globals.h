@@ -6,6 +6,10 @@
 #define ASSEMBLER_SEMICOMPILER_GLOBALS_H
 
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 /*Tables and lists*/
 extern symbol* head_symbol;
 extern symbol* head_entries;
@@ -23,5 +27,9 @@ extern int D;
 extern int IC;
 /*index of code_table, index of data_table, instruction counter, data counter.*/
 extern int DC;
+/*Globals*/
+int line_counter;
+/*Globals*/
+int error_flag;
 #endif
 

@@ -7,8 +7,6 @@
 #define IC_INITIAL_VALUE 100
 #define TABLE_SIZE 150
 
-/*Globals*/
-int line_counter, error_flag;
 enum flag_state{OFF, ON};
 typedef enum { NO, YES } boolean;
 

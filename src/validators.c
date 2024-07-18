@@ -5,6 +5,7 @@
 #include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/memory_map.h"
+#include "../include/globals.h"
 
 int validate_input(int argc, char** argv)
 {
