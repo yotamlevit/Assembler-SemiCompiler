@@ -18,6 +18,10 @@ FILE* fd;
 int DC;
 int IC;
 
+int line_counter;
+int error_flag;
+
+
 
 
 int iterate_input_files(int argc, char** argv);

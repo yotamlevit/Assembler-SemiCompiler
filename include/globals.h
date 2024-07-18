@@ -28,8 +28,8 @@ extern int IC;
 /*index of code_table, index of data_table, instruction counter, data counter.*/
 extern int DC;
 /*Globals*/
-int line_counter;
+extern int line_counter;
 /*Globals*/
-int error_flag;
+extern int error_flag;
 #endif
 
