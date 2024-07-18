@@ -14,4 +14,6 @@ add_executable(Assembler_SemiCompiler
         src/auxiliary_functions.c
         src/first_pass.c
         src/memory_map.c
-        src/second_pass.c)
+        src/second_pass.c
+        src/validators.c
+        include/validators.h)
