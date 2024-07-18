@@ -1,23 +1,28 @@
 
-/*Yael Busso 211590401 & Sara Hinda Levovitz 206641052*/
-
 /*About the program: This program simulates an assembler. It gets a list of files names, (using the arguments in command line). Each file contains an assembly language code. It reads and analyzes the code line by line from each file, so at the end of reading proccess, the program prints detailed error messages, if any, or alternatively export files as required: object file (=contains the memory image of the machine code), entries file, externals file, (as detailed later in the program).
 Assumptions: *Source files names with '.as' extension. *Each source program provided as input has a possible maximum size. *Excess "white spaces" are ignored in an assembly language input file. *Lowercase and upper case letters are considered different in the assembly language. *Assembly language supports the representation of integers on a decimal base only. *There must be a white character separating (one or more) between command/label and operands, except commas.*/
 
 #include "../include/auxiliary.h"
-#include "../include/assembler.h"
 #include "../include/validators.h"
-#include "validators.h"
+#include "../include/second_pass.h"
+#include "../include/first_pass.h"
+#include "../include/globals.h"
+
+#define INPUT_FILE_EXTENSION ".as"
 
 /*Array to get line by line*/
 char line[MAX_LINE_LENGTH]; 
 char* file_name;
 FILE* fd;
 
+int DC;
+int IC;
+
+
 
 int iterate_input_files(int argc, char** argv);
 int process_file(char* asm_file_name);
-int call_first_pass(FILE* file_handle);
+int first_pass_exec(FILE* file_handle);
 // after first pass
 int call_second_pass(FILE* file_handle);
 
@@ -39,7 +44,7 @@ FILE* open_file(char* file)
 }
 
 
-int call_first_pass(FILE* file_handle)
+int first_pass_exec(FILE* file_handle)
 {
     line_counter = 0;
     error_flag=OFF;
@@ -122,7 +127,7 @@ int process_file(char* asm_file_name)
     if (fd == NULL)
         return 0;
 
-    if (!call_first_pass(fd) || error_flag) // TODO: When refactoring first_pass make first_pass return true of false and not use global error flag
+    if (!first_pass_exec(fd) || error_flag) // TODO: When refactoring first_pass make first_pass return true of false and not use global error flag
         return 0;
 
     call_second_pass(fd);
@@ -164,6 +169,8 @@ int main(int argc, char** argv)
 
     if (!validate_input(argc, argv))
         return 0;
+
+    reset_assembler();
 
     if (iterate_input_files(argc, argv))
         return 1;

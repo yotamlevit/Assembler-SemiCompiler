@@ -3,9 +3,8 @@
 //
 
 #include "../include/validators.h"
-#include "../include/assembler.h"
 #include "../include/auxiliary.h"
-#include "validators.h"
+#include "../include/memory_map.h"
 
 int validate_input(int argc, char** argv)
 {
