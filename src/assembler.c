@@ -29,15 +29,12 @@ int error_flag;
 int iterate_input_files(int argc, char** argv);
 int process_file(char* asm_file_name);
 
-// after first pass
-int call_second_pass(FILE* file_handle);
-
 void reset_assembler();
 
+void prep_second_pass(FILE *file_handle);
 
-int call_second_pass(FILE* file_handle)
-{
-    /*Tmpty the first element of the array*/
+
+void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array*/
     line[0] = '\0';
     /*Return fd to point on the begining of the file.*/
     rewind(file_handle);
@@ -47,19 +44,6 @@ int call_second_pass(FILE* file_handle)
     I = 0;
     /*Update the address of the guide labels in the symbal table*/
     fix_symbol_addresses();
-
-    fd = file_handle;
-    /*Second pass*/
-    while (!feof(fd))
-    {
-        /*Second analize*/
-        analize_2_second_pass(line);
-        line_counter++;
-        /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, fd);
-    }
-
-    return 1;
 }
 
 
@@ -83,6 +67,8 @@ void reset_assembler()
 
 int process_file(char* asm_file_name)
 {
+    int file_result = 0;
+
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (!file_name)
     {
@@ -98,23 +84,26 @@ int process_file(char* asm_file_name)
     fd = open_file(file_name);
 
     if (fd == NULL)
-        return 0;
+        return file_result;
 
     if (!first_pass_exec(fd) || error_flag) // TODO: When refactoring first_pass make first_pass return true of false and not use global error flag
-        return 0;
+        return file_result;
 
-    call_second_pass(fd);
+    prep_second_pass(fd);
+
+    file_result = second_pass_exec(fd);
 
     fclose(fd);
 
-    if (!validate_second_pass())
-        return 0;
 
-    printf("The file %s has been successfully compiled\n", file_name);
+    if (file_result)
+        printf("The file %s has been successfully compiled\n", file_name);
+    else
+        printf("Compilation failed for %s (second pass)\n", file_name);
 
     reset_assembler();
 
-    return 1;
+    return file_result;
 }
 
 

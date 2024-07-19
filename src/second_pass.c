@@ -1,9 +1,13 @@
+#include "../include/utils.h"
+#include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/globals.h"
 
 extern int opcode; /*operation code*/
+
+FILE* fd;
 
 /*End of analize_2_second_pass*/
 
@@ -352,4 +356,20 @@ void analize_2_second_pass(char* l)
 		second_operation(l1 + 4);
 		return;
 	}
+}
+
+int second_pass_exec(FILE* file_handle)
+{
+    fd = file_handle;
+    /*Second pass*/
+    while (!feof(fd))
+    {
+        /*Second analize*/
+        analize_2_second_pass(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, fd);
+    }
+
+    return validate_second_pass();
 }
