@@ -57,3 +57,7 @@ dkms.conf
 
 # Cmake
 cmake-build-debug
+
+
+# Project Binary
+assembler
