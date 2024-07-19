@@ -18,4 +18,6 @@ add_executable(Assembler_SemiCompiler
         include/validators.h
         include/globals.h
         include/memory_map.h
-        include/second_pass.h)
+        include/second_pass.h
+        src/utils.c
+        include/utils.h)

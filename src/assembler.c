@@ -7,6 +7,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/second_pass.h"
 #include "../include/first_pass.h"
 #include "../include/globals.h"
+#include "../include/utils.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -31,21 +32,6 @@ int first_pass_exec(FILE* file_handle);
 int call_second_pass(FILE* file_handle);
 
 void reset_assembler();
-
-
-
-FILE* open_file(char* file);
-
-FILE* open_file(char* file)
-{
-    FILE* fp = fopen(file, "r");
-    if (fp == NULL)
-    {
-        printf("ERROR!! File not found or file with extension.\n");
-        return NULL;
-    }
-    return fp;
-}
 
 
 int first_pass_exec(FILE* file_handle)
