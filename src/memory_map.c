@@ -1,15 +1,21 @@
 #include "../include/auxiliary.h"
+#include "../include/memory_map.h"
+#include "../include/globals.h"
 
 extern char* file_name;
 
 /*Definitions: */
 /*index of code_table, index of data_table, instruction counter, data counter.*/
-int I, D, IC = IC_INITIAL_VALUE, DC = DC_INITIAL_VALUE;
+int I, D;
 symbol* head_symbol, *head_entries, *head_externals;
 data_word* data_table[150]; /*data array*/
 code_word code_table[150];/*code array*/
 
-/*This function creates an object file that contains the machine code translating to octal base with the appropriate 
+/*End of create_object_file function*/
+
+/*End of create_entry_file function*/
+
+/*End of create_external_file function*//*This function creates an object file that contains the machine code translating to octal base with the appropriate
 memmory addres in decimal base (code divided to 3 bits every time as an octal number). */
 void create_object_file()
 {
@@ -59,7 +65,6 @@ void create_object_file()
 	}
 	fclose(fd);
 }
-/*End of create_object_file function*/
 
 /*This function creates an enteranl file that contain the labels that defined in the assembly text as an entry label
 with it's appropriate value in the labels table.*/
@@ -83,7 +88,6 @@ void create_entry_file()
 	}
 	fclose(fd);
 }
-/*End of create_entry_file function*/
 
 /*This function creates an external file that contain the labels that defined as externals and the appropriate
 address that they have been used in the asseembly program.*/
@@ -107,4 +111,3 @@ void create_external_file()
 	}
 	fclose(fd);
 }
-/*End of create_external_file function*/

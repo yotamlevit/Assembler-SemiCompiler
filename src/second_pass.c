@@ -1,44 +1,14 @@
+#include "../include/utils.h"
+#include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/first_pass.h"
+#include "../include/second_pass.h"
+#include "../include/globals.h"
 
 extern int opcode; /*operation code*/
 
-/*The first pass of the main function*/
-void analize_2_second_pass(char* l)
-{
-	/*l1 is a point in the first place right after the first spaces*/
-	char* l1 = delete_first_spaces(l); 
-	/*This condition continues the text transition as long as the line is blank or consist comments*/
-	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n') 
-		return;
-	if (!strncmp(l1, ".entry", strlen(".entry")))
-	{
-		ent(l1 + 6);
-		return;
-	}
-	/*If it's external don't do anything this time*/
-	if (!strncmp(l1, ".extern", strlen(".extern")))
-		return;
-	if (!strncmp(l1, ".data", strlen(".data")))
-		return;
-	if (!strncmp(l1, ".string", strlen(".string")))
-		return;
-	if (isLabel2(l1))
-	{
-		label2(l1);
-		return;
-	}
-	if (is_operation(l1))
-	{
-		second_operation(l1 + 3);
-		return;
-	}
-	if (is_stop(l1))
-	{
-		second_operation(l1 + 4);
-		return;
-	}
-}
+FILE* fd;
+
 /*End of analize_2_second_pass*/
 
 /*This function creates a list that handles the entry guides*/
@@ -351,3 +321,55 @@ void second_operation(char* li)
 	/*End of operations with two operands*/
 	I++;
 }/*End of second_operation*/
+/*The first pass of the main function*/
+void analize_2_second_pass(char* l)
+{
+	/*l1 is a point in the first place right after the first spaces*/
+	char* l1 = delete_first_spaces(l);
+	/*This condition continues the text transition as long as the line is blank or consist comments*/
+	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n')
+		return;
+	if (!strncmp(l1, ".entry", strlen(".entry")))
+	{
+		ent(l1 + 6);
+		return;
+	}
+	/*If it's external don't do anything this time*/
+	if (!strncmp(l1, ".extern", strlen(".extern")))
+		return;
+	if (!strncmp(l1, ".data", strlen(".data")))
+		return;
+	if (!strncmp(l1, ".string", strlen(".string")))
+		return;
+	if (isLabel2(l1))
+	{
+		label2(l1);
+		return;
+	}
+	if (is_operation(l1))
+	{
+		second_operation(l1 + 3);
+		return;
+	}
+	if (is_stop(l1))
+	{
+		second_operation(l1 + 4);
+		return;
+	}
+}
+
+int second_pass_exec(FILE* file_handle)
+{
+    fd = file_handle;
+    /*Second pass*/
+    while (!feof(fd))
+    {
+        /*Second analize*/
+        analize_2_second_pass(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, fd);
+    }
+
+    return validate_second_pass();
+}

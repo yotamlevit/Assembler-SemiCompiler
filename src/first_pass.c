@@ -1,6 +1,10 @@
+#include "../include/utils.h"
+#include "../include/second_pass.h"
+#include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/first_pass.h"
 #include "../include/constants_tables.h"
+#include "../include/globals.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode; 
@@ -653,9 +657,11 @@ void insert_string_data(char* li)
 }
 /*End of insert_string_data function��*/
 
+/*End of fix_symbol_addresses function*/
+
 /*This function updates the symbols address in the symbols list*/
 void fix_symbol_addresses()
-{ 
+{
 	symbol* temp = head_symbol;
 	while (temp)
 	{
@@ -666,5 +672,21 @@ void fix_symbol_addresses()
 		temp = temp->next;
 	}
 }
-/*End of fix_symbol_addresses function*/
 
+int first_pass_exec(FILE* file_handle)
+{
+    line_counter = 0;
+    error_flag=OFF;
+    /*First pass*/
+    while (!feof(file_handle))
+    {
+        /*First analize*/
+        analize_input_line(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, file_handle);
+    }
+
+    //exe_first_pass(file_name);
+    return validate_memory(IC, DC);
+}

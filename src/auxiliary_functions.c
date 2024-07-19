@@ -1,4 +1,5 @@
 #include "../include/auxiliary.h"
+#include "../include/globals.h"
 
 extern symbol* head_symbol;
 extern symbol* head_entries;
