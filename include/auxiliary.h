@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#define MAX_LINE_LENGTH 80
-#define MAX_LABEL_LENGTH 31
-#define DC_INITIAL_VALUE 0
-#define IC_INITIAL_VALUE 100
+
+#include "globals.h"
+
 #define TABLE_SIZE 150
 
 enum flag_state{OFF, ON};
@@ -126,3 +125,9 @@ void free_symbol_table();
 void free_entries_list();
 void free_externals_list();
 
+/*Tables and lists*/
+extern symbol* head_symbol;
+extern symbol* head_entries;
+extern symbol* head_externals;
+extern code_word code_table[TABLE_SIZE];
+extern data_word* data_table[TABLE_SIZE];

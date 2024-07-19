@@ -1,3 +1,6 @@
+#include "../include/utils.h"
+#include "../include/second_pass.h"
+#include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/first_pass.h"
 #include "../include/constants_tables.h"
@@ -668,4 +671,22 @@ void fix_symbol_addresses()
 		}
 		temp = temp->next;
 	}
+}
+
+int first_pass_exec(FILE* file_handle)
+{
+    line_counter = 0;
+    error_flag=OFF;
+    /*First pass*/
+    while (!feof(file_handle))
+    {
+        /*First analize*/
+        analize_input_line(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, file_handle);
+    }
+
+    //exe_first_pass(file_name);
+    return validate_memory(IC, DC);
 }

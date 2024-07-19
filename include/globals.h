@@ -10,14 +10,12 @@
 #include <string.h>
 #include <stdio.h>
 
-/*Tables and lists*/
-extern symbol* head_symbol;
-extern symbol* head_entries;
-extern symbol* head_externals;
-extern code_word code_table[TABLE_SIZE];
-extern data_word* data_table[TABLE_SIZE];
+#define MAX_LINE_LENGTH 80
+#define MAX_LABEL_LENGTH 31
+#define DC_INITIAL_VALUE 0
+#define IC_INITIAL_VALUE 100
 
-//extern char line[MAX_LINE_LENGTH];
+extern char line[MAX_LINE_LENGTH];
 
 
 /*Index*/

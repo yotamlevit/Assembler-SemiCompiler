@@ -8,6 +8,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/first_pass.h"
 #include "../include/globals.h"
 #include "../include/utils.h"
+#include "../include/first_pass.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -27,30 +28,12 @@ int error_flag;
 
 int iterate_input_files(int argc, char** argv);
 int process_file(char* asm_file_name);
-int first_pass_exec(FILE* file_handle);
+
 // after first pass
 int call_second_pass(FILE* file_handle);
 
 void reset_assembler();
 
-
-int first_pass_exec(FILE* file_handle)
-{
-    line_counter = 0;
-    error_flag=OFF;
-    /*First pass*/
-    while (!feof(file_handle))
-    {
-        /*First analize*/
-        analize_input_line(line);
-        line_counter++;
-        /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, file_handle);
-    }
-
-    //exe_first_pass(file_name);
-    return validate_memory(IC, DC);
-}
 
 int call_second_pass(FILE* file_handle)
 {
