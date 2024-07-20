@@ -1,9 +1,9 @@
 #include "../include/utils.h"
 #include "../include/validators.h"
-#include "../include/auxiliary.h"
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/globals.h"
+#include "../include/auxiliary.h"
 
 extern int opcode; /*operation code*/
 
@@ -12,6 +12,26 @@ FILE* fd;
 /*End of analize_2_second_pass*/
 
 /*End of second_operation*/
+
+
+
+void handle_error(const char* message) {
+    printf("ERROR!! line %d: %s\n", line_counter, message);
+    error_flag = ON;
+}
+
+int find_symbol(const char* li, int length) {
+    symbol* temp = head_symbol;
+    while (temp) {
+        if (!strncmp(li, temp->symbol_name, length)) {
+            return 1;
+        }
+        temp = temp->next;
+    }
+    return 0;
+}
+
+
 
 void analize_2_second_pass(char* l)
 {
@@ -30,12 +50,12 @@ void analize_2_second_pass(char* l)
     }
     if (is_operation(l1))
     {
-        second_operation(l1 + 3);
+        second_operation(l1 + OPERATION_LENGTH);
         return;
     }
     if (is_stop(l1))
     {
-        second_operation(l1 + 4);
+        second_operation(l1 + STOP_LENGTH);
         return;
     }
 }

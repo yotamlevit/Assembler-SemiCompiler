@@ -21,4 +21,9 @@ void process_lable(char*);
 
 void second_operation(char* li);
 
+
+void handle_error(const char* message);
+
+int find_symbol(const char* li, int length);
+
 #endif
