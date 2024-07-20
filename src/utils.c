@@ -9,15 +9,11 @@
 #include "../include/validators.h"
 #include "../include/second_pass.h"
 #include "../include/utils.h"
+#include "utils.h"
 
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode;
-
-
-#define STOP_LENGTH 4
-#define STOP_OPCODE 15
-#define OPERATION_LENGTH 3
 
 
 FILE* open_file(char* file)
