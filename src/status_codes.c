@@ -61,10 +61,10 @@ StatusPtr getStatus(StatusCode statusCode)
 /**
  * @brief Prints the status message corresponding to the given status code.
  *
- * This function retrieves the status message for the provided error code and prints it
+ * This function retrieves the status message for the provided status code and prints it
  * to the standard output.
  *
- * @param statusCode The error code for which to print the status message.
+ * @param statusCode The status code for which to print the status message.
  */
 void printStatus(StatusCode statusCode)
 {
