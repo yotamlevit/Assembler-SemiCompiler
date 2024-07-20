@@ -9,6 +9,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/globals.h"
 #include "../include/utils.h"
 #include "../include/first_pass.h"
+#include "../include/status_codes.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -128,14 +129,16 @@ int iterate_input_files(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-
-    if (!validate_input(argc, argv))
-        return 0;
+    int validate_input_result = validate_input(argc, argv);
+    if (validate_input_result != success) {
+        printStatus(validate_input_result);
+        return error;
+    }
 
     reset_assembler();
 
     if (iterate_input_files(argc, argv))
         return 1;
 
-    return 0;
+    return success;
 }
