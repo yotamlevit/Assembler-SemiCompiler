@@ -11,8 +11,68 @@ FILE* fd;
 
 /*End of analize_2_second_pass*/
 
+/*End of second_operation*/
+
+void analize_2_second_pass(char* l)
+{
+    /*l1 is a point in the first place right after the first spaces*/
+    char* l1 = delete_first_spaces(l);
+    /*This condition continues the text transition as long as the line is blank or consist comments*/
+    if (!strncmp(l1, ".entry", strlen(".entry")))
+    {
+        process_entry(l1 + 6);
+        return;
+    }
+    if (isLabel2(l1))
+    {
+        process_lable(l1);
+        return;
+    }
+    if (is_operation(l1))
+    {
+        second_operation(l1 + 3);
+        return;
+    }
+    if (is_stop(l1))
+    {
+        second_operation(l1 + 4);
+        return;
+    }
+}
+
+int second_pass_exec(FILE* file_handle)
+{
+    fd = file_handle;
+    /*Second pass*/
+    while (!feof(fd))
+    {
+        /*Second analize*/
+        analize_2_second_pass(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, fd);
+    }
+
+    return validate_second_pass();
+}
+
+/*End of ent*/
+
+
+int isLabel2(char* line)
+{
+	int i;
+	line = delete_first_spaces(line);
+	for (i = 0; i < MAX_LINE_LENGTH; i++)
+	{
+		if (line[i] == ':')
+			return 1;
+	}
+	return 0;
+}
+
 /*This function creates a list that handles the entry guides*/
-void ent(char* li)
+void process_entry(char* li)
 {
 	symbol* temp = head_symbol;
 	symbol* temp2;
@@ -68,23 +128,9 @@ void ent(char* li)
 		error_flag = ON;
 	}
 }
-/*End of ent*/
-
-
-int isLabel2(char* line)
-{
-	int i;
-	line = delete_first_spaces(line);
-	for (i = 0; i < MAX_LINE_LENGTH; i++)
-	{
-		if (line[i] == ':')
-			return 1;
-	}
-	return 0;
-}
 
 /*This function is called if the word is a label*/
-void label2(char* line)
+void process_lable(char* line)
 {
 	int i;
 	for (i = 0; i < MAX_LINE_LENGTH; i++)
@@ -100,7 +146,7 @@ void label2(char* line)
 
 /*This function passes a second time on the operations in the text, Classifies and allocates memory - machine words*/
 void second_operation(char* li)
-{ 
+{
 	symbol* temp = head_symbol;
 	symbol* ext;
 	int i;
@@ -113,12 +159,12 @@ void second_operation(char* li)
 	}
 	/*Operations with one operand only*/
 	if (opcode <= 13 && opcode >= 5)
-	{ 
+	{
 		/*For method 0*/
 		if (code_table[I].c.destination_immidiate)
-		{ 
+		{
 			/*Converts the instant number*/
-			code_table[I].c.next->c.w = atoi(li + 1); 
+			code_table[I].c.next->c.w = atoi(li + 1);
 			code_table[I].c.next->c.A = 1;
 		}
 		if (code_table[I].c.destination_direct)
@@ -171,7 +217,7 @@ void second_operation(char* li)
 
 	/*Operations with two operands*/
 	else
-	{ 
+	{
 		if ((code_table[I].c.destination_indirect_register && code_table[I].c.source_direct_register) || (code_table[I].c.destination_direct_register && code_table[I].c.source_indirect_register) || (code_table[I].c.destination_indirect_register && code_table[I].c.source_indirect_register) || (code_table[I].c.destination_direct_register && code_table[I].c.source_direct_register))
 		{
 			for (i = 0; li[i] != '\0'; i++)
@@ -198,7 +244,7 @@ void second_operation(char* li)
 		}
 		/*Operations with two operands and two machine words*/
 		else
-		{    
+		{
 			if (code_table[I].c.source_direct_register)
 			{
 				code_table[I].c.next->c.w = atoi(li + 1);
@@ -320,56 +366,4 @@ void second_operation(char* li)
 	}
 	/*End of operations with two operands*/
 	I++;
-}/*End of second_operation*/
-/*The first pass of the main function*/
-void analize_2_second_pass(char* l)
-{
-	/*l1 is a point in the first place right after the first spaces*/
-	char* l1 = delete_first_spaces(l);
-	/*This condition continues the text transition as long as the line is blank or consist comments*/
-	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n')
-		return;
-	if (!strncmp(l1, ".entry", strlen(".entry")))
-	{
-		ent(l1 + 6);
-		return;
-	}
-	/*If it's external don't do anything this time*/
-	if (!strncmp(l1, ".extern", strlen(".extern")))
-		return;
-	if (!strncmp(l1, ".data", strlen(".data")))
-		return;
-	if (!strncmp(l1, ".string", strlen(".string")))
-		return;
-	if (isLabel2(l1))
-	{
-		label2(l1);
-		return;
-	}
-	if (is_operation(l1))
-	{
-		second_operation(l1 + 3);
-		return;
-	}
-	if (is_stop(l1))
-	{
-		second_operation(l1 + 4);
-		return;
-	}
-}
-
-int second_pass_exec(FILE* file_handle)
-{
-    fd = file_handle;
-    /*Second pass*/
-    while (!feof(fd))
-    {
-        /*Second analize*/
-        analize_2_second_pass(line);
-        line_counter++;
-        /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, fd);
-    }
-
-    return validate_second_pass();
 }
