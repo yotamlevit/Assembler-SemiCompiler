@@ -98,20 +98,12 @@ typedef union codeword
 /*Analize input line functions*/
 void label_actions(char*);
 int is_label(char*);
-int isLabel2(char*);
 
 void insert_numerical_data(char*);
 void insert_string_data(char*);
 void operation(char*);
 
-int is_operation(char*);
-int is_stop(char*);
 void ext(char*);
-
-/*Analize 2 second pass functions*/
-void ent(char*);
-void label2(char*);
-void second_operation(char* li);
 
 /*Auxiliary functions*/
 char* delete_first_spaces(char*);
