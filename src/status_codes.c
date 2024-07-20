@@ -19,6 +19,7 @@ StatusPtr getStatuses(void)
     static Status Statuses[NumberOfErrors] = {
         {success, "The operation was successful"},
         {genericError, "Unknown Error occurred"},
+        {noFilesProvided, "ERROR!! You must send files."},
         {undefinedSetNameError, "Undefined set name"},
         {undefinedCommandNameError, "Undefined command name"},
         {valueError, "Invalid set member – value out of range"},

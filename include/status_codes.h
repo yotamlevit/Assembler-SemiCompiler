@@ -8,11 +8,12 @@
 
 #define MAX_STATUS_LEN 1000
 
-typedef enum {FALSE, TRUE} boolean;
+// typedef enum {FALSE, TRUE} boolean;
 
 typedef enum {
     success,
     genericError,
+    noFilesProvided,
     undefinedSetNameError,
     undefinedCommandNameError,
     valueError,
