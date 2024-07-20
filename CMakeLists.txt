@@ -20,4 +20,6 @@ add_executable(Assembler_SemiCompiler
         include/memory_map.h
         include/second_pass.h
         src/utils.c
-        include/utils.h)
+        include/utils.h
+        include/status_codes.h
+        src/status_codes.c)
