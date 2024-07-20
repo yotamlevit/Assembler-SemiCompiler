@@ -17,26 +17,9 @@
 StatusPtr getStatuses(void)
 {
     static Status Statuses[NumberOfErrors] = {
-        {success, "The operation was successful"},
-        {genericError, "Unknown Error occurred"},
-        {noFilesProvided, "ERROR!! You must send files."},
-        {undefinedSetNameError, "Undefined set name"},
-        {undefinedCommandNameError, "Undefined command name"},
-        {valueError, "Invalid set member – value out of range"},
-        {missingEndOfListError, "List of set members is not terminated correctly"},
-        {typeError, "Invalid set member – not an integer"},
-        {missingParamError, "Missing parameter"},
-        {missingCommand, "Missing command"},
-        {troubleParsingCommandArguments, "There was a problem parsing command arguments"},
-        {troubleParsingCommandSETS, "There was a problem parsing command sets"},
-        {tooManySets, "Too many sets in command"},
-        {extraTextAfterCommand, "Extraneous text after end of command"},
-        {troubleInitCommands, "There was a problem initializing a command"},
-        {troubleInitSet, "There was a problem initializing a set"},
-        {troubleInitUserBuffer, "There was a problem initializing a user buffer"},
-        {illegalComma, "Illegal comma"},
-        {consecutiveCommas, "Multiple consecutive commas"},
-        {missingComma, "Missing comma"}
+        {success, "INFO - The operation was successful"},
+        {error, "ERROR - Error occurred"},
+        {noFilesProvided, "ERROR - You must send files."},
     };
     return Statuses;
 }

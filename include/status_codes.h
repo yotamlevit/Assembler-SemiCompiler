@@ -12,25 +12,8 @@
 
 typedef enum {
     success,
-    genericError,
+    error,
     noFilesProvided,
-    undefinedSetNameError,
-    undefinedCommandNameError,
-    valueError,
-    missingEndOfListError,
-    typeError,
-    missingParamError,
-    missingCommand,
-    troubleParsingCommandArguments,
-    troubleParsingCommandSETS,
-    tooManySets,
-    extraTextAfterCommand,
-    troubleInitCommands,
-    troubleInitSet,
-    troubleInitUserBuffer,
-    illegalComma,
-    consecutiveCommas,
-    missingComma,
     NumberOfErrors
 } StatusCode;
 

@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     int validate_input_result = validate_input(argc, argv);
     if (validate_input_result != success) {
         printStatus(validate_input_result);
-        return success;
+        return error;
     }
 
     reset_assembler();
