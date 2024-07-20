@@ -14,7 +14,9 @@ typedef enum {
     success,
     error,
     noFilesProvided,
-    NumberOfErrors
+    memoryAllocationFailure,
+    openFileError,
+    NumberOfErrors,
 } StatusCode;
 
 typedef struct {

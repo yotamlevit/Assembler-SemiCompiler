@@ -10,6 +10,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/utils.h"
 #include "../include/first_pass.h"
 #include "../include/status_codes.h"
+#include "../include/logger.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -68,27 +69,25 @@ void reset_assembler()
 
 int process_file(char* asm_file_name)
 {
-    int file_result = 0;
-
+    int file_result = 0, first_pass_exec_result;
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
-    if (!file_name)
-    {
-        printf("ERROR!! Memory allocation faild\n");
-        error_flag = ON;
-        exit(0);
-    }
+    if (file_name == NULL)
+        return memoryAllocationFailure;
     /*Opening the file in read permission.*/
     strcpy(file_name, asm_file_name);
     /*Using strcat()- because the user sends the file name without extension*/
     strcat(file_name, INPUT_FILE_EXTENSION);
 
     fd = open_file(file_name);
+    if (fd == NULL) {
+        error_log("Could not open file: %s", file_name);
+        return openFileError;
+    }
 
-    if (fd == NULL)
-        return file_result;
-
-    if (!first_pass_exec(fd) || error_flag) // TODO: When refactoring first_pass make first_pass return true of false and not use global error flag
-        return file_result;
+    info_log("Starting first pass on %s", file_name);
+    first_pass_exec_result = first_pass_exec(fd);
+    if (first_pass_exec_result != success)
+        return first_pass_exec_result;
 
     prep_second_pass(fd);
 
@@ -96,34 +95,34 @@ int process_file(char* asm_file_name)
 
     fclose(fd);
 
-
     if (file_result)
-        printf("The file %s has been successfully compiled\n", file_name);
+        info_log("The file %s has been successfully compiled", file_name);
     else
-        printf("Compilation failed for %s (second pass)\n", file_name);
+        info_log("Compilation failed for %s (second pass)", file_name);
 
     reset_assembler();
 
-    return file_result;
+    return success;
+
 }
 
 
 int iterate_input_files(int argc, char** argv)
 {
+    int status = success, process_file_result;
     char* asm_file_name;
     int i;
     for (i = 1; i < argc; i++)
     {
         asm_file_name = argv[i];
-
-        printf("\nStart processing file: %s\n", asm_file_name);
-
-        process_file(asm_file_name);
-        //if (!process_file(asm_file_name))
-          //  return 0;
+        info_log("Start processing file: %s", asm_file_name);
+        process_file_result = process_file(asm_file_name);
+        if (process_file_result != success) {
+            printStatus(process_file_result);
+            status = error;
+        }
     }
-
-    return 1;
+    return status;
 }
 
 
@@ -137,8 +136,9 @@ int main(int argc, char** argv)
 
     reset_assembler();
 
-    if (iterate_input_files(argc, argv))
-        return 1;
+    int iterate_input_files_result = iterate_input_files(argc, argv);
+    if (iterate_input_files_result != success)
+        return error;
 
     return success;
 }
