@@ -15,6 +15,11 @@
 int opcode;
 
 
+#define STOP_LENGTH 4
+#define STOP_OPCODE 15
+#define OPERATION_LENGTH 3
+
+
 FILE* open_file(char* file)
 {
     FILE* fp = fopen(file, "r");
@@ -33,7 +38,7 @@ int is_operation(char* li)
  	for(i = 0;i<OPERATIONS_AMOUNT -1; i++)
 	{
 		/*Without stop op*/
-		if (!(strncmp(li, operation_mode[i][2], 3)))
+		if (!(strncmp(li, operation_mode[i][2], OPERATION_LENGTH)))
 		{
 			/*If the operation exist return true--1*/
 			opcode = i;
@@ -46,9 +51,9 @@ int is_operation(char* li)
 /*This function checks if it is stop operation*/
 int is_stop(char* line)
 {
-	if (!(strncmp(line, "stop", 4)))
+	if (!(strncmp(line, "stop", STOP_LENGTH)))
 	{
-		opcode = 15;
+		opcode = STOP_OPCODE;
 		return 1;
 	}
 	return 0;
