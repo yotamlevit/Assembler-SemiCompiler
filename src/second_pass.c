@@ -217,167 +217,176 @@ void handle_one_operand(char* li) {
 }
 
 
-void handle_two_operands(char* li)
-{
+void handle_registers_method(char* li) {
+    int i;
+    for (i = 0; li[i] != '\0'; i++)
+    {
+        if (li[i] == 'r')
+        {
+            code_table[I].c.next->c.w = atoi(li + i + 1);
+            code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
+            code_table[I].c.next->c.A = 1;
+            li += i + 1;
+            break;
+        }
+    }
+    for (i = 0; li[i] != '\0'; i++)
+    {
+        if (li[i] == 'r')
+        {
+            code_table[I].c.next->c.w += atoi(li + i + 1);
+            code_table[I].c.next->c.A = 1;
+            li += i;
+            break;
+        }
+    }
+}
+
+void handle_two_operands_method(char* li) {
     symbol* temp;
     symbol* ext;
     int i;
 
-    if ((code_table[I].c.destination_indirect_register && code_table[I].c.source_direct_register) || (code_table[I].c.destination_direct_register && code_table[I].c.source_indirect_register) || (code_table[I].c.destination_indirect_register && code_table[I].c.source_indirect_register) || (code_table[I].c.destination_direct_register && code_table[I].c.source_direct_register))
+    if (code_table[I].c.source_direct_register)
+    {
+        code_table[I].c.next->c.w = atoi(li + 1);
+        code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
+        code_table[I].c.next->c.A = 1;
+    }
+    if (code_table[I].c.source_indirect_register)
+    {
+        code_table[I].c.next->c.w = atoi(li + 2);
+        code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
+        code_table[I].c.next->c.A = 1;
+    }
+    if (code_table[I].c.source_immidiate)
     {
         for (i = 0; li[i] != '\0'; i++)
         {
-            if (li[i] == 'r')
+            if (li[i] == '#')
             {
-                code_table[I].c.next->c.w = atoi(li + i + 1);
-                code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
+                code_table[I].c.next->c.w += atoi(li + i + 1);
                 code_table[I].c.next->c.A = 1;
                 li += i + 1;
                 break;
             }
         }
+    }
+    if (code_table[I].c.source_direct)
+    {
+        temp = head_symbol;
+        for (i = 0; li[i] != '\0'; i++)
+            if (li[i] == ',' || li[i] == ' ')
+                break;
+        while (temp)
+        {
+            if (!strncmp(li, temp->symbol_name, i))
+            {
+                code_table[I].c.next->c.w = temp->address;
+                if (temp->is_external)
+                {
+                    code_table[I].c.next->c.E = 1;
+                    ext = (symbol*)malloc(sizeof(symbol));
+                    if (!ext)
+                    {
+                        printf("cannot allocate for ext\n");
+                        return;
+                    }
+                    ext->next = head_externals;
+                    head_externals = ext;
+                    clean_label_name(head_externals->symbol_name);
+                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
+                    head_externals->address = code_table[I].c.next->c.address;
+                }
+                else
+                    code_table[I].c.next->c.R = 1;
+                break;
+            }
+            temp = temp->next;
+        }
+    }
+    li = find_comma(li);
+    li += 1;
+    li = delete_first_spaces(li);
+    if (code_table[I].c.destination_direct_register)
+    {
+        code_table[I].c.next->c.next->c.w = atoi(li + 1);
+        code_table[I].c.next->c.next->c.A = 1;
+    }
+    if (code_table[I].c.destination_indirect_register)
+    {
+        code_table[I].c.next->c.next->c.w = atoi(li + 2);
+        code_table[I].c.next->c.next->c.A = 1;
+    }
+    if (code_table[I].c.destination_immidiate)
+    {
         for (i = 0; li[i] != '\0'; i++)
         {
-            if (li[i] == 'r')
+            if (li[i] == '#')
             {
-                code_table[I].c.next->c.w += atoi(li + i + 1);
-                code_table[I].c.next->c.A = 1;
-                li += i;
+                code_table[I].c.next->c.next->c.w += atoi(li + i + 1);
+                code_table[I].c.next->c.next->c.A = 1;
                 break;
             }
         }
     }
-        /*Operations with two operands and two machine words*/
-    else
+    if (code_table[I].c.destination_direct)
     {
-        if (code_table[I].c.source_direct_register)
+        temp = head_symbol;
+        for (i = 0; li[i] != '\0'; i++)
+            if (li[i] == ' ' || li[i] == '\n')
+                break;
+        while (temp)
         {
-            code_table[I].c.next->c.w = atoi(li + 1);
-            code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
-            code_table[I].c.next->c.A = 1;
-        }
-        if (code_table[I].c.source_indirect_register)
-        {
-            code_table[I].c.next->c.w = atoi(li + 2);
-            code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
-            code_table[I].c.next->c.A = 1;
-        }
-        if (code_table[I].c.source_immidiate)
-        {
-            for (i = 0; li[i] != '\0'; i++)
+            if (!strncmp(li, temp->symbol_name, i))
             {
-                if (li[i] == '#')
+                code_table[I].c.next->c.next->c.w = temp->address;
+                if (temp->is_external)
                 {
-                    code_table[I].c.next->c.w += atoi(li + i + 1);
-                    code_table[I].c.next->c.A = 1;
-                    li += i + 1;
-                    break;
-                }
-            }
-        }
-        if (code_table[I].c.source_direct)
-        {
-            temp = head_symbol;
-            for (i = 0; li[i] != '\0'; i++)
-                if (li[i] == ',' || li[i] == ' ')
-                    break;
-            while (temp)
-            {
-                if (!strncmp(li, temp->symbol_name, i))
-                {
-                    code_table[I].c.next->c.w = temp->address;
-                    if (temp->is_external)
+                    code_table[I].c.next->c.next->c.E = 1;
+                    ext = (symbol*)malloc(sizeof(symbol));
+                    if (!ext)
                     {
-                        code_table[I].c.next->c.E = 1;
-                        ext = (symbol*)malloc(sizeof(symbol));
-                        if (!ext)
-                        {
-                            printf("cannot allocate for ext\n");
-                            return;
-                        }
-                        ext->next = head_externals;
-                        head_externals = ext;
-                        clean_label_name(head_externals->symbol_name);
-                        strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                        head_externals->address = code_table[I].c.next->c.address;
+                        printf("Cannot allocate memory for ext\n");
+                        return;
                     }
-                    else
-                        code_table[I].c.next->c.R = 1;
-                    break;
+                    ext->next = head_externals;
+                    head_externals = ext;
+                    clean_label_name(head_externals->symbol_name);
+                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
+                    head_externals->address = code_table[I].c.next->c.next->c.address;
                 }
-                temp = temp->next;
+                else
+                    code_table[I].c.next->c.next->c.R = 1;
+                break;
             }
-        }
-        li = find_comma(li);
-        li += 1;
-        li = delete_first_spaces(li);
-        if (code_table[I].c.destination_direct_register)
-        {
-            code_table[I].c.next->c.next->c.w = atoi(li + 1);
-            code_table[I].c.next->c.next->c.A = 1;
-        }
-        if (code_table[I].c.destination_indirect_register)
-        {
-            code_table[I].c.next->c.next->c.w = atoi(li + 2);
-            code_table[I].c.next->c.next->c.A = 1;
-        }
-        if (code_table[I].c.destination_immidiate)
-        {
-            for (i = 0; li[i] != '\0'; i++)
-            {
-                if (li[i] == '#')
-                {
-                    code_table[I].c.next->c.next->c.w += atoi(li + i + 1);
-                    code_table[I].c.next->c.next->c.A = 1;
-                    break;
-                }
-            }
-        }
-        if (code_table[I].c.destination_direct)
-        {
-            temp = head_symbol;
-            for (i = 0; li[i] != '\0'; i++)
-                if (li[i] == ' ' || li[i] == '\n')
-                    break;
-            while (temp)
-            {
-                if (!strncmp(li, temp->symbol_name, i))
-                {
-                    code_table[I].c.next->c.next->c.w = temp->address;
-                    if (temp->is_external)
-                    {
-                        code_table[I].c.next->c.next->c.E = 1;
-                        ext = (symbol*)malloc(sizeof(symbol));
-                        if (!ext)
-                        {
-                            printf("Cannot allocate memory for ext\n");
-                            return;
-                        }
-                        ext->next = head_externals;
-                        head_externals = ext;
-                        clean_label_name(head_externals->symbol_name);
-                        strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                        head_externals->address = code_table[I].c.next->c.next->c.address;
-                    }
-                    else
-                        code_table[I].c.next->c.next->c.R = 1;
-                    break;
-                }
-                temp = temp->next;
-            }
+            temp = temp->next;
         }
     }
+}
+
+
+boolean is_registry_method()
+{
+    return ((code_table[I].c.destination_indirect_register && code_table[I].c.source_direct_register) ||
+            (code_table[I].c.destination_direct_register && code_table[I].c.source_indirect_register) ||
+            (code_table[I].c.destination_indirect_register && code_table[I].c.source_indirect_register) ||
+            (code_table[I].c.destination_direct_register && code_table[I].c.source_direct_register));
+}
+
+void handle_two_operands(char* li)
+{
+    if (is_registry_method())
+        handle_registers_method(li);
+    else
+        handle_two_operands_method(li);
     I++;
-    /*End of else*/
 }
 
 
 /*This function passes a second time on the operations in the text, Classifies and allocates memory - machine words*/
 void second_operation(char* li)
 {
-	symbol* temp = head_symbol;
-	symbol* ext;
-	int i;
 	li = delete_first_spaces(li);
 	/*Operations without operands*/
 	if (opcode == 14 || opcode == 15)
@@ -390,5 +399,4 @@ void second_operation(char* li)
 	{
         handle_two_operands(li);
 	}
-	/*End of operations with two operands*/
 }
