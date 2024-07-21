@@ -8,15 +8,8 @@
 extern int opcode; /*operation code*/
 
 FILE* fd;
-
-/*End of analize_2_second_pass*/
-
-/*End of second_operation*/
-
-
 #define REGISTER_SYMBOL 'r'
 #define DIRECT_SYMBOL '#'
-
 
 
 void handle_error(const char* message) {
@@ -29,6 +22,8 @@ int find_symbol(const char* line, const char* cmp_str, int length) {
     return strncmp(line, cmp_str, length) ? YES : NO;
 }*/
 
+
+//void update_machine_word
 
 
 void analize_2_second_pass(char* l)
@@ -73,8 +68,6 @@ int second_pass_exec(FILE* file_handle)
 
     return validate_second_pass();
 }
-
-/*End of ent*/
 
 
 int isLabel2(char* line)
@@ -147,6 +140,7 @@ void process_entry(char* li)
 	}
 }
 
+
 /*This function is called if the word is a label*/
 void process_lable(char* line)
 {
@@ -163,18 +157,27 @@ void process_lable(char* line)
 }
 
 
-void handle_one_operand(char* li) {
+void handle_method_destination(char* li, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word) {
     symbol* temp;
     symbol* ext;
     int i;
-    /*For method 0*/
-    if (code_table[I].c.destination_immidiate)
+    if (code_word->destination_direct_register)
     {
-        /*Converts the instant number*/
-        code_table[I].c.next->c.w = atoi(li + 1);
-        code_table[I].c.next->c.A = 1;
+        dest_machine_word->w = atoi(li + 1);
+        dest_machine_word->A = 1;
     }
-    else if (code_table[I].c.destination_direct)
+    else if (code_word->destination_indirect_register)
+    {
+        dest_machine_word->w = atoi(li + 2);
+        dest_machine_word->A = 1;
+    }
+    else if (code_word->destination_immidiate)
+    {
+        //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
+        dest_machine_word->w += atoi(li + 1);
+        dest_machine_word->A = 1;
+    }
+    else if (code_word->destination_direct)
     {
         temp = head_symbol;
         for (i = 0; li[i] != '\0'; i++)
@@ -184,39 +187,34 @@ void handle_one_operand(char* li) {
         {
             if (!strncmp(li, temp->symbol_name, i))
             {
-                code_table[I].c.next->c.w = temp->address;
+                dest_machine_word->w = temp->address;
                 if (temp->is_external)
                 {
-                    code_table[I].c.next->c.E = 1;
+                    dest_machine_word->E = 1;
                     ext = (symbol*)malloc(sizeof(symbol));
                     if (!ext)
                     {
-                        printf("Can not allocate memory for ext.\n");
+                        printf("Cannot allocate memory for ext\n");
                         return;
                     }
                     ext->next = head_externals;
                     head_externals = ext;
                     clean_label_name(head_externals->symbol_name);
                     strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                    head_externals->address = code_table[I].c.next->c.address;
+                    head_externals->address = dest_machine_word->address;
                 }
                 else
-                    code_table[I].c.next->c.R = 1;
+                    dest_machine_word->R = 1;
                 break;
             }
             temp = temp->next;
         }
     }
-    else if (code_table[I].c.destination_direct_register)
-    {
-        code_table[I].c.next->c.w = atoi(li + 1);
-        code_table[I].c.next->c.A = 1;
-    }
-    else if (code_table[I].c.destination_indirect_register)
-    {
-        code_table[I].c.next->c.w = atoi(li + 2);
-        code_table[I].c.next->c.A = 1;
-    }
+}
+
+
+void handle_one_operand(char* li) {
+    handle_method_destination(li, &code_table[I].c, &code_table[I].c.next->c);
     I++;
 }
 
@@ -238,6 +236,7 @@ void handle_registers_method(char* asm_line) {
 }
 
 void handle_two_operands_method(char* li) {
+    printf(li);
     symbol* temp;
     symbol* ext;
     int i;
@@ -256,16 +255,10 @@ void handle_two_operands_method(char* li) {
     }
     if (code_table[I].c.source_immidiate)
     {
-        for (i = 0; li[i] != '\0'; i++)
-        {
-            if (li[i] == '#')
-            {
-                code_table[I].c.next->c.w += atoi(li + i + 1);
-                code_table[I].c.next->c.A = 1;
-                li += i + 1;
-                break;
-            }
-        }
+        //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
+        code_table[I].c.next->c.w += atoi(li + 1);
+        code_table[I].c.next->c.A = 1;
+        li ++;
     }
     if (code_table[I].c.source_direct)
     {
@@ -303,58 +296,8 @@ void handle_two_operands_method(char* li) {
     li = find_comma(li);
     li += 1;
     li = delete_first_spaces(li);
-    if (code_table[I].c.destination_direct_register)
-    {
-        code_table[I].c.next->c.next->c.w = atoi(li + 1);
-        code_table[I].c.next->c.next->c.A = 1;
-    }
-    else if (code_table[I].c.destination_indirect_register)
-    {
-        code_table[I].c.next->c.next->c.w = atoi(li + 2);
-        code_table[I].c.next->c.next->c.A = 1;
-    }
-    else if (code_table[I].c.destination_immidiate)
-    {
-        li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
-
-        code_table[I].c.next->c.next->c.w += atoi(li + i + 1);
-        code_table[I].c.next->c.next->c.A = 1;
-    }
-    else if (code_table[I].c.destination_direct)
-    {
-        temp = head_symbol;
-        for (i = 0; li[i] != '\0'; i++)
-            if (li[i] == ' ' || li[i] == '\n')
-                break;
-        while (temp)
-        {
-            if (!strncmp(li, temp->symbol_name, i))
-            {
-                code_table[I].c.next->c.next->c.w = temp->address;
-                if (temp->is_external)
-                {
-                    code_table[I].c.next->c.next->c.E = 1;
-                    ext = (symbol*)malloc(sizeof(symbol));
-                    if (!ext)
-                    {
-                        printf("Cannot allocate memory for ext\n");
-                        return;
-                    }
-                    ext->next = head_externals;
-                    head_externals = ext;
-                    clean_label_name(head_externals->symbol_name);
-                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                    head_externals->address = code_table[I].c.next->c.next->c.address;
-                }
-                else
-                    code_table[I].c.next->c.next->c.R = 1;
-                break;
-            }
-            temp = temp->next;
-        }
-    }
+    handle_method_destination(li, &code_table[I].c, &code_table[I].c.next->c.next->c);
 }
-
 
 boolean is_registry_method()
 {

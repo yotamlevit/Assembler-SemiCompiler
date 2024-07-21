@@ -54,11 +54,11 @@ typedef struct machine_word_fields
 	unsigned : 0;
 	unsigned address;
 	union machine_word* next;
-}machine_word_fields;
+}machine_word_fields, * machine_word_fields_ptr;
 
 /*Machine word definition*/
 typedef union machine_word
-{ 
+{
 	machine_word_fields c;
 	struct diveded_into_threes parts;
 }machine_word;
@@ -86,11 +86,11 @@ typedef struct code_word_fields
 
 	unsigned address;
 	union machine_word* next;
-} code_word_fields;
+} code_word_fields, * code_word_fields_ptr;
 
 /*Code machine word definition*/
 typedef union codeword
-{ 
+{
 	code_word_fields c;
 	diveded_into_threes parts;
 }code_word;
