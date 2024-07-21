@@ -63,7 +63,7 @@ typedef union machine_word
 	struct diveded_into_threes parts;
 }word;
 
-struct code_word_fields
+typedef struct code_word_fields
 {
 	/*fields: external, relocatable, absoloute*/
 	unsigned int role : 3;
@@ -86,12 +86,12 @@ struct code_word_fields
 
 	unsigned address;
 	union machine_word* next;
-};
+} code_word_fields;
 
 /*Code machine word definition*/
 typedef union codeword
 { 
-	struct code_word_fields c;
+	code_word_fields c;
 	struct diveded_into_threes parts;
 }code_word;
 
