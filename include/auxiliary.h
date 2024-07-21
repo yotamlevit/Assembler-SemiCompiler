@@ -21,14 +21,14 @@ typedef struct symbols
 	struct symbols* next;
 }symbol;
 
-struct diveded_into_threes
+typedef struct diveded_into_threes
 {
 	unsigned w1 : 3;
 	unsigned w2 : 3;
 	unsigned w3 : 3;
 	unsigned w4 : 3;
 	unsigned w5 : 3;
-};
+} diveded_into_threes;
 
 struct data_word_fields
 {
@@ -92,7 +92,7 @@ typedef struct code_word_fields
 typedef union codeword
 { 
 	code_word_fields c;
-	struct diveded_into_threes parts;
+	diveded_into_threes parts;
 }code_word;
 
 /*Analize input line functions*/
