@@ -14,8 +14,8 @@ FILE* fd;
 /*End of second_operation*/
 
 
-#define END_OF_STR '\0'
-#define REGISTER_SIMBOL 'r'
+#define REGISTER_SYMBOL 'r'
+#define DIRECT_SYMBOL '#'
 
 
 
@@ -223,7 +223,7 @@ void handle_one_operand(char* li) {
 
 void handle_registers_method(char* asm_line) {
     /* First Register */
-    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SIMBOL);
+    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
 
     code_table[I].c.next->c.w = atoi(asm_line + 1);
     code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
@@ -231,7 +231,7 @@ void handle_registers_method(char* asm_line) {
     asm_line += 2; /* Move from the first register */
 
     /* Second Register */
-    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SIMBOL);
+    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
 
     code_table[I].c.next->c.w += atoi(asm_line + 1);
     code_table[I].c.next->c.A = 1;
@@ -308,24 +308,19 @@ void handle_two_operands_method(char* li) {
         code_table[I].c.next->c.next->c.w = atoi(li + 1);
         code_table[I].c.next->c.next->c.A = 1;
     }
-    if (code_table[I].c.destination_indirect_register)
+    else if (code_table[I].c.destination_indirect_register)
     {
         code_table[I].c.next->c.next->c.w = atoi(li + 2);
         code_table[I].c.next->c.next->c.A = 1;
     }
-    if (code_table[I].c.destination_immidiate)
+    else if (code_table[I].c.destination_immidiate)
     {
-        for (i = 0; li[i] != '\0'; i++)
-        {
-            if (li[i] == '#')
-            {
-                code_table[I].c.next->c.next->c.w += atoi(li + i + 1);
-                code_table[I].c.next->c.next->c.A = 1;
-                break;
-            }
-        }
+        li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
+
+        code_table[I].c.next->c.next->c.w += atoi(li + i + 1);
+        code_table[I].c.next->c.next->c.A = 1;
     }
-    if (code_table[I].c.destination_direct)
+    else if (code_table[I].c.destination_direct)
     {
         temp = head_symbol;
         for (i = 0; li[i] != '\0'; i++)
