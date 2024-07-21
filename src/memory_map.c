@@ -20,7 +20,7 @@ memmory addres in decimal base (code divided to 3 bits every time as an octal nu
 void create_object_file()
 {
 	int i;
-	word* temp;
+	machine_word* temp;
 	data_word* tempD;
 	FILE* fd;
 	add_extension_2_file_name(".ob");
