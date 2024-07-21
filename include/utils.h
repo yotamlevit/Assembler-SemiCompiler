@@ -18,4 +18,7 @@ int is_operation(char*);
 
 int is_stop(char*);
 
+
+char* find_next_symbol_in_line(char* line, char symbol);
+
 #endif //ASSEMBLER_SEMICOMPILER_UTILS_H

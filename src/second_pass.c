@@ -14,6 +14,10 @@ FILE* fd;
 /*End of second_operation*/
 
 
+#define END_OF_STR '\0'
+#define REGISTER_SIMBOL 'r'
+
+
 
 void handle_error(const char* message) {
     printf("ERROR!! line %d: %s\n", line_counter, message);
@@ -217,29 +221,20 @@ void handle_one_operand(char* li) {
 }
 
 
-void handle_registers_method(char* li) {
-    int i;
-    for (i = 0; li[i] != '\0'; i++)
-    {
-        if (li[i] == 'r')
-        {
-            code_table[I].c.next->c.w = atoi(li + i + 1);
-            code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
-            code_table[I].c.next->c.A = 1;
-            li += i + 1;
-            break;
-        }
-    }
-    for (i = 0; li[i] != '\0'; i++)
-    {
-        if (li[i] == 'r')
-        {
-            code_table[I].c.next->c.w += atoi(li + i + 1);
-            code_table[I].c.next->c.A = 1;
-            li += i;
-            break;
-        }
-    }
+void handle_registers_method(char* asm_line) {
+    /* First Register */
+    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SIMBOL);
+
+    code_table[I].c.next->c.w = atoi(asm_line + 1);
+    code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
+    code_table[I].c.next->c.A = 1;
+    asm_line += 2; /* Move from the first register */
+
+    /* Second Register */
+    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SIMBOL);
+
+    code_table[I].c.next->c.w += atoi(asm_line + 1);
+    code_table[I].c.next->c.A = 1;
 }
 
 void handle_two_operands_method(char* li) {
