@@ -23,7 +23,10 @@ int find_symbol(const char* line, const char* cmp_str, int length) {
 }*/
 
 
-//void update_machine_word
+void update_machine_word(machine_word_fields_ptr machine_word, int w, int A) {
+    machine_word->w = w;
+    machine_word->A = A;
+}
 
 
 void handle_method_destination(char* li, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word) {
@@ -31,20 +34,13 @@ void handle_method_destination(char* li, code_word_fields_ptr code_word, machine
     symbol* ext;
     int i;
     if (code_word->destination_direct_register)
-    {
-        dest_machine_word->w = atoi(li + 1);
-        dest_machine_word->A = 1;
-    }
+        update_machine_word(dest_machine_word, atoi(li + 1), 1);
     else if (code_word->destination_indirect_register)
-    {
-        dest_machine_word->w = atoi(li + 2);
-        dest_machine_word->A = 1;
-    }
+        update_machine_word(dest_machine_word, atoi(li + 2), 1);
     else if (code_word->destination_immidiate)
     {
         //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
-        dest_machine_word->w += atoi(li + 1);
-        dest_machine_word->A = 1;
+        update_machine_word(dest_machine_word, atoi(li + 1), 1);
     }
     else if (code_word->destination_direct)
     {
@@ -88,20 +84,16 @@ void handle_one_operand(char* li) {
 }
 
 
-void handle_registers_method(char* asm_line) {
+void handle_registers_method(char* asm_line, machine_word_fields_ptr machine_word) {
     /* First Register */
     asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
+    update_machine_word(machine_word, atoi(asm_line + 1) << 3, 1);
 
-    code_table[I].c.next->c.w = atoi(asm_line + 1);
-    code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
-    code_table[I].c.next->c.A = 1;
     asm_line += 2; /* Move from the first register */
 
     /* Second Register */
     asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
-
-    code_table[I].c.next->c.w += atoi(asm_line + 1);
-    code_table[I].c.next->c.A = 1;
+    update_machine_word(machine_word, machine_word->w + atoi(asm_line + 1), 1);
 }
 
 void handle_two_operands_method(char* li) {
@@ -179,7 +171,7 @@ boolean is_registry_method()
 void handle_two_operands(char* li)
 {
     if (is_registry_method())
-        handle_registers_method(li);
+        handle_registers_method(li, &code_table[I].c.next->c);
     else
         handle_two_operands_method(li);
     I++;

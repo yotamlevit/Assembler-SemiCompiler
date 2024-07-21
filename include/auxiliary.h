@@ -117,7 +117,6 @@ void free_symbol_table();
 void free_entries_list();
 void free_externals_list();
 
-void update_machine_word(machine_word*);
 
 /*Tables and lists*/
 extern symbol* head_symbol;
