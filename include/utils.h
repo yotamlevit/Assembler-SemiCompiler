@@ -11,6 +11,8 @@
 #define STOP_LENGTH 4
 #define STOP_OPCODE 15
 #define OPERATION_LENGTH 3
+#define END_OF_STR '\0'
+
 
 FILE* open_file(char* file);
 

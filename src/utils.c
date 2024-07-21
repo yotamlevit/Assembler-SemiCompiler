@@ -57,6 +57,6 @@ int is_stop(char* line)
 char* find_next_symbol_in_line(char* search_line, char symbol)
 {
     char* symbol_pos;
-    for (symbol_pos = search_line; *symbol_pos != symbol; symbol_pos++);
+    for (symbol_pos = search_line; *symbol_pos != symbol && *symbol_pos != END_OF_STR; symbol_pos++);
     return symbol_pos;
 }
