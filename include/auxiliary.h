@@ -45,7 +45,7 @@ typedef union dataword
 	struct diveded_into_threes parts;
 }data_word;
 
-struct machine_word_fields 
+typedef struct machine_word_fields
 {
 	unsigned E : 1;
 	unsigned R : 1;
@@ -54,14 +54,14 @@ struct machine_word_fields
 	unsigned : 0;
 	unsigned address;
 	union machine_word* next;
-};
+}machine_word_fields;
 
 /*Machine word definition*/
 typedef union machine_word
 { 
-	struct machine_word_fields c;
+	machine_word_fields c;
 	struct diveded_into_threes parts;
-}word;
+}machine_word;
 
 typedef struct code_word_fields
 {
@@ -116,6 +116,8 @@ void free_data_table();
 void free_symbol_table();
 void free_entries_list();
 void free_externals_list();
+
+void update_machine_word(machine_word*);
 
 /*Tables and lists*/
 extern symbol* head_symbol;

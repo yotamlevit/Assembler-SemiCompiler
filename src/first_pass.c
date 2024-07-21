@@ -159,7 +159,7 @@ void operation(char* li)
 	int i = 0;
 	boolean is_source = NO;
 	boolean is_destination = NO;
-	word* temp;
+	machine_word* temp;
 	boolean miss_comma = 0;
 	for (k = 0; li[k] == ' ' || li[k] == '\t'; k++);
 	strcpy(oper, li + k);
@@ -243,7 +243,7 @@ void operation(char* li)
 	/*If there is 2 operands and both of them 3 or 4 add method, they share the same memmory word--allocate one more word */
 	if ((operand_source == '3' && operand_destination == '2') || (operand_destination == '3' && operand_source == '2') || (operand_source == '3' && operand_destination == '3') || (operand_destination == '2' && operand_source == '2'))
 	{
-		temp = (word*)malloc(sizeof(word));
+		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (!temp)
 		{
 			printf("ERORR!! Memory allocation faild\n");
@@ -283,7 +283,7 @@ void operation(char* li)
 	/* If there is only one operand, allocate one more word in memory*/
 	else if (operand_source == ' ' && operand_destination != ' ')
 	{
-		temp = (word*)malloc(sizeof(word));
+		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (!temp)
 		{
 			printf("ERORR!! Memory allocation faild\n");
@@ -319,7 +319,7 @@ void operation(char* li)
 	else
 	{ 
 		/*Allocate two more memmory words*/
-		temp = (word*)malloc(sizeof(word));
+		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (!temp)
 		{
 			printf("ERORR!!Memory allocation faild\n");
@@ -328,7 +328,7 @@ void operation(char* li)
 		}
 		temp->c.next = NULL;
 		code_table[I].c.next = temp;
-		temp = (word*)malloc(sizeof(word));
+		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (!temp)
 		{
 			printf("ERORR!! Memory allocation faild\n");

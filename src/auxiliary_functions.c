@@ -61,8 +61,8 @@ void free_data_table()
 void free_code_table()
 {
 	int i;
-	word* temp;
-	word* temp2;
+	machine_word* temp;
+	machine_word* temp2;
 	for (i = 0; i < TABLE_SIZE; i++)
 	{
 		temp = code_table[i].c.next;
