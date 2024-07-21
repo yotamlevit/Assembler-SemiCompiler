@@ -91,6 +91,7 @@ int process_file(char* asm_file_name)
 
     prep_second_pass(fd);
 
+    info_log("Starting second pass on %s", file_name);
     file_result = second_pass_exec(fd);
 
     fclose(fd);
