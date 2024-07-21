@@ -22,4 +22,6 @@ add_executable(Assembler_SemiCompiler
         src/utils.c
         include/utils.h
         include/status_codes.h
-        src/status_codes.c)
+        src/status_codes.c
+        src/logger.c
+        include/logger.h)

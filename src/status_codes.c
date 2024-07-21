@@ -20,6 +20,8 @@ StatusPtr getStatuses(void)
         {success, "INFO - The operation was successful"},
         {error, "ERROR - Error occurred"},
         {noFilesProvided, "ERROR - You must send files."},
+        {memoryAllocationFailure, "ERROR - Memory allocation failure"},
+        {openFileError, "ERROR - Could not open a file"}
     };
     return Statuses;
 }
