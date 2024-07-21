@@ -5,6 +5,7 @@
 #include "../include/first_pass.h"
 #include "../include/constants_tables.h"
 #include "../include/globals.h"
+#include "../include/status_codes.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode; 
@@ -139,34 +140,8 @@ void label_actions(char* li)
 }
 /*End of label_actions function*/
 
-/*This function checks if it is an action statement*/
-int is_operation(char* li)
-{
-	int i;
- 	for(i = 0;i<OPERATIONS_AMOUNT -1; i++)
-	{ 
-		/*Without stop op*/
-		if (!(strncmp(li, operation_mode[i][2], 3)))
-		{ 
-			/*If the operation exist return true--1*/
-			opcode = i;
-			return 1;
-		}
-	}
-	return 0;
-}
 /*End of is_operation function*/
 
-/*This function checks if it is stop operation*/
-int is_stop(char* line)
-{
-	if (!(strncmp(line, "stop", 4)))
-	{
-		opcode = 15;
-		return 1;
-	}
-	return 0;
-}
 /*End of is_stop function*/
 
 /*The first transition of the operations*/
@@ -688,5 +663,6 @@ int first_pass_exec(FILE* file_handle)
     }
 
     //exe_first_pass(file_name);
-    return validate_memory(IC, DC);
+    validate_memory(IC, DC);
+	return success;
 }
