@@ -6,9 +6,10 @@
 #define ASSEMBLER_SEMICOMPILER_SECOND_PASS_H
 
 #include <stdio.h>
+#include "auxiliary.h"
 
 
-void analize_2_second_pass(char*);
+boolean analize_2_second_pass(char*);
 
 int second_pass_exec(FILE * file_handle);
 
@@ -19,7 +20,7 @@ void process_entry(char*);
 
 void process_lable(char*);
 
-void second_operation(char* li);
+boolean second_operation(char* li);
 
 
 void handle_error(const char* message);

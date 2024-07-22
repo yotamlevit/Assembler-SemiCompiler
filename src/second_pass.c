@@ -3,7 +3,6 @@
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/globals.h"
-#include "../include/auxiliary.h"
 #include "../include/logger.h"
 
 extern int opcode; /*operation code*/
@@ -13,6 +12,7 @@ FILE* fd;
 #define COMMA ','
 #define SPACE ' '
 #define NEW_LINE '\n'
+#define LABLE_SYMBOL ':'
 
 
 /*
@@ -27,55 +27,6 @@ void update_machine_word(machine_word_fields_ptr machine_word, int w, int A) {
 }
 
 
-void handle_method_destination(char* li, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word) {
-    symbol* temp;
-    symbol* ext;
-    int i;
-    if (code_word->destination_direct_register)
-        update_machine_word(dest_machine_word, atoi(li + 1), 1);
-    else if (code_word->destination_indirect_register)
-        update_machine_word(dest_machine_word, atoi(li + 2), 1);
-    else if (code_word->destination_immidiate)
-    {
-        //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
-        update_machine_word(dest_machine_word, atoi(li + 1), 1);
-    }
-    else if (code_word->destination_direct)
-    {
-        temp = head_symbol;
-        for (i = 0; li[i] != '\0'; i++)
-            if (li[i] == ' ' || li[i] == '\n')
-                break;
-        while (temp)
-        {
-            if (!strncmp(li, temp->symbol_name, i))
-            {
-                dest_machine_word->w = temp->address;
-                if (temp->is_external)
-                {
-                    dest_machine_word->E = 1;
-                    ext = (symbol*)malloc(sizeof(symbol));
-                    if (!ext)
-                    {
-                        printf("Cannot allocate memory for ext\n");
-                        return;
-                    }
-                    ext->next = head_externals;
-                    head_externals = ext;
-                    clean_label_name(head_externals->symbol_name);
-                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                    head_externals->address = dest_machine_word->address;
-                }
-                else
-                    dest_machine_word->R = 1;
-                break;
-            }
-            temp = temp->next;
-        }
-    }
-}
-
-
 int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
 {
     if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == NO) || (( code_word->source_immidiate || code_word->source_direct_register) && is_src == YES))
@@ -86,7 +37,7 @@ int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
         return 0;
 }
 
-int handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
+boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
     symbol* temp;
     symbol* ext;
     int symbol_name_length, offset_value;
@@ -146,14 +97,13 @@ int handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_
 }
 
 
-void handle_one_operand(char* li) {
+boolean handle_one_operand(char* li) {
     /* Handling dest operand */
-    handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, NO);
-    I++;
+    return handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, NO);
 }
 
 
-void handle_registers_method(char* asm_line, machine_word_fields_ptr machine_word) {
+boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_word) {
     /* First Register */
     asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
     update_machine_word(machine_word, atoi(asm_line + 1) << 3, 1);
@@ -163,17 +113,29 @@ void handle_registers_method(char* asm_line, machine_word_fields_ptr machine_wor
     /* Second Register */
     asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
     update_machine_word(machine_word, machine_word->w + atoi(asm_line + 1), 1);
+
+    return YES;
 }
 
-void handle_two_operands_method(char* li) {
+boolean handle_two_operands_method(char* li) {
+    boolean result = YES;
     /* Handle Source operand */
-    handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, YES);
-    li = find_comma(li);
-    li += 1;
-    li = delete_first_spaces(li);
+    result = handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, YES);
 
-    /* Handle Destination operand */
-    handle_operand(li, &code_table[I].c, &code_table[I].c.next->c.next->c, NO);
+    if(result != NO)
+    {
+        /* Move from the first operand */
+        li = find_comma(li);
+        li += 1;
+        li = delete_first_spaces(li);
+
+        /* Handle Destination operand */
+        result = handle_operand(li, &code_table[I].c, &code_table[I].c.next->c.next->c, NO);
+    }
+
+    return result;
+
+
 }
 
 boolean is_registry_method()
@@ -184,44 +146,35 @@ boolean is_registry_method()
             (code_table[I].c.destination_direct_register && code_table[I].c.source_direct_register));
 }
 
-void handle_two_operands(char* li)
+boolean handle_two_operands(char* li)
 {
     if (is_registry_method())
-        handle_registers_method(li, &code_table[I].c.next->c);
+        return handle_registers_method(li, &code_table[I].c.next->c);
     else
-        handle_two_operands_method(li);
-    I++;
+        return handle_two_operands_method(li);
 }
 
 
 /*This function passes a second time on the operations in the text, Classifies and allocates memory - machine words*/
-void second_operation(char* li)
+boolean second_operation(char* li)
 {
+    boolean result = YES;
 	li = delete_first_spaces(li);
-	/*Operations without operands*/
-	if (opcode == 14 || opcode == 15)
-		I++;
 	/*Operations with one operand only*/
-	else if (opcode <= 13 && opcode >= 5)
-        handle_one_operand(li);
+	if (opcode <= 13 && opcode >= 5)
+        result = handle_one_operand(li);
 	/*Operations with two operands*/
 	else if (opcode <= 4 && opcode >= 0)
-	{
-        handle_two_operands(li);
-	}
+        result = handle_two_operands(li);
+
+    I++;
+    return result;
 }
 
 
-int isLabel2(char* line)
+int isLabel2(char* asm_line)
 {
-    int i;
-    line = delete_first_spaces(line);
-    for (i = 0; i < MAX_LINE_LENGTH; i++)
-    {
-        if (line[i] == ':')
-            return 1;
-    }
-    return 0;
+    return *find_next_symbol_in_line(asm_line, LABLE_SYMBOL) == LABLE_SYMBOL;
 }
 
 
@@ -300,7 +253,7 @@ void process_entry(char* li)
 }
 
 
-void analize_2_second_pass(char* l)
+boolean analize_2_second_pass(char* l)
 {
     /*l1 is a point in the first place right after the first spaces*/
     char* l1 = delete_first_spaces(l);
@@ -308,22 +261,20 @@ void analize_2_second_pass(char* l)
     if (!strncmp(l1, ".entry", strlen(".entry")))
     {
         process_entry(l1 + 6);
-        return;
+        return YES;
     }
     if (isLabel2(l1))
     {
         process_lable(l1);
-        return;
+        return YES;
     }
     if (is_operation(l1))
     {
-        second_operation(l1 + OPERATION_LENGTH);
-        return;
+        return second_operation(l1 + OPERATION_LENGTH);
     }
     if (is_stop(l1))
     {
-        second_operation(l1 + STOP_LENGTH);
-        return;
+        return second_operation(l1 + STOP_LENGTH);
     }
 }
 
