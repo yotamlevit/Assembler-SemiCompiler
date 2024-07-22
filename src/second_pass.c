@@ -29,12 +29,15 @@ void update_machine_word(machine_word_fields_ptr machine_word, int w, int A) {
 
 int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
 {
-    if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == NO) || (( code_word->source_immidiate || code_word->source_direct_register) && is_src == YES))
+    if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == NO) ||
+        (( code_word->source_immidiate || code_word->source_direct_register) && is_src == YES))
         return 1;
-    else if ((code_word->destination_indirect_register && is_src == NO) || (code_word->source_indirect_register && is_src == YES))
+
+    if ((code_word->destination_indirect_register && is_src == NO) ||
+        (code_word->source_indirect_register && is_src == YES))
         return 2;
-    else
-        return 0;
+
+    return 0;
 }
 
 boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
@@ -97,9 +100,9 @@ boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_w
 }
 
 
-boolean handle_one_operand(char* li) {
+boolean handle_one_operand(char* asm_line, code_word_fields_ptr code_word) {
     /* Handling dest operand */
-    return handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, NO);
+    return handle_operand(asm_line, code_word, &code_word->next->c, NO);
 }
 
 
@@ -117,20 +120,20 @@ boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_
     return YES;
 }
 
-boolean handle_two_operands_method(char* li) {
-    boolean result = YES;
+boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_word) {
+    boolean result;
     /* Handle Source operand */
-    result = handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, YES);
+    result = handle_operand(asm_line, code_word, &code_word->next->c, YES);
 
     if(result != NO)
     {
         /* Move from the first operand */
-        li = find_comma(li);
-        li += 1;
-        li = delete_first_spaces(li);
+        asm_line = find_comma(asm_line);
+        asm_line += 1;
+        asm_line = delete_first_spaces(asm_line);
 
         /* Handle Destination operand */
-        result = handle_operand(li, &code_table[I].c, &code_table[I].c.next->c.next->c, NO);
+        result = handle_operand(asm_line, code_word, &code_word->next->c.next->c, NO);
     }
 
     return result;
@@ -146,26 +149,26 @@ boolean is_registry_method()
             (code_table[I].c.destination_direct_register && code_table[I].c.source_direct_register));
 }
 
-boolean handle_two_operands(char* li)
+boolean handle_two_operands(char* asm_line, code_word_fields_ptr code_word)
 {
     if (is_registry_method())
-        return handle_registers_method(li, &code_table[I].c.next->c);
+        return handle_registers_method(asm_line, &code_word->next->c);
     else
-        return handle_two_operands_method(li);
+        return handle_two_operands_method(asm_line, code_word);
 }
 
 
 /*This function passes a second time on the operations in the text, Classifies and allocates memory - machine words*/
-boolean second_operation(char* li)
+boolean second_operation(char* asm_line, code_word_fields_ptr code_word)
 {
     boolean result = YES;
-	li = delete_first_spaces(li);
+    asm_line = delete_first_spaces(asm_line);
 	/*Operations with one operand only*/
 	if (opcode <= 13 && opcode >= 5)
-        result = handle_one_operand(li);
+        result = handle_one_operand(asm_line, code_word);
 	/*Operations with two operands*/
 	else if (opcode <= 4 && opcode >= 0)
-        result = handle_two_operands(li);
+        result = handle_two_operands(asm_line, code_word);
 
     I++;
     return result;
@@ -179,47 +182,43 @@ int isLabel2(char* asm_line)
 
 
 /*This function is called if the word is a label*/
-void process_lable(char* line)
+boolean process_lable(char* asm_line, code_word_fields_ptr code_word)
 {
-    int i;
-    for (i = 0; i < MAX_LINE_LENGTH; i++)
-    {
-        if (line[i] == ':')
-        {
-            /*go again to analize2 */
-            analize_2_second_pass(line + i + 1);
-            return;
-        }
-    }
+    asm_line = find_next_symbol_in_line(asm_line, LABLE_SYMBOL);
+    return analize_2_second_pass(++asm_line, code_word);
 }
 
 
 /*This function creates a list that handles the entry guides*/
-void process_entry(char* li)
+boolean process_entry(char* asm_line)
 {
     symbol* temp = head_symbol;
     symbol* temp2;
     boolean is_exist = NO;
-    int i;
-    li = delete_first_spaces(li);
-    if (*li == '\0')
+    int i, symbol_name_length;
+    asm_line = delete_first_spaces(asm_line);
+    if (*asm_line == END_OF_STR)
     {
-        printf("ERROR!! line %d: Label is Missing\n", line_counter);
-        error_flag = ON;
+        error_log("Lable is missing on line %s", asm_line);
+        return NO;
     }
-    if (strlen(li) > MAX_LABEL_LENGTH)
+
+    if (strlen(asm_line) > MAX_LABEL_LENGTH)
     {
         printf("ERROR!! line %d: Label is too long\n", line_counter);
         error_flag = ON;
+        return NO;
     }
-    for (i = 1; i < MAX_LINE_LENGTH || li[i] == '\0'; i++)
+    for (symbol_name_length = 0; asm_line[symbol_name_length] != COMMA && asm_line[symbol_name_length] != SPACE && asm_line[symbol_name_length] != NEW_LINE && asm_line[symbol_name_length] != END_OF_STR; symbol_name_length++);
+
+    for (i = 1; i < MAX_LINE_LENGTH || asm_line[i] == '\0'; i++)
     {
-        if (li[i] == ' ' || li[i] == '\n' || li[i] == '\t')
+        if (asm_line[i] == ' ' || asm_line[i] == '\n' || asm_line[i] == '\t')
             break;
     }
     while (temp)
     {
-        if (!strncmp(li, temp->symbol_name, i))
+        if (!strncmp(asm_line, temp->symbol_name, i))
         {
             is_exist = YES;
             if (temp->is_external)
@@ -253,26 +252,24 @@ void process_entry(char* li)
 }
 
 
-boolean analize_2_second_pass(char* asm_line)
+boolean analize_2_second_pass(char* asm_line, code_word_fields_ptr code_word)
 {
     /* Clean the line from spaces */
-    asm_line = delete_first_spaces(asm_line);
-
-    if (!strncmp(asm_line, ".entry", strlen(".entry")))
+    char* clean_line = delete_first_spaces(asm_line);
+    if (!strncmp(clean_line, ".entry", strlen(".entry")))
     {
-        process_entry(asm_line + 6);
+        process_entry(clean_line + 6);
         return YES;
     }
-    if (isLabel2(asm_line))
+    if (isLabel2(clean_line))
     {
-        process_lable(asm_line);
-        return YES;
+        return process_lable(clean_line, code_word);
     }
     /* Otherwise it is an operation*/
-    if (is_operation(asm_line))
-        return second_operation(asm_line + OPERATION_LENGTH);
-    if (is_stop(asm_line))
-        return second_operation(asm_line + STOP_LENGTH);
+    if (is_operation(clean_line))
+        return second_operation(clean_line + OPERATION_LENGTH, code_word);
+    if (is_stop(clean_line))
+        return second_operation(clean_line + STOP_LENGTH, code_word);
 
     /* If here then it is a .string, .data or .extern */
     return YES;
@@ -286,7 +283,7 @@ int second_pass_exec(FILE* file_handle)
     while (!feof(fd))
     {
         /*Second analize*/
-        if (!analize_2_second_pass(line))
+        if (!analize_2_second_pass(line, &code_table[I].c))
         {
             error_log("Second pass failed on line: %s", delete_first_spaces(line));
             return NO;
