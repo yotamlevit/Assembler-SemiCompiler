@@ -253,29 +253,29 @@ void process_entry(char* li)
 }
 
 
-boolean analize_2_second_pass(char* l)
+boolean analize_2_second_pass(char* asm_line)
 {
-    /*l1 is a point in the first place right after the first spaces*/
-    char* l1 = delete_first_spaces(l);
-    /*This condition continues the text transition as long as the line is blank or consist comments*/
-    if (!strncmp(l1, ".entry", strlen(".entry")))
+    /* Clean the line from spaces */
+    asm_line = delete_first_spaces(asm_line);
+
+    if (!strncmp(asm_line, ".entry", strlen(".entry")))
     {
-        process_entry(l1 + 6);
+        process_entry(asm_line + 6);
         return YES;
     }
-    if (isLabel2(l1))
+    if (isLabel2(asm_line))
     {
-        process_lable(l1);
+        process_lable(asm_line);
         return YES;
     }
-    if (is_operation(l1))
-    {
-        return second_operation(l1 + OPERATION_LENGTH);
-    }
-    if (is_stop(l1))
-    {
-        return second_operation(l1 + STOP_LENGTH);
-    }
+    /* Otherwise it is an operation*/
+    if (is_operation(asm_line))
+        return second_operation(asm_line + OPERATION_LENGTH);
+    if (is_stop(asm_line))
+        return second_operation(asm_line + STOP_LENGTH);
+
+    /* If here then it is a .string, .data or .extern */
+    return YES;
 }
 
 
@@ -286,7 +286,11 @@ int second_pass_exec(FILE* file_handle)
     while (!feof(fd))
     {
         /*Second analize*/
-        analize_2_second_pass(line);
+        if (!analize_2_second_pass(line))
+        {
+            error_log("Second pass failed on line: %s", delete_first_spaces(line));
+            return NO;
+        }
         line_counter++;
         /*Get one line from the file V */
         fgets(line, MAX_LINE_LENGTH, fd);
