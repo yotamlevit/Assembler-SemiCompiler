@@ -10,16 +10,10 @@ extern int opcode; /*operation code*/
 
 FILE* fd;
 #define REGISTER_SYMBOL 'r'
-#define DIRECT_SYMBOL '#'
 #define COMMA ','
 #define SPACE ' '
 #define NEW_LINE '\n'
 
-
-void handle_error(const char* message) {
-    printf("ERROR!! line %d: %s\n", line_counter, message);
-    error_flag = ON;
-}
 
 /*
 int find_symbol(const char* line, const char* cmp_str, int length) {
@@ -34,55 +28,6 @@ void update_machine_word(machine_word_fields_ptr machine_word, int w, int A) {
 
 
 void handle_method_destination(char* li, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word) {
-    symbol* temp;
-    symbol* ext;
-    int i;
-    if (code_word->destination_direct_register)
-        update_machine_word(dest_machine_word, atoi(li + 1), 1);
-    else if (code_word->destination_indirect_register)
-        update_machine_word(dest_machine_word, atoi(li + 2), 1);
-    else if (code_word->destination_immidiate)
-    {
-        //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
-        update_machine_word(dest_machine_word, atoi(li + 1), 1);
-    }
-    else if (code_word->destination_direct)
-    {
-        temp = head_symbol;
-        for (i = 0; li[i] != '\0'; i++)
-            if (li[i] == ' ' || li[i] == '\n')
-                break;
-        while (temp)
-        {
-            if (!strncmp(li, temp->symbol_name, i))
-            {
-                dest_machine_word->w = temp->address;
-                if (temp->is_external)
-                {
-                    dest_machine_word->E = 1;
-                    ext = (symbol*)malloc(sizeof(symbol));
-                    if (!ext)
-                    {
-                        printf("Cannot allocate memory for ext\n");
-                        return;
-                    }
-                    ext->next = head_externals;
-                    head_externals = ext;
-                    clean_label_name(head_externals->symbol_name);
-                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                    head_externals->address = dest_machine_word->address;
-                }
-                else
-                    dest_machine_word->R = 1;
-                break;
-            }
-            temp = temp->next;
-        }
-    }
-}
-
-
-void handle_method_src(char* li, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word) {
     symbol* temp;
     symbol* ext;
     int i;
@@ -221,71 +166,14 @@ void handle_registers_method(char* asm_line, machine_word_fields_ptr machine_wor
 }
 
 void handle_two_operands_method(char* li) {
-    symbol* temp;
-    symbol* ext;
-    int i;
-    //machine_word_fields_ptr machine_word = &code_table[I].c.next->c;
-
+    /* Handle Source operand */
     handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, YES);
-
-    if (code_table[I].c.source_direct_register)
-    {
-
-        code_table[I].c.next->c.w = atoi(li + 1);
-        code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
-        code_table[I].c.next->c.A = 1;
-    }
-    if (code_table[I].c.source_indirect_register)
-    {
-        code_table[I].c.next->c.w = atoi(li + 2);
-        code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
-        code_table[I].c.next->c.A = 1;
-    }
-    if (code_table[I].c.source_immidiate)
-    {
-        //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
-        code_table[I].c.next->c.w += atoi(li + 1);
-        code_table[I].c.next->c.A = 1;
-        li ++;
-    }
-    if (code_table[I].c.source_direct)
-    {
-        temp = head_symbol;
-        for (i = 0; li[i] != '\0'; i++)
-            if (li[i] == ',' || li[i] == ' ')
-                break;
-        while (temp)
-        {
-            if (!strncmp(li, temp->symbol_name, i))
-            {
-                code_table[I].c.next->c.w = temp->address;
-                if (temp->is_external)
-                {
-                    code_table[I].c.next->c.E = 1;
-                    ext = (symbol*)malloc(sizeof(symbol));
-                    if (!ext)
-                    {
-                        printf("cannot allocate for ext\n");
-                        return;
-                    }
-                    ext->next = head_externals;
-                    head_externals = ext;
-                    clean_label_name(head_externals->symbol_name);
-                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
-                    head_externals->address = code_table[I].c.next->c.address;
-                }
-                else
-                    code_table[I].c.next->c.R = 1;
-                break;
-            }
-            temp = temp->next;
-        }
-    }
     li = find_comma(li);
     li += 1;
     li = delete_first_spaces(li);
 
     /* Handle Destination operand */
+    //handle_operand(li, &code_table[I].c, &code_table[I].c.next->c.next->c, NO);
     handle_method_destination(li, &code_table[I].c, &code_table[I].c.next->c.next->c);
 }
 
