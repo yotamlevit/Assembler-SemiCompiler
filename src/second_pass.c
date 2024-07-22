@@ -173,8 +173,7 @@ void handle_two_operands_method(char* li) {
     li = delete_first_spaces(li);
 
     /* Handle Destination operand */
-    //handle_operand(li, &code_table[I].c, &code_table[I].c.next->c.next->c, NO);
-    handle_method_destination(li, &code_table[I].c, &code_table[I].c.next->c.next->c);
+    handle_operand(li, &code_table[I].c, &code_table[I].c.next->c.next->c, NO);
 }
 
 boolean is_registry_method()
