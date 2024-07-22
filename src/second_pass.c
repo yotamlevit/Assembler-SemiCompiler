@@ -4,6 +4,7 @@
 #include "../include/second_pass.h"
 #include "../include/globals.h"
 #include "../include/auxiliary.h"
+#include "../include/logger.h"
 
 extern int opcode; /*operation code*/
 
@@ -129,21 +130,24 @@ void handle_method_src(char* li, code_word_fields_ptr code_word, machine_word_fi
     }
 }
 
-void handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
+
+int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
+{
+    if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == NO) || (( code_word->source_immidiate || code_word->source_direct_register) && is_src == YES))
+        return 1;
+    else if ((code_word->destination_indirect_register && is_src == NO) || (code_word->source_indirect_register && is_src == YES))
+        return 2;
+    else
+        return 0;
+}
+
+int handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
     symbol* temp;
     symbol* ext;
-    int symbol_name_length;
+    int symbol_name_length, offset_value;
 
 
-    if ((code_word->destination_direct_register && is_src == NO) || ( code_word->source_direct_register && is_src == YES))
-        update_machine_word(dest_machine_word, atoi(asm_line + 1), 1);
-    else if ((code_word->destination_indirect_register && is_src == NO) || (code_word->source_indirect_register && is_src == YES))
-        update_machine_word(dest_machine_word, atoi(asm_line + 2), 1);
-    else if ((code_word->destination_immidiate && is_src == NO) || (code_word->source_immidiate && is_src == YES))
-    {
-        update_machine_word(dest_machine_word, atoi(asm_line + 1), 1);
-    }
-    else if ((code_word->destination_direct && is_src == NO) || (code_word->source_direct && is_src == YES))
+    if ((code_word->destination_direct && is_src == NO) || (code_word->source_direct && is_src == YES))
     {
         temp = head_symbol;
 
@@ -160,8 +164,8 @@ void handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word
                     ext = (symbol*)malloc(sizeof(symbol));
                     if (!ext)
                     {
-                        printf("Cannot allocate memory for ext\n");
-                        return;
+                        error_log("Cannot allocate memory for ext (second pass) - raised on line: %s", asm_line);
+                        return NO;
                     }
                     ext->next = head_externals;
                     head_externals = ext;
@@ -176,6 +180,24 @@ void handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word
             temp = temp->next;
         }
     }
+    else
+    {
+        /* is not a direct_memory */
+        offset_value = get_operand_offset_value(code_word, is_src);
+
+        if(offset_value == 0)
+        {
+            error_log("Error handling operand %s - raised on line: %s", is_src ? "source" : "destination", asm_line);
+            return NO;
+        }
+
+        if (is_src)
+            update_machine_word(dest_machine_word, atoi(asm_line + offset_value) << 3, 1);
+        else
+            update_machine_word(dest_machine_word, atoi(asm_line + offset_value), 1);
+    }
+
+    return YES;
 }
 
 
@@ -204,7 +226,7 @@ void handle_two_operands_method(char* li) {
     int i;
     //machine_word_fields_ptr machine_word = &code_table[I].c.next->c;
 
-    //handle_operand(li, &code_table[I].c, YES);
+    handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, YES);
 
     if (code_table[I].c.source_direct_register)
     {
