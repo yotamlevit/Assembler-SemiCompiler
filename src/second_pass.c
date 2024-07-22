@@ -10,6 +10,9 @@ extern int opcode; /*operation code*/
 FILE* fd;
 #define REGISTER_SYMBOL 'r'
 #define DIRECT_SYMBOL '#'
+#define COMMA ','
+#define SPACE ' '
+#define NEW_LINE '\n'
 
 
 void handle_error(const char* message) {
@@ -78,8 +81,107 @@ void handle_method_destination(char* li, code_word_fields_ptr code_word, machine
 }
 
 
+void handle_method_src(char* li, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word) {
+    symbol* temp;
+    symbol* ext;
+    int i;
+    if (code_word->destination_direct_register)
+        update_machine_word(dest_machine_word, atoi(li + 1), 1);
+    else if (code_word->destination_indirect_register)
+        update_machine_word(dest_machine_word, atoi(li + 2), 1);
+    else if (code_word->destination_immidiate)
+    {
+        //li = find_next_symbol_in_line(li, DIRECT_SYMBOL);
+        update_machine_word(dest_machine_word, atoi(li + 1), 1);
+    }
+    else if (code_word->destination_direct)
+    {
+        temp = head_symbol;
+        for (i = 0; li[i] != '\0'; i++)
+            if (li[i] == ' ' || li[i] == '\n')
+                break;
+        while (temp)
+        {
+            if (!strncmp(li, temp->symbol_name, i))
+            {
+                dest_machine_word->w = temp->address;
+                if (temp->is_external)
+                {
+                    dest_machine_word->E = 1;
+                    ext = (symbol*)malloc(sizeof(symbol));
+                    if (!ext)
+                    {
+                        printf("Cannot allocate memory for ext\n");
+                        return;
+                    }
+                    ext->next = head_externals;
+                    head_externals = ext;
+                    clean_label_name(head_externals->symbol_name);
+                    strncpy(head_externals->symbol_name, temp->symbol_name, i);
+                    head_externals->address = dest_machine_word->address;
+                }
+                else
+                    dest_machine_word->R = 1;
+                break;
+            }
+            temp = temp->next;
+        }
+    }
+}
+
+void handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
+    symbol* temp;
+    symbol* ext;
+    int symbol_name_length;
+
+
+    if ((code_word->destination_direct_register && is_src == NO) || ( code_word->source_direct_register && is_src == YES))
+        update_machine_word(dest_machine_word, atoi(asm_line + 1), 1);
+    else if ((code_word->destination_indirect_register && is_src == NO) || (code_word->source_indirect_register && is_src == YES))
+        update_machine_word(dest_machine_word, atoi(asm_line + 2), 1);
+    else if ((code_word->destination_immidiate && is_src == NO) || (code_word->source_immidiate && is_src == YES))
+    {
+        update_machine_word(dest_machine_word, atoi(asm_line + 1), 1);
+    }
+    else if ((code_word->destination_direct && is_src == NO) || (code_word->source_direct && is_src == YES))
+    {
+        temp = head_symbol;
+
+        for (symbol_name_length = 0; asm_line[symbol_name_length] != COMMA && asm_line[symbol_name_length] != SPACE && asm_line[symbol_name_length] != NEW_LINE && asm_line[symbol_name_length] != END_OF_STR; symbol_name_length++);
+
+        while (temp)
+        {
+            if (!strncmp(asm_line, temp->symbol_name, symbol_name_length))
+            {
+                dest_machine_word->w = temp->address;
+                if (temp->is_external)
+                {
+                    dest_machine_word->E = 1;
+                    ext = (symbol*)malloc(sizeof(symbol));
+                    if (!ext)
+                    {
+                        printf("Cannot allocate memory for ext\n");
+                        return;
+                    }
+                    ext->next = head_externals;
+                    head_externals = ext;
+                    clean_label_name(head_externals->symbol_name);
+                    strncpy(head_externals->symbol_name, temp->symbol_name, symbol_name_length);
+                    head_externals->address = dest_machine_word->address;
+                }
+                else
+                    dest_machine_word->R = 1;
+                break;
+            }
+            temp = temp->next;
+        }
+    }
+}
+
+
 void handle_one_operand(char* li) {
-    handle_method_destination(li, &code_table[I].c, &code_table[I].c.next->c);
+    /* Handling dest operand */
+    handle_operand(li, &code_table[I].c, &code_table[I].c.next->c, NO);
     I++;
 }
 
@@ -97,13 +199,16 @@ void handle_registers_method(char* asm_line, machine_word_fields_ptr machine_wor
 }
 
 void handle_two_operands_method(char* li) {
-    printf(li);
     symbol* temp;
     symbol* ext;
     int i;
+    //machine_word_fields_ptr machine_word = &code_table[I].c.next->c;
+
+    //handle_operand(li, &code_table[I].c, YES);
 
     if (code_table[I].c.source_direct_register)
     {
+
         code_table[I].c.next->c.w = atoi(li + 1);
         code_table[I].c.next->c.w = code_table[I].c.next->c.w << 3;
         code_table[I].c.next->c.A = 1;
@@ -157,6 +262,8 @@ void handle_two_operands_method(char* li) {
     li = find_comma(li);
     li += 1;
     li = delete_first_spaces(li);
+
+    /* Handle Destination operand */
     handle_method_destination(li, &code_table[I].c, &code_table[I].c.next->c.next->c);
 }
 
