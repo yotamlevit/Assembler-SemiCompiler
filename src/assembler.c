@@ -28,7 +28,7 @@ int error_flag;
 
 
 int iterate_input_files(int argc, char** argv);
-int process_file(char* asm_file_name);
+boolean process_file(char* asm_file_name);
 
 void reset_assembler();
 
@@ -66,9 +66,9 @@ void reset_assembler()
 }
 
 
-int process_file(char* asm_file_name)
+boolean process_file(char* asm_file_name)
 {
-    int file_result = 0, first_pass_exec_result;
+    boolean first_pass_exec_result;
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
         return memoryAllocationFailure;
@@ -91,11 +91,11 @@ int process_file(char* asm_file_name)
     prep_second_pass(fd);
 
     info_log("Starting second pass on %s", file_name);
-    file_result = second_pass_exec(fd);
+    first_pass_exec_result = second_pass_exec(fd);
 
     fclose(fd);
 
-    if (file_result)
+    if (first_pass_exec_result)
         info_log("The file %s has been successfully compiled", file_name);
     else
         info_log("Compilation failed for %s (second pass)", file_name);
