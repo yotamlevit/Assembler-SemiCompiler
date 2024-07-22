@@ -100,8 +100,6 @@ int process_file(char* asm_file_name)
     else
         info_log("Compilation failed for %s (second pass)", file_name);
 
-    reset_assembler();
-
     return success;
 
 }
@@ -114,6 +112,7 @@ int iterate_input_files(int argc, char** argv)
     int i;
     for (i = 1; i < argc; i++)
     {
+        reset_assembler();
         asm_file_name = argv[i];
         info_log("Start processing file: %s", asm_file_name);
         process_file_result = process_file(asm_file_name);
@@ -133,8 +132,6 @@ int main(int argc, char** argv)
         printStatus(validate_input_result);
         return error;
     }
-
-    reset_assembler();
 
     int iterate_input_files_result = iterate_input_files(argc, argv);
     if (iterate_input_files_result != success)
