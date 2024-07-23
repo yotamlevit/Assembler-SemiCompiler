@@ -362,7 +362,6 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
  */
 boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen changing the global get an argumentof code_table //// TODO Change boolean to status?
 {
-    //int line_index = 0;
     fd = file_handle;
     /*Second pass*/
     while (!feof(fd))
