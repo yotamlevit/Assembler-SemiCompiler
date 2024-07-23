@@ -13,14 +13,14 @@
 #define OPERATION_LENGTH 3
 #define END_OF_STR '\0'
 
-
+/* File functions */
 FILE* open_file(char* file);
 
-int is_operation(char*);
+/* Get operation Functions */
+int is_operation(char* li, int* opcode);
+int is_stop(char*, int* opcode);
 
-int is_stop(char*);
-
-
+/* Parse ASM line */
 char* find_next_symbol_in_line(char* line, char symbol);
 
 #endif //ASSEMBLER_SEMICOMPILER_UTILS_H

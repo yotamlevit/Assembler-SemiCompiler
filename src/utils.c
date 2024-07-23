@@ -26,7 +26,7 @@ FILE* open_file(char* file)
 }
 
 /*This function checks if it is an action statement*/
-int is_operation(char* li)
+int is_operation(char* li, int* opcode) // TODO add stop to this function
 {
 	int i;
  	for(i = 0;i<OPERATIONS_AMOUNT -1; i++)
@@ -35,7 +35,7 @@ int is_operation(char* li)
 		if (!(strncmp(li, operation_mode[i][2], OPERATION_LENGTH)))
 		{
 			/*If the operation exist return true--1*/
-			opcode = i;
+			*opcode = i;
 			return 1;
 		}
 	}
@@ -43,11 +43,11 @@ int is_operation(char* li)
 }
 
 /*This function checks if it is stop operation*/
-int is_stop(char* line)
+int is_stop(char* line, int* opcode)
 {
 	if (!(strncmp(line, "stop", STOP_LENGTH)))
 	{
-		opcode = STOP_OPCODE;
+		*opcode = STOP_OPCODE;
 		return 1;
 	}
 	return 0;

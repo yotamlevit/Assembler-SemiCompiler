@@ -233,15 +233,15 @@ boolean handle_two_operands(char* asm_line, code_word_fields_ptr code_word)
  * @param code_word A pointer to the code word for the line.
  * @return A boolean indicating success or failure.
  */
-boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* line_index)
+boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* line_index, int* opcode)
 {
     boolean result = YES;
     asm_line = delete_first_spaces(asm_line);
 	/*Operations with one operand only*/
-	if (opcode <= 13 && opcode >= 5)
+	if (*opcode <= 13 && *opcode >= 5)
         result = handle_one_operand(asm_line, code_word);
 	/*Operations with two operands*/
-	else if (opcode <= 4 && opcode >= 0)
+	else if (*opcode <= 4 && *opcode >= 0)
         result = handle_two_operands(asm_line, code_word);
 
     *(line_index) += 1;
@@ -337,6 +337,7 @@ boolean process_entry(char* asm_line)
  */
 boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_index)
 {
+    int opcode;
     /* Clean the line from spaces */
     char* clean_line = delete_first_spaces(asm_line);
     if (!strncmp(clean_line, ENTRY_LABEL, strlen(ENTRY_LABEL)))
@@ -344,10 +345,10 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
     if (isLabel2(clean_line))
         return process_label(clean_line, code_word, line_index);
     /* Otherwise it is an operation*/
-    if (is_operation(clean_line))
-        return second_operation(clean_line + OPERATION_LENGTH, code_word, line_index);
-    if (is_stop(clean_line))
-        return second_operation(clean_line + STOP_LENGTH, code_word, line_index);
+    if (is_operation(clean_line, &opcode))
+        return second_operation(clean_line + OPERATION_LENGTH, code_word, line_index, &opcode);
+    if (is_stop(clean_line, &opcode))
+        return second_operation(clean_line + STOP_LENGTH, code_word, line_index, &opcode);
 
     /* If here then it is a .string, .data or .extern */
     return YES;

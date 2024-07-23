@@ -96,10 +96,6 @@ boolean process_file(char* asm_file_name)
 
     first_pass_exec_result = second_pass_exec(fd, &line_index);
 
-    printf("%d", line_index);
-
-    I = line_index; // TODO remove when I is removed from the globals
-
     fclose(fd);
 
     if (first_pass_exec_result)

@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include "auxiliary.h"
 
-extern int opcode; /*operation code*/
 FILE* fd;
 
 #define REGISTER_SYMBOL 'r'
@@ -28,7 +27,7 @@ boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_
 boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_word);
 boolean is_registry_method(code_word_fields_ptr code_word);
 boolean handle_two_operands(char* asm_line, code_word_fields_ptr code_word);
-boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* line_index);
+boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* line_index, int* opcode);
 boolean isLabel2(char* asm_line);
 boolean process_label(char* asm_line, code_word_fields_ptr code_word, int* line_index);
 boolean process_entry(char* asm_line);
