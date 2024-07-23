@@ -1,12 +1,13 @@
-//
-// Created by Yotam Levit on 18/07/2024.
-//
+/*
+ * Created by Yotam Levit on 18/07/2024.
+*/
 
 #include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/memory_map.h"
 #include "../include/globals.h"
 #include "../include/status_codes.h"
+#include "memory_map.h"
 
 int validate_input(int argc, char** argv)
 {
@@ -27,10 +28,3 @@ int validate_memory(int IC, int DC)
     return 1;
 }
 
-void create_output_files(int* line_counter)
-{
-    I = *line_counter;
-    create_object_file();
-    create_entry_file();
-    create_external_file();
-}

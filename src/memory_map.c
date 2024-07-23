@@ -1,3 +1,6 @@
+#include "memory_map.h"
+#include "../include/status_codes.h"
+#include "../include/validators.h"
 #include "../include/auxiliary.h"
 #include "../include/memory_map.h"
 #include "../include/globals.h"
@@ -11,9 +14,6 @@ symbol* head_symbol, *head_entries, *head_externals;
 data_word* data_table[150]; /*data array*/
 code_word code_table[150];/*code array*/
 
-/*End of create_object_file function*/
-
-/*End of create_entry_file function*/
 
 /*End of create_external_file function*//*This function creates an object file that contains the machine code translating to octal base with the appropriate
 memmory addres in decimal base (code divided to 3 bits every time as an octal number). */
@@ -110,4 +110,12 @@ void create_external_file()
 		entry_symbol = entry_symbol->next;
 	}
 	fclose(fd);
+}
+
+void create_output_files(int* line_counter)
+{
+    I = *line_counter;
+    create_object_file();
+    create_entry_file();
+    create_external_file();
 }

@@ -12,6 +12,4 @@ int validate_input(int argc, char** argv);
 
 int validate_memory(int IC, int DC);
 
-void create_output_files(int* line_counter);
-
 #endif
