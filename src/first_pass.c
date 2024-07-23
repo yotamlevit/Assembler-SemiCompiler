@@ -6,6 +6,7 @@
 #include "../include/globals.h"
 #include "../include/status_codes.h"
 #include "utils.h"
+#include "first_pass.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode; 
@@ -55,6 +56,124 @@ void analize_input_line(char* l)
 }
 /*End of analize_input_line functiion*/
 
+/*End of is_label function*/
+
+/*End of label_actions function*/
+
+/*End of is_operation function*/
+
+/*End of is_stop function*/
+
+/*End of operation function*/
+
+ /*Address method*/
+char addressing_mode(char* li)
+{ 
+	int i = 2;
+	li = delete_first_spaces(li);
+	if (*li == '#')
+	{
+		/*If after # does not appear a number - throw an error*/
+		if (li[1] < 47 || li[1]>58)
+		{ 
+			if (li[1] != '-' && li[1] != '+')
+			{
+				printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
+				error_flag = ON;
+			}
+		}
+		else
+		{
+			while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
+			{
+				/*If after # does not appear a number - throw an error*/
+				if (li[i] < 47 || li[i]>58)
+				{  
+					printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
+					error_flag = ON;
+					break;
+				}
+				i++;
+			}
+		}
+		/*Immediate address*/
+		return '0'; 
+	}
+	/*Indirect register address*/
+	else if (*li == '*')
+	{ 
+		if (!(*(li + 1) == 'r'))
+		{
+			printf("ERROR!! line %d: Invalid override parameter\n", line_counter);
+			error_flag = ON;
+		}
+		/*If the register is not between 0-7*/
+		else if (!(*(li + 2) > 47 && *(li + 2) < 56)) 
+		{
+			printf("ERROR!! line %d: Invalid indirect address registration\n", line_counter);
+			error_flag = ON;
+		}
+		return '2';
+	}
+	/*Direct register address*/
+	else if (*li == 'r')
+	{ 
+		/*If the register is not between 0-7*/
+		if (!(*(li + 1) > 47 && *(li + 1) < 56)) 
+		{
+			printf("ERROR!! line %d: Invalid direct address registration\n", line_counter);
+			error_flag = ON;
+		}
+		return '3';
+	}
+	/*The operand is a label - Direct address*/
+	else if (*li > 20 && *li < 127) 
+		return '1';
+	else
+		return ' ';
+}/*End of addressing_mode function*/
+
+/*End of ext function*/
+
+/*End of insert_numerical_data function*/
+
+/*End of insert_string_data function��*/
+
+/*End of fix_symbol_addresses function*/
+
+/*This function updates the symbols address in the symbols list*/
+void fix_symbol_addresses()
+{
+	symbol* temp = head_symbol;
+	while (temp)
+	{
+		if (temp->is_attached_directive)
+		{
+			temp->address += IC;
+		}
+		temp = temp->next;
+	}
+}
+
+int first_pass_exec(FILE* file_handle)
+{
+    line_counter = 0;
+    error_flag=OFF;
+    /*First pass*/
+    while (!feof(file_handle))
+    {
+        /*First analize*/
+        analize_input_line(line);
+        line_counter++;
+        /*Get one line from the file V */
+        fgets(line, MAX_LINE_LENGTH, file_handle);
+    }
+
+    //exe_first_pass(file_name);
+    validate_memory(IC, DC);
+	return success;
+}
+
 /*This function checks if there is a label in the begining*/
 int is_label(char* li)
 {
@@ -80,7 +199,6 @@ int is_label(char* li)
 	}
 	return 0;
 }
-/*End of is_label function*/
 
 /*This function receives a word - if it is a label, and takes action on it*/
 void label_actions(char* li)
@@ -113,7 +231,7 @@ void label_actions(char* li)
 			p = (li + i + 1);
 			p = delete_first_spaces(p);
 			if (*p == '.')
-			{  
+			{
 				/*If its guide statement*/
 				head_symbol->address = DC;
 				head_symbol->is_attached_directive = YES;
@@ -124,10 +242,10 @@ void label_actions(char* li)
 					printf("WARNING!! line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					analize_input_line(p);  
+					analize_input_line(p);
 			}
 			else
-			{  
+			{
 				/*If this is a statement of instruction*/
 				head_symbol->address = IC;
 				head_symbol->is_attached_directive = NO;
@@ -138,11 +256,6 @@ void label_actions(char* li)
 		}
 	}
 }
-/*End of label_actions function*/
-
-/*End of is_operation function*/
-
-/*End of is_stop function*/
 
 /*The first transition of the operations*/
 void operation(char* li)
@@ -153,9 +266,9 @@ void operation(char* li)
 	char oper[MAX_LINE_LENGTH - 4];
 	char* p = oper;
 	/*Method of addrresing operand source*/
-	char operand_source;    
+	char operand_source;
 	/*Method of addrresing operand destanation*/
-	char operand_destination = ' ';  
+	char operand_destination = ' ';
 	int i = 0;
 	boolean is_source = NO;
 	boolean is_destination = NO;
@@ -204,7 +317,7 @@ void operation(char* li)
 		/*If thre is a comma, discover the address method of destination*/
 		if (li[j] == ',')
 		{
-			operand_destination = addressing_mode(li + j + 1); 
+			operand_destination = addressing_mode(li + j + 1);
 			break;
 		}
 	}
@@ -217,7 +330,7 @@ void operation(char* li)
 	while ((operation_mode[opcode][1])[i] != '\0')
 	{
 		/*Checks if the specific op supports the source add method*/
-		if ((operation_mode[opcode][1])[i] == operand_source) 
+		if ((operation_mode[opcode][1])[i] == operand_source)
 			is_source = YES;
 		i++;
 	}
@@ -317,7 +430,7 @@ void operation(char* li)
 		code_table[I].c.next = NULL;
 	}
 	else
-	{ 
+	{
 		/*Allocate two more memmory words*/
 		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (!temp)
@@ -346,7 +459,7 @@ void operation(char* li)
 		IC++;
 		code_table[I].c.op_code = opcode;
 		/*For destination*/
-		if (operand_destination == '0')  
+		if (operand_destination == '0')
 			code_table[I].c.destination_immidiate = 1;
 		else if (operand_destination == '1')
 			code_table[I].c.destination_direct = 1;
@@ -355,7 +468,7 @@ void operation(char* li)
 		else
 			code_table[I].c.destination_direct_register = 1;
 		/*For source*/
-		if (operand_source == '0')  
+		if (operand_source == '0')
 			code_table[I].c.source_immidiate = 1;
 		else if (operand_source == '1')
 			code_table[I].c.source_direct = 1;
@@ -366,74 +479,6 @@ void operation(char* li)
 	}
 	I++;
 }
-/*End of operation function*/
-
- /*Address method*/
-char addressing_mode(char* li)
-{ 
-	int i = 2;
-	li = delete_first_spaces(li);
-	if (*li == '#')
-	{
-		/*If after # does not appear a number - throw an error*/
-		if (li[1] < 47 || li[1]>58)
-		{ 
-			if (li[1] != '-' && li[1] != '+')
-			{
-				printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-				error_flag = ON;
-			}
-		}
-		else
-		{
-			while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
-			{
-				/*If after # does not appear a number - throw an error*/
-				if (li[i] < 47 || li[i]>58)
-				{  
-					printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-					error_flag = ON;
-					break;
-				}
-				i++;
-			}
-		}
-		/*Immediate address*/
-		return '0'; 
-	}
-	/*Indirect register address*/
-	else if (*li == '*')
-	{ 
-		if (!(*(li + 1) == 'r'))
-		{
-			printf("ERROR!! line %d: Invalid override parameter\n", line_counter);
-			error_flag = ON;
-		}
-		/*If the register is not between 0-7*/
-		else if (!(*(li + 2) > 47 && *(li + 2) < 56)) 
-		{
-			printf("ERROR!! line %d: Invalid indirect address registration\n", line_counter);
-			error_flag = ON;
-		}
-		return '2';
-	}
-	/*Direct register address*/
-	else if (*li == 'r')
-	{ 
-		/*If the register is not between 0-7*/
-		if (!(*(li + 1) > 47 && *(li + 1) < 56)) 
-		{
-			printf("ERROR!! line %d: Invalid direct address registration\n", line_counter);
-			error_flag = ON;
-		}
-		return '3';
-	}
-	/*The operand is a label - Direct address*/
-	else if (*li > 20 && *li < 127) 
-		return '1';
-	else
-		return ' ';
-}/*End of addressing_mode function*/
 
 /*This function handles the external guides*/
 void ext(char* li)
@@ -466,16 +511,15 @@ void ext(char* li)
 	head_symbol->is_external = YES;
 	head_symbol->address = 0;
 }
-/*End of ext function*/
 
 /*A functions to fill the data table*/
 void insert_numerical_data(char* li)
-{  
+{
 	/*For numbers*/
 	/* Temp array of ints for storing the input numbers */
-	int a[MAX_LINE_LENGTH];  
+	int a[MAX_LINE_LENGTH];
 	/* Temp array of chars for storing the input numbers */
-	char b[MAX_LINE_LENGTH]; 
+	char b[MAX_LINE_LENGTH];
 	int i = 0, j, z, counter;
 	data_word* temp;
 	/* Removing spaces */
@@ -532,7 +576,7 @@ void insert_numerical_data(char* li)
 		}
 	}
 	/* End of while loop */
-   
+
 	/* Convert the chars array to integers and fill the int array */
 	j = 0;
 	z = 0;
@@ -569,12 +613,11 @@ void insert_numerical_data(char* li)
 	}
 	D++;
 }
-/*End of insert_numerical_data function*/
 
 /*This function gets as a parameter a string that represent a line content and copy  its content it to updation
 of the data_table. each character in the string will be inserted into separate cell.*/
 void insert_string_data(char* li)
-{ 
+{
 	int i = 0;
 	int j = 2;
 	char* l = delete_first_spaces(li);
@@ -600,7 +643,7 @@ void insert_string_data(char* li)
 	}
 	DC += i - 2;
 	/*If its leggal string*/
-	if (i > 3) 
+	if (i > 3)
 		i = i - 3;
 	temp = (data_word*)malloc(sizeof(data_word));
 	if (!temp)
@@ -629,40 +672,4 @@ void insert_string_data(char* li)
 		j++;
 	}
 	D++;
-}
-/*End of insert_string_data function��*/
-
-/*End of fix_symbol_addresses function*/
-
-/*This function updates the symbols address in the symbols list*/
-void fix_symbol_addresses()
-{
-	symbol* temp = head_symbol;
-	while (temp)
-	{
-		if (temp->is_attached_directive)
-		{
-			temp->address += IC;
-		}
-		temp = temp->next;
-	}
-}
-
-int first_pass_exec(FILE* file_handle)
-{
-    line_counter = 0;
-    error_flag=OFF;
-    /*First pass*/
-    while (!feof(file_handle))
-    {
-        /*First analize*/
-        analize_input_line(line);
-        line_counter++;
-        /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, file_handle);
-    }
-
-    //exe_first_pass(file_name);
-    validate_memory(IC, DC);
-	return success;
 }

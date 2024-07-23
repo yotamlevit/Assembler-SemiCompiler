@@ -95,16 +95,6 @@ typedef union codeword
 	diveded_into_threes parts;
 }code_word;
 
-/*Analize input line functions*/
-void label_actions(char*);
-int is_label(char*);
-
-void insert_numerical_data(char*);
-void insert_string_data(char*);
-void operation(char*);
-
-void ext(char*);
-
 void free_code_table();
 void free_data_table();
 void free_symbol_table();
