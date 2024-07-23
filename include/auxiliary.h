@@ -107,7 +107,6 @@ void ext(char*);
 
 /*Auxiliary functions*/
 char* delete_first_spaces(char*);
-char* find_comma(char*);
 void clean_line(char*);
 void clean_label_name(char*);
 void add_extension_2_file_name(char*);

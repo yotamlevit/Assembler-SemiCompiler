@@ -11,18 +11,6 @@ extern int D;
 extern char* file_name;
 
 
-/*This function gets a string that represent the current line content and find a comma in it. It retruns the comma index if any.*/
-char* find_comma(char* line)
-{
-	int i;
-	for (i = 0; line[i] != '\0'; i++)
-	{
-		if (line[i] == ',')
-			break;
-	}
-	return line + i;
-}
-
 /*This function gets a string that represent a line content and skip the first white spaces in it. It return a pointer to the first non white space character. */
 char* delete_first_spaces(char* line)
 {

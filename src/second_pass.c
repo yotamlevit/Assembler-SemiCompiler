@@ -182,7 +182,7 @@ boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_wor
     if(result != NO)
     {
         /* Move from the first operand */
-        asm_line = find_comma(asm_line);
+        asm_line = find_next_symbol_in_line(asm_line, COMMA);
         asm_line++;
         asm_line = delete_first_spaces(asm_line);
 
