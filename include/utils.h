@@ -6,6 +6,9 @@
 #define ASSEMBLER_SEMICOMPILER_UTILS_H
 
 
+#include "globals.h"
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #define STOP_LENGTH 4
@@ -22,5 +25,14 @@ int is_stop(char*, int* opcode);
 
 /* Parse ASM line */
 char* find_next_symbol_in_line(char* line, char symbol);
+
+/*Auxiliary functions*/
+char* delete_first_spaces(char*);
+
+void add_extension_2_file_name(char*);
+
+void clean_line(char*);
+
+void clean_label_name(char*);
 
 #endif //ASSEMBLER_SEMICOMPILER_UTILS_H

@@ -1,5 +1,6 @@
 #include "../include/auxiliary.h"
 #include "../include/output.h"
+#include "utils.h"
 
 extern char* file_name;
 

@@ -10,6 +10,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/first_pass.h"
 #include "../include/status_codes.h"
 #include "../include/logger.h"
+#include "utils.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 

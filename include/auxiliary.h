@@ -105,11 +105,6 @@ void operation(char*);
 
 void ext(char*);
 
-/*Auxiliary functions*/
-char* delete_first_spaces(char*);
-void clean_line(char*);
-void clean_label_name(char*);
-void add_extension_2_file_name(char*);
 void free_code_table();
 void free_data_table();
 void free_symbol_table();
