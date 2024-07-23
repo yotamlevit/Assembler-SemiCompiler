@@ -2,8 +2,8 @@
  * Created by Yotam Levit on 18/07/2024.
 */
 
-#ifndef ASSEMBLER_SEMICOMPILER_MEMORY_MAP_H
-#define ASSEMBLER_SEMICOMPILER_MEMORY_MAP_H
+#ifndef ASSEMBLER_SEMICOMPILER_OUTPUT_H
+#define ASSEMBLER_SEMICOMPILER_OUTPUT_H
 
 /*Output functions*/
 void create_object_file();

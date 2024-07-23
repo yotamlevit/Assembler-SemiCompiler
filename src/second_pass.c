@@ -3,7 +3,7 @@
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/logger.h"
-#include "memory_map.h"
+#include "output.h"
 
 
 /**

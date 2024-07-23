@@ -1,9 +1,5 @@
-#include "memory_map.h"
-#include "../include/status_codes.h"
-#include "../include/validators.h"
 #include "../include/auxiliary.h"
-#include "../include/memory_map.h"
-#include "../include/globals.h"
+#include "../include/output.h"
 
 extern char* file_name;
 
