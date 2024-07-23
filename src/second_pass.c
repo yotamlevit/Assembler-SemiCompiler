@@ -15,6 +15,12 @@ FILE* fd;
 #define ENTRY_LABEL ".entry"
 
 
+/**
+ * Calculates the length of a symbol name in an assembly line.
+ *
+ * @param asm_line The assembly line containing the symbol.
+ * @return The length of the symbol name.
+ */
 int get_symbol_length(const char* asm_line) {
     int symbol_name_length;
     for (symbol_name_length = 0; asm_line[symbol_name_length] != COMMA && asm_line[symbol_name_length] != SPACE && asm_line[symbol_name_length] != NEW_LINE && asm_line[symbol_name_length] != END_OF_STR; symbol_name_length++);
@@ -22,6 +28,14 @@ int get_symbol_length(const char* asm_line) {
     return symbol_name_length;
 }
 
+
+/**
+ * Finds a symbol in the symbol table by its name.
+ *
+ * @param asm_line The assembly line containing the symbol.
+ * @param symbol_name_length The length of the symbol name.
+ * @return A pointer to the symbol if found, otherwise NULL.
+ */
 symbol* find_symbol(const char* asm_line, int symbol_name_length) {
     symbol* temp = head_symbol;
     while (temp) {
@@ -34,12 +48,27 @@ symbol* find_symbol(const char* asm_line, int symbol_name_length) {
 }
 
 
+/**
+ * Updates a machine word with specified values.
+ *
+ * @param machine_word A pointer to the machine word to be updated.
+ * @param w The value to be set for the word.
+ * @param A The value to be set for the A field.
+ * @param is_src A boolean indicating if the word is a source operand.
+ */
 void update_machine_word(machine_word_fields_ptr machine_word, int w, int A, boolean is_src) {
     machine_word->w = is_src ? w << 3 : w;
     machine_word->A = A;
 }
 
 
+/**
+ * Calculates the offset value for an operand.
+ *
+ * @param code_word A pointer to the code word containing the operand.
+ * @param is_src A boolean indicating if the operand is a source operand.
+ * @return The offset value for the operand.
+ */
 int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
 {
     if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == NO) ||
@@ -54,6 +83,15 @@ int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
 }
 
 
+/**
+ * Handles an operand in an assembly line and updates the machine word.
+ *
+ * @param asm_line The assembly line containing the operand.
+ * @param code_word A pointer to the code word containing the operand.
+ * @param dest_machine_word A pointer to the destination machine word.
+ * @param is_src A boolean indicating if the operand is a source operand.
+ * @return A boolean indicating success or failure.
+ */
 boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_word_fields_ptr dest_machine_word, boolean is_src) {
     symbol* temp;
     symbol* ext;
@@ -105,12 +143,26 @@ boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_w
 }
 
 
+/**
+ * Handles an assembly line with one operand.
+ *
+ * @param asm_line The assembly line containing the operand.
+ * @param code_word A pointer to the code word containing the operand.
+ * @return A boolean indicating success or failure.
+ */
 boolean handle_one_operand(char* asm_line, code_word_fields_ptr code_word) {
     /* Handling dest operand */
     return handle_operand(asm_line, code_word, &code_word->next->c, NO);
 }
 
 
+/**
+ * Handles an assembly line with register operands.
+ *
+ * @param asm_line The assembly line containing the register operands.
+ * @param machine_word A pointer to the machine word to be updated.
+ * @return A boolean indicating success or failure.
+ */
 boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_word) {
     /* First Register */
     asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
@@ -125,6 +177,14 @@ boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_
     return YES;
 }
 
+
+/**
+ * Handles an assembly line with two operands.
+ *
+ * @param asm_line The assembly line containing the operands.
+ * @param code_word A pointer to the code word containing the operands.
+ * @return A boolean indicating success or failure.
+ */
 boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_word) {
     boolean result;
     /* Handle Source operand */
@@ -146,6 +206,12 @@ boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_wor
 
 }
 
+
+/**
+ * Checks if the method is a registry method.
+ *
+ * @return A boolean indicating if the method is a registry method.
+ */
 boolean is_registry_method()
 {
     return ((code_table[I].c.destination_indirect_register && code_table[I].c.source_direct_register) ||
@@ -154,6 +220,14 @@ boolean is_registry_method()
             (code_table[I].c.destination_direct_register && code_table[I].c.source_direct_register));
 }
 
+
+/**
+ * Handles an assembly line with two operands, dispatching to the appropriate method.
+ *
+ * @param asm_line The assembly line containing the operands.
+ * @param code_word A pointer to the code word containing the operands.
+ * @return A boolean indicating success or failure.
+ */
 boolean handle_two_operands(char* asm_line, code_word_fields_ptr code_word)
 {
     if (is_registry_method())
@@ -163,7 +237,13 @@ boolean handle_two_operands(char* asm_line, code_word_fields_ptr code_word)
 }
 
 
-/*This function passes a second time on the operations in the text, Classifies and allocates memory - machine words*/
+/**
+ * Performs the second pass operation on an assembly line.
+ *
+ * @param asm_line The assembly line to be processed.
+ * @param code_word A pointer to the code word for the line.
+ * @return A boolean indicating success or failure.
+ */
 boolean second_operation(char* asm_line, code_word_fields_ptr code_word)
 {
     boolean result = YES;
@@ -180,13 +260,25 @@ boolean second_operation(char* asm_line, code_word_fields_ptr code_word)
 }
 
 
+/**
+ * Checks if an assembly line contains a label.
+ *
+ * @param asm_line The assembly line to be checked.
+ * @return A boolean indicating if the line contains a label.
+ */
 boolean isLabel2(char* asm_line)
 {
     return *find_next_symbol_in_line(asm_line, LABEL_SYMBOL) == LABEL_SYMBOL;
 }
 
 
-/*This function is called if the word is a label*/
+/**
+ * Processes a label in an assembly line.
+ *
+ * @param asm_line The assembly line containing the label.
+ * @param code_word A pointer to the code word for the line.
+ * @return A boolean indicating success or failure.
+ */
 boolean process_label(char* asm_line, code_word_fields_ptr code_word)
 {
     asm_line = find_next_symbol_in_line(asm_line, LABEL_SYMBOL);
@@ -194,7 +286,12 @@ boolean process_label(char* asm_line, code_word_fields_ptr code_word)
 }
 
 
-/*This function creates a list that handles the entry guides*/
+/**
+ * Processes an entry directive in an assembly line.
+ *
+ * @param asm_line The assembly line containing the entry directive.
+ * @return A boolean indicating success or failure.
+ */
 boolean process_entry(char* asm_line)
 {
     symbol* temp = head_symbol;
@@ -243,6 +340,13 @@ boolean process_entry(char* asm_line)
 }
 
 
+/**
+ * Processes a single line of assembly code.
+ *
+ * @param asm_line The assembly line to be processed.
+ * @param code_word A pointer to the code word for the line.
+ * @return A boolean indicating success or failure.
+ */
 boolean process_line(char* asm_line, code_word_fields_ptr code_word)
 {
     /* Clean the line from spaces */
@@ -262,6 +366,12 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word)
 }
 
 
+/**
+ * Executes the second pass on the assembly file.
+ *
+ * @param file_handle The file handle for the assembly file.
+ * @return A boolean indicating success or failure.
+ */
 boolean second_pass_exec(FILE* file_handle)  //// TODO WHen changing the global get an argumentof code_table
 {
     fd = file_handle;
