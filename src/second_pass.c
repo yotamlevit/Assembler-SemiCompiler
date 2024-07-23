@@ -4,15 +4,7 @@
 #include "../include/second_pass.h"
 #include "../include/logger.h"
 
-extern int opcode; /*operation code*/
 
-FILE* fd;
-#define REGISTER_SYMBOL 'r'
-#define COMMA ','
-#define SPACE ' '
-#define NEW_LINE '\n'
-#define LABEL_SYMBOL ':'
-#define ENTRY_LABEL ".entry"
 
 
 /**
