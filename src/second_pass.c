@@ -372,7 +372,7 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word)
  * @param file_handle The file handle for the assembly file.
  * @return A boolean indicating success or failure.
  */
-boolean second_pass_exec(FILE* file_handle)  //// TODO WHen changing the global get an argumentof code_table
+boolean second_pass_exec(FILE* file_handle)  //// TODO WHen changing the global get an argumentof code_table //// TODO Change boolean to status?
 {
     fd = file_handle;
     /*Second pass*/
