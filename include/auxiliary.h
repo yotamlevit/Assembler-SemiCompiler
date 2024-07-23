@@ -19,7 +19,7 @@ typedef struct symbols
 	boolean is_attached_directive;
 	boolean is_external;
 	struct symbols* next;
-}symbol;
+}symbol, * symbol_ptr;
 
 typedef struct diveded_into_threes
 {

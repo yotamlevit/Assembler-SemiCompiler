@@ -27,16 +27,10 @@ int validate_memory(int IC, int DC)
     return 1;
 }
 
-int validate_second_pass()
+void create_output_files(int* line_counter)
 {
-    if (!error_flag)
-    {
-        create_object_file();
-        create_entry_file();
-        create_external_file();
-
-        return 1;
-    }
-
-    return 0;
+    I = *line_counter;
+    create_object_file();
+    create_entry_file();
+    create_external_file();
 }

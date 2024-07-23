@@ -68,6 +68,8 @@ void reset_assembler()
 
 boolean process_file(char* asm_file_name)
 {
+    int line_index = 0;
+
     boolean first_pass_exec_result;
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
@@ -91,7 +93,12 @@ boolean process_file(char* asm_file_name)
     prep_second_pass(fd);
 
     info_log("Starting second pass on %s", file_name);
-    first_pass_exec_result = second_pass_exec(fd);
+
+    first_pass_exec_result = second_pass_exec(fd, &line_index);
+
+    printf("%d", line_index);
+
+    I = line_index; // TODO remove when I is removed from the globals
 
     fclose(fd);
 
