@@ -1,4 +1,4 @@
-#include "../include/auxiliary.h"
+#include "../include/tables.h"
 #include "../include/output.h"
 #include "utils.h"
 

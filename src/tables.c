@@ -1,4 +1,4 @@
-#include "../include/auxiliary.h"
+#include "../include/tables.h"
 
 extern symbol* head_symbol;
 extern symbol* head_entries;

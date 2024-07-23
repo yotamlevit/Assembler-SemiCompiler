@@ -6,7 +6,7 @@
 #define ASSEMBLER_SEMICOMPILER_SECOND_PASS_H
 
 #include <stdio.h>
-#include "auxiliary.h"
+#include "tables.h"
 
 #define REGISTER_SYMBOL 'r'
 #define COMMA ','

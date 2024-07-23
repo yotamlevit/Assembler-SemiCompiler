@@ -6,7 +6,7 @@
 #include "../include/globals.h"
 #include "../include/constants_tables.h"
 #include "../include/first_pass.h"
-#include "../include/auxiliary.h"
+#include "../include/tables.h"
 #include "../include/validators.h"
 #include "../include/utils.h"
 
