@@ -1,6 +1,6 @@
 #include "../include/tables.h"
 #include "../include/output.h"
-#include "utils.h"
+#include "../include/utils.h"
 
 extern char* file_name;
 

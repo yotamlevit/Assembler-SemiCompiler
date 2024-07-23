@@ -3,10 +3,7 @@
 #include "../include/tables.h"
 #include "../include/first_pass.h"
 #include "../include/constants_tables.h"
-#include "../include/globals.h"
 #include "../include/status_codes.h"
-#include "utils.h"
-#include "first_pass.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode; 

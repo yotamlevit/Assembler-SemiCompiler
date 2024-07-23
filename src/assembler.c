@@ -5,12 +5,10 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/validators.h"
 #include "../include/second_pass.h"
 #include "../include/first_pass.h"
-#include "../include/globals.h"
 #include "../include/utils.h"
 #include "../include/first_pass.h"
 #include "../include/status_codes.h"
 #include "../include/logger.h"
-#include "utils.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
