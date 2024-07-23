@@ -363,9 +363,8 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
  */
 boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen changing the global get an argumentof code_table //// TODO Change boolean to status?
 {
-    fd = file_handle;
     /*Second pass*/
-    while (!feof(fd))
+    while (!feof(file_handle))
     {
         /*Second analize*/
         if (!process_line(line, &code_table[*line_index].c, line_index))
@@ -375,7 +374,7 @@ boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen cha
         }
         line_counter++;
         /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, fd);
+        fgets(line, MAX_LINE_LENGTH, file_handle);
     }
 
     create_output_files(line_index);

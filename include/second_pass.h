@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include "auxiliary.h"
 
-FILE* fd;
-
 #define REGISTER_SYMBOL 'r'
 #define COMMA ','
 #define SPACE ' '
