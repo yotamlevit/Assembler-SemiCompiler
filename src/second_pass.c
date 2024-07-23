@@ -2,7 +2,6 @@
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/logger.h"
-#include "../include/output.h"
 
 
 /**
@@ -375,8 +374,6 @@ boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen cha
         /*Get one line from the file V */
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
-
-    create_output_files(line_index);
 
     return YES;
 }

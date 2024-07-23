@@ -9,6 +9,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/first_pass.h"
 #include "../include/status_codes.h"
 #include "../include/logger.h"
+#include "../include/output.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -95,7 +96,10 @@ boolean process_file(char* asm_file_name)
 
     first_pass_exec_result = second_pass_exec(fd, &line_index);
 
+    create_output_files(&line_index);
+
     fclose(fd);
+
 
     if (first_pass_exec_result)
         info_log("The file %s has been successfully compiled", file_name);
