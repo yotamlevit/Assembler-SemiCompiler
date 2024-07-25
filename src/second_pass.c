@@ -343,9 +343,11 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
     if (isLabel2(clean_line))
         return process_label(clean_line, code_word, line_index);
     /* Otherwise it is an operation*/
-    if (is_operation(clean_line, &opcode))
+    opcode = is_operation(clean_line);
+    if (opcode != -1)
         return second_operation(clean_line + OPERATION_LENGTH, code_word, line_index, &opcode);
-    if (is_stop(clean_line, &opcode))
+    opcode = is_stop(clean_line);
+    if (opcode != -1)
         return second_operation(clean_line + STOP_LENGTH, code_word, line_index, &opcode);
 
     /* If here then it is a .string, .data or .extern */

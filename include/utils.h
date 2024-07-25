@@ -20,8 +20,8 @@
 FILE* open_file(char* file);
 
 /* Get operation Functions */
-int is_operation(char* li, int* opcode);
-int is_stop(char*, int* opcode);
+int is_operation(char* li);
+int is_stop(char*);
 
 /* Parse ASM line */
 char* find_next_symbol_in_line(char* line, char symbol);

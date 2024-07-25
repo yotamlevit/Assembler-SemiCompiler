@@ -33,12 +33,14 @@ void analize_input_line(char* l)
 		insert_string_data(l1 + 7);
 		return;
 	}
-    if (is_operation(l1, &opcode)) // In second pass refactor i remove opcode global from the function
+	opcode = is_operation(l1);
+    if (opcode != -1) // In second pass refactor i remove opcode global from the function
 	{
 		operation(l1 + 3);
 		return;
 	}
-	if (is_stop(l1, &opcode))/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
+	opcode = is_stop(l1);
+	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
 	{
 		operation(l1 + 4);
 		return;
