@@ -5,4 +5,10 @@
 #ifndef PREPROCESS_H
 #define PREPROCESS_H
 
+
+#include <stdio.h>
+
+int macro_exec(FILE* file);
+
+
 #endif //PREPROCESS_H

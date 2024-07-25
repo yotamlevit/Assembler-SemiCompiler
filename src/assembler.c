@@ -10,6 +10,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/status_codes.h"
 #include "../include/logger.h"
 #include "../include/output.h"
+#include "../include/preprocess.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -38,7 +39,7 @@ void prep_second_pass(FILE *file_handle);
 void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array*/
     line[0] = '\0';
     /*Return fd to point on the begining of the file.*/
-    rewind(file_handle);
+    rewind(file_handle); // TODO move rewind to each place that needed
     /*Zero the parameters before the next analize*/
     line_counter = 0;
     clean_line(line);
@@ -69,8 +70,8 @@ void reset_assembler()
 boolean process_file(char* asm_file_name)
 {
     int line_index = 0;
-
     boolean first_pass_exec_result;
+
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
         return memoryAllocationFailure;
@@ -84,6 +85,11 @@ boolean process_file(char* asm_file_name)
         error_log("Could not open file: %s", file_name);
         return openFileError;
     }
+
+
+    info_log("starting preprocessing on %s", file_name);
+    macro_exec(fd);
+    rewind(fd);
 
     info_log("Starting first pass on %s", file_name);
     first_pass_exec_result = first_pass_exec(fd);
