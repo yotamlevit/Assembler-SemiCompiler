@@ -51,7 +51,7 @@ int is_stop(char* line)
 	return -1;
 }
 
-char* find_next_symbol_in_line(char* search_line, char symbol)
+char* find_next_symbol_in_str(char* search_line, char symbol)
 {
     char* symbol_pos;
     for (symbol_pos = search_line; *symbol_pos != symbol && *symbol_pos != END_OF_STR; symbol_pos++);
@@ -72,6 +72,13 @@ void add_extension_2_file_name(char* extension)
 	int i;
 	for (i = 0; file_name[i] != '.'; i++);
 	strcpy((file_name + i), extension);
+}
+
+void add_file_name_extension(char* filename,char* extension)
+{
+    int i;
+    for (i = 0; file_name[i] != '.'; i++);
+    strcpy((file_name + i), extension);
 }
 
 /*This function gets a string that represent a line content and initalizes it.*/

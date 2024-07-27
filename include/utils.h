@@ -24,7 +24,7 @@ int is_operation(char* li);
 int is_stop(char*);
 
 /* Parse ASM line */
-char* find_next_symbol_in_line(char* line, char symbol);
+char* find_next_symbol_in_str(char* line, char symbol);
 
 /*Auxiliary functions*/
 char* delete_first_spaces(char*);
