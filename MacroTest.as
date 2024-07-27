@@ -1,22 +1,27 @@
 .entry LIST
 .extern fn1
 
-marc m_macr
 
-end marc
+macr m_macr
+    inc r2
+    inc r2
+endmacr
 
-marc m_macr
+macr m_macr2
+    inc r3
+    inc r3
+endmacr
 
-end marc
-
-marc m_macr
-
-end marc
+macr m_macr3
+    inc r4
+    inc r4
+endmacr
 
 MAIN:		add	r3,LIST
 		jsr	fn1
 LOOP:		prn	#48
 		lea	STR,r6
+		m_macr
 		inc	r6
 		mov	*r6,L3
 		sub	r1,r4

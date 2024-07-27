@@ -65,6 +65,12 @@ HashMapPtr createHashMap(size_t bucketCount, size_t (*hashFunction)(void *), int
         return NULL;
     }
 
+    map->keys = (char **)calloc(bucketCount, sizeof(char*));
+    if(!map->entries){
+        free(map);
+        return NULL;
+    }
+
     map->bucketCount = bucketCount;
     map->hashFunction = hashFunction ? hashFunction : defaultHashFunction;
     map->keyCompareFunction = keyCompareFunction ? keyCompareFunction : defaultKeyCompareFunction;

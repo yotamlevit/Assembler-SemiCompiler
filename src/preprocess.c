@@ -13,6 +13,7 @@
 
 
 #define MACRO_START "macr"
+#define REMOVE_NEW_LINE(str) *strchr(str, '\n') = '\0'
 
 
 boolean is_macro_definition(char* pos) {
@@ -88,16 +89,16 @@ char *copy_text(FILE *fp, fpos_t *pos, int length) {
     /* the function assumes that pos + length < end. this was checked by save_mcro_content function */
     int i;
     char *str;
-    if (fsetpos(fp, pos) != 0) {
-        printf("fsetpos in copy_text failed\n");
-        return NULL;
-    }
+    //if (fsetpos(fp, pos) != 0) {
+    //    printf("fsetpos in copy_text failed\n");
+    //    return NULL;
+    //}
     str = handle_malloc((length + 1) * sizeof(char));
     for (i = 0; i < length; i++) {
         *(str + i) = getc(fp);
     }
     *(str + i) = '\0';
-    fgetpos(fp, pos);
+    //fgetpos(fp, pos);
     return str;
 }
 
@@ -106,12 +107,13 @@ char *save_mcro_content(FILE *fp, fpos_t *pos, int *line_count) {
     int mcro_length;
     char *mcro;
     char str[MAX_LINE_LENGTH];
+    fpos_t end_pos;
 
     /* Set the file pointer to the provided position */
-    if (fsetpos(fp, pos) != 0) {
-        error_log("ERROR_CODE_11");
-        return NULL;
-    }
+    //if (fsetpos(fp, pos) != 0) {
+     //   error_log("ERROR_CODE_11");
+      //  return NULL;
+    //}
     mcro_length = 0;
     str[0] = '\0';
 
@@ -128,8 +130,14 @@ char *save_mcro_content(FILE *fp, fpos_t *pos, int *line_count) {
         }
     }
 
+    fgetpos(fp, &end_pos);
+
+    fsetpos(fp, pos);
+
     /* Copy the macro content into a dynamically allocated string */
     mcro = copy_text(fp, pos, mcro_length);
+
+    fsetpos(fp, &end_pos);
     return mcro;
 }
 
@@ -156,7 +164,7 @@ boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name) {
     }
     else {
         /* going to the end of the macro */
-        fsetpos(file, &pos);
+        //fsetpos(file, &pos);
         /* adding the new mcro into the mcro_list */
         //add_to_list(head, name, content, mcro_line);
         hashMapInsert(macro_map, macro_name, content);
@@ -173,26 +181,53 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map) {
     /* assumes "mcro " has been encountered right before the function was called */
     boolean result = YES;
 
-    char buffer[MAX_LINE_LENGTH];
+    char buffer[MAX_LINE_LENGTH], temp_buffer[MAX_LINE_LENGTH];
     char* pos, *tmp;
     int count = 0, line_count = 0;
     const int word_len = strlen(MACRO_START);
 
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
         line_count++;
-        pos = delete_first_spaces(buffer);
+        strcpy(temp_buffer, buffer);
+        pos = delete_first_spaces(temp_buffer);
         pos = strtok(pos, " ");
 
-        if (is_macro_definition(buffer)) {
+        if (is_macro_definition(temp_buffer)) {
 //            pos = strtok(pos, " ");
             pos = strtok(NULL, " \n");
-            if (!valid_mcro_decl(delete_first_spaces(buffer), &pos, line_count))
+            if (!valid_mcro_decl(delete_first_spaces(temp_buffer), &pos, line_count))
                 result = NO;
             else
                 result = result && add_macro_to_map(file, macro_map, pos);
 
             //process_macro(pos, macro_map);
         }
+        else {
+            pos = delete_first_spaces(buffer);
+            REMOVE_NEW_LINE(pos);
+            pos = strtok(pos, " ");
+            //pos = strtok(NULL, " \n");
+
+            //whi // TODO itarete over the tockerns
+
+            if (pos != NULL) {
+                if (hashMapFind(macro_map, pos) != NULL) {
+                    printf("\n%s\n", (char*)hashMapFind(macro_map, pos));
+                }
+                else {
+                    pos = delete_first_spaces(buffer);
+                    pos = strtok(pos, " ");
+                    //printf("\naaaaaaa - %s", pos);
+                    //printf("\n%s\n", (char*)hashMapFind(macro_map, pos));
+                    //pos = delete_first_spaces(buffer);
+                    printf("%s", delete_first_spaces(buffer));
+
+                }
+            }
+
+        }
+        /* If the tocken is a macro */
+
 
         pos = buffer;
         while ((pos = strstr(pos, MACRO_START)) != NULL) {
@@ -221,6 +256,6 @@ int macro_exec(FILE* file) {
     result = process_macro_file(file, macro_map);
 
 
-    printf("\n%s\n", (char*)hashMapFind(macro_map, "m_macr"));
+    //printf("\n%s\n", (char*)hashMapFind(macro_map, "m_macr"));
     return result;
 }
