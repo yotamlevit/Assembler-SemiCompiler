@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "tables.h"
 
-#define REGISTER_SYMBOL 'r'
+
 #define COMMA ','
 #define SPACE ' '
 #define NEW_LINE '\n'

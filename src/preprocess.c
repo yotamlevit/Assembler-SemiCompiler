@@ -13,7 +13,10 @@
 
 
 #define MACRO_START "macr"
-#define REMOVE_NEW_LINE(str) *strchr(str, '\n') = '\0'
+#define MACRO_END "endmacr\n"
+#define EOS '\0'
+
+#define REMOVE_NEW_LINE(str) *strchr(str, '\n') = EOS
 
 
 boolean is_macro_definition(char* pos) {
@@ -24,7 +27,6 @@ int count_macro_occurrences(FILE* file) {
     char buffer[MAX_LINE_LENGTH];
     char* pos;
     int count = 0;
-    const int maco_def_len = strlen(MACRO_START);
 
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
         pos = delete_first_spaces(buffer);
@@ -44,7 +46,7 @@ HashMapPtr init_macro_hash_map(FILE* file) {
 
 boolean is_register(char* str) {
 
-    return *str == 'r' && (*(str + 1) >= '0' && *(str + 1) <= '7');
+    return *str == REGISTER_SYMBOL && (*(str + 1) >= '0' && *(str + 1) <= '7');
 }
 
 
@@ -97,7 +99,7 @@ char *copy_text(FILE *fp, fpos_t *pos, int length) {
     for (i = 0; i < length; i++) {
         *(str + i) = getc(fp);
     }
-    *(str + i) = '\0';
+    *(str + i) = EOS;
     //fgetpos(fp, pos);
     return str;
 }
@@ -109,86 +111,70 @@ char *save_mcro_content(FILE *fp, fpos_t *pos, int *line_count) {
     char str[MAX_LINE_LENGTH];
     fpos_t end_pos;
 
-    /* Set the file pointer to the provided position */
-    //if (fsetpos(fp, pos) != 0) {
-     //   error_log("ERROR_CODE_11");
-      //  return NULL;
-    //}
     mcro_length = 0;
-    str[0] = '\0';
+    str[0] = EOS;
 
-    /* Read lines from the file until "endmcro" is encountered */
-    while (fgets(str, MAX_LINE_LENGTH, fp) && (strcmp(str, "endmacr\n")) != 0) {
-        /* checking for a line with endmcro and extra text */
-        if ((strstr(str, "endmacr") != NULL) && strlen(str) != strlen("endmacr")) {
-            error_log("ERROR_CODE_12");
-            return NULL;
-        }
+    /* Read lines from the file until "endmacr" is encountered */
+    while (fgets(str, MAX_LINE_LENGTH, fp) && (strcmp(str, MACRO_END)) != 0) {
         (*line_count)++;
-        if (strcmp(str, "endmacr\n") != 0) {
+        if (strcmp(str, MACRO_END) != 0) {
             mcro_length += strlen(str);
         }
     }
 
+    /* Save the macro end position */
     fgetpos(fp, &end_pos);
-
     fsetpos(fp, pos);
 
     /* Copy the macro content into a dynamically allocated string */
     mcro = copy_text(fp, pos, mcro_length);
 
+    /* Return to macro end */
     fsetpos(fp, &end_pos);
     return mcro;
 }
 
-boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name) {
-    int line_count, mcro_line;
+boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name, int line_count) {
     boolean result = YES;
-    char buffer[MAX_LINE_LENGTH];
-    char *name, *content;
+    char *content;
     fpos_t pos;
-    char* line;
-
-    line_count = 0;
-    //while (fgets(buffer, MAX_LINE_LENGTH, file)) {
-    line_count++;
-    line = delete_first_spaces(buffer);
-    /* Extract the macro name from the declaration line and validate it */
+    char* test_macro;
 
     /* Save the macro content starting from the current file position */
     fgetpos(file, &pos);
     content = save_mcro_content(file, &pos, &line_count);
     if (content == NULL) {
         result = NO;
-        //continue;
     }
     else {
-        /* going to the end of the macro */
-        //fsetpos(file, &pos);
-        /* adding the new mcro into the mcro_list */
-        //add_to_list(head, name, content, mcro_line);
         hashMapInsert(macro_map, macro_name, content);
+        if(hashMapFind(macro_map, macro_name) == NULL)
+        {
+            error_log("Failed to add macro %s from line %d", macro_name, line);
+            result = NO;
+        }
     }
-
-
-    // }
 
     return result;
 }
 
 
-boolean process_macro_file(FILE* file, HashMapPtr macro_map) {
+boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename) {
     /* assumes "mcro " has been encountered right before the function was called */
     boolean result = YES;
-
-    char buffer[MAX_LINE_LENGTH], temp_buffer[MAX_LINE_LENGTH];
+    FILE *asm_file;
+    char buffer[MAX_LINE_LENGTH], temp_buffer[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH];
     char* pos, *tmp;
     int count = 0, line_count = 0;
     const int word_len = strlen(MACRO_START);
 
+
+    asm_file = open_file(asm_filename, "w");
+
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
         line_count++;
         strcpy(temp_buffer, buffer);
+        strcpy(original_line, buffer);
         pos = delete_first_spaces(temp_buffer);
         pos = strtok(pos, " ");
 
@@ -198,30 +184,42 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map) {
             if (!valid_mcro_decl(delete_first_spaces(temp_buffer), &pos, line_count))
                 result = NO;
             else
-                result = result && add_macro_to_map(file, macro_map, pos);
+                result = result && add_macro_to_map(file, macro_map, pos, line_count);
 
             //process_macro(pos, macro_map);
         }
         else {
             pos = delete_first_spaces(buffer);
             REMOVE_NEW_LINE(pos);
-            pos = strtok(pos, " ");
-            //pos = strtok(NULL, " \n");
+            char* macro_content = NULL;
 
-            //whi // TODO itarete over the tockerns
-
-            if (pos != NULL) {
-                if (hashMapFind(macro_map, pos) != NULL) {
-                    printf("\n%s\n", (char*)hashMapFind(macro_map, pos));
+            if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL)
+            {
+                if (fprintf(asm_file, "%s", macro_content) < 0) {
+                    // Handle error if the write fails
+                    perror("Error writing to file");
+                    fclose(file);
                 }
-                else {
-                    pos = delete_first_spaces(buffer);
-                    pos = strtok(pos, " ");
-                    //printf("\naaaaaaa - %s", pos);
-                    //printf("\n%s\n", (char*)hashMapFind(macro_map, pos));
-                    //pos = delete_first_spaces(buffer);
-                    printf("%s", delete_first_spaces(buffer));
+                printf("%s\n", macro_content);
+                continue;
+            }
 
+            while((pos = strtok(NULL, " ")) != NULL)
+            {
+                if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL) {
+                    if (fprintf(asm_file, "%s", delete_first_spaces(macro_content)) < 0) {
+                        // Handle error if the write fails
+                        perror("Error writing to file");
+                        fclose(file);
+                    }
+                }
+            }
+
+            if (macro_content == NULL) {
+                if (*original_line != '\n' &&  fprintf(asm_file, "%s", original_line) < 0) {
+                    // Handle error if the write fails
+                    perror("Error writing to file");
+                    fclose(file);
                 }
             }
 
@@ -236,6 +234,7 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map) {
         }
     }
 
+    fclose(asm_file);
     return result;
 
 }
@@ -244,7 +243,7 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map) {
  * validate macro declare
  */
 
-int macro_exec(FILE* file) {
+int macro_exec(FILE* file, char* filename) {
     boolean result = YES;
     rewind(file);
 
@@ -253,7 +252,9 @@ int macro_exec(FILE* file) {
     if (!macro_map)
         return NO;
     rewind(file);
-    result = process_macro_file(file, macro_map);
+
+    add_file_name_extension(filename, "asm");
+    result = process_macro_file(file, macro_map, filename);
 
 
     //printf("\n%s\n", (char*)hashMapFind(macro_map, "m_macr"));

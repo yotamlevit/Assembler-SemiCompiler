@@ -13,6 +13,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/preprocess.h"
 
 #define INPUT_FILE_EXTENSION ".as"
+#define FILE_READ "r"
 
 /*Array to get line by line*/
 char line[MAX_LINE_LENGTH]; 
@@ -80,7 +81,7 @@ boolean process_file(char* asm_file_name)
     /*Using strcat()- because the user sends the file name without extension*/
     strcat(file_name, INPUT_FILE_EXTENSION);
 
-    fd = open_file(file_name);
+    fd = open_file(file_name, FILE_READ);
     if (fd == NULL) {
         error_log("Could not open file: %s", file_name);
         return openFileError;
@@ -88,7 +89,7 @@ boolean process_file(char* asm_file_name)
 
 
     info_log("starting preprocessing on %s", file_name);
-    macro_exec(fd);
+    macro_exec(fd, file_name);
     rewind(fd);
 
     info_log("Starting first pass on %s", file_name);
@@ -97,6 +98,7 @@ boolean process_file(char* asm_file_name)
         return first_pass_exec_result;
 
     prep_second_pass(fd);
+    rewind(fd);
 
     info_log("Starting second pass on %s", file_name);
 

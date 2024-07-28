@@ -14,6 +14,7 @@
 #define MAX_LABEL_LENGTH 31
 #define DC_INITIAL_VALUE 0
 #define IC_INITIAL_VALUE 100
+#define REGISTER_SYMBOL 'r'
 
 extern char line[MAX_LINE_LENGTH];
 

@@ -19,7 +19,6 @@ typedef struct HashMapEntry {
 
 typedef struct HashMap {
     HashMapEntryPtr *entries;
-    char** keys;
     size_t bucketCount;
     size_t (*hashFunction)(void *key);
     int (*keyCompareFunction)(void *key1, void *key2);

@@ -65,12 +65,6 @@ HashMapPtr createHashMap(size_t bucketCount, size_t (*hashFunction)(void *), int
         return NULL;
     }
 
-    map->keys = (char **)calloc(bucketCount, sizeof(char*));
-    if(!map->entries){
-        free(map);
-        return NULL;
-    }
-
     map->bucketCount = bucketCount;
     map->hashFunction = hashFunction ? hashFunction : defaultHashFunction;
     map->keyCompareFunction = keyCompareFunction ? keyCompareFunction : defaultKeyCompareFunction;
@@ -112,8 +106,13 @@ void hashMapInsert(HashMapPtr map, void *key, void *value) {
  * @return The value associated with the key, or NULL if not found.
  */
 void *hashMapFind(HashMapPtr map, void *key) {
+    HashMapEntry *entry;
     size_t bucket_index = map->hashFunction(key) % map->bucketCount;
-    HashMapEntry *entry = map->entries[bucket_index];
+
+    if(bucket_index > map->bucketCount)
+        return NULL;
+
+    entry = map->entries[bucket_index];
 
     while (entry != NULL) {
         if (map->keyCompareFunction(entry->key, key) == 0) {

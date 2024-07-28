@@ -14,9 +14,9 @@ int opcode;
 extern char* file_name;
 
 
-FILE* open_file(char* file)
+FILE* open_file(char* file, char* mode)
 {
-    FILE* fp = fopen(file, "r");
+    FILE* fp = fopen(file, mode);
     if (fp == NULL)
     {
         printf("ERROR!! File not found or file with extension.\n");
@@ -77,8 +77,9 @@ void add_extension_2_file_name(char* extension)
 void add_file_name_extension(char* filename,char* extension)
 {
     int i;
-    for (i = 0; file_name[i] != '.'; i++);
-    strcpy((file_name + i), extension);
+    char* dot = find_next_symbol_in_str(filename, '.');
+    //for (i = 0; file_name[i] != '.'; i++);
+    strcpy(dot+1, extension);
 }
 
 /*This function gets a string that represent a line content and initalizes it.*/

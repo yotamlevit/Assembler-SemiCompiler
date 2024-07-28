@@ -17,7 +17,7 @@
 #define END_OF_STR '\0'
 
 /* File functions */
-FILE* open_file(char* file);
+FILE* open_file(char* file, char* mode);
 
 /* Get operation Functions */
 int is_operation(char* li);
@@ -30,6 +30,7 @@ char* find_next_symbol_in_str(char* line, char symbol);
 char* delete_first_spaces(char*);
 
 void add_extension_2_file_name(char*);
+void add_file_name_extension(char* filename,char* extension);
 
 void clean_line(char*);
 

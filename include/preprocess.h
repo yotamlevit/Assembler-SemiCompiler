@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-int macro_exec(FILE* file);
+int macro_exec(FILE* file, char* filename);
 
 
 #endif //PREPROCESS_H
