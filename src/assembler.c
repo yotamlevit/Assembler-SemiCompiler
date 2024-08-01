@@ -30,7 +30,7 @@ int error_flag;
 
 
 int iterate_input_files(int argc, char** argv);
-boolean process_file(char* asm_file_name);
+StatusCode process_file(char* asm_file_name);
 
 void reset_assembler();
 
@@ -47,11 +47,6 @@ void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array
     I = 0;
     /*Update the address of the guide labels in the symbal table*/
     fix_symbol_addresses();
-}
-
-
-void prep_first_pass(FILE *file_handle) {
-
 }
 
 
@@ -73,10 +68,10 @@ void reset_assembler()
 }
 
 
-boolean process_file(char* asm_file_name)
+StatusCode process_file(char* asm_file_name)
 {
     int line_index = 0;
-    boolean first_pass_exec_result;
+    boolean result;
 
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
@@ -92,37 +87,44 @@ boolean process_file(char* asm_file_name)
 
 
     info_log("Starting preprocessing on %s", file_name);
-    macro_exec(fd, file_name);
+    result = macro_exec(fd, file_name);
     fclose(fd);
+
+    if (result == NO)
+        return failedPreprocess;
 
     fd = open_file(file_name, FILE_READ);
     if (fd == NULL)
         return openFileError;
 
     info_log("Starting first pass on %s", file_name);
-    first_pass_exec_result = first_pass_exec(fd);
-    if (first_pass_exec_result != success)
-        return first_pass_exec_result;
+    result = first_pass_exec(fd);
+    if (error_flag == ON){ // change to result == NO
+        fclose(fd);
+        return failedFirstPass;
+    }
 
     prep_second_pass(fd);
     rewind(fd);
 
     info_log("Starting second pass on %s", file_name);
 
-    first_pass_exec_result = second_pass_exec(fd, &line_index);
+    result = second_pass_exec(fd, &line_index);
 
     create_output_files(&line_index);
 
     fclose(fd);
 
 
-    if (first_pass_exec_result)
+    if (result)
+    {
         info_log("The file %s has been successfully compiled", file_name);
-    else
-        info_log("Compilation failed for %s (second pass)", file_name);
-
-    return success;
-
+        return success;
+    }
+    else{
+        info_log("Compilation failed for %s (first pass)", file_name);
+        return failedSecondPass;
+    }
 }
 
 

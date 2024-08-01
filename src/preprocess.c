@@ -12,10 +12,12 @@
 #define MACRO_START "macr"
 #define MACRO_END "endmacr\n"
 #define EOS '\0'
+#define NEW_LINE '\n'
+#define ASM_COMMENT ';'
 #define MACRO_OUTPUT_EXTENSION "asm"
 #define SPACE " "
 
-#define REMOVE_NEW_LINE(str) *strchr(str, '\n') = EOS
+#define REMOVE_NEW_LINE(str) *strchr(str, NEW_LINE) = EOS
 
 
 /**
@@ -240,8 +242,11 @@ boolean handle_new_macro(FILE* file, HashMapPtr macro_map, char* macro_name, int
  * @return A boolean indicating if the non-new macro line was successfully handled.
  */
 boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, HashMapPtr macro_map, int line_count) {
-    REMOVE_NEW_LINE(pos);
     char* macro_content = NULL;
+
+    if(ends_with_newline(pos)) {
+        REMOVE_NEW_LINE(pos);
+    }
 
     do{
         /* Check if the tokenized part of the line matches a macro name in the hash map */
@@ -298,7 +303,8 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         }
         else {
             pos = delete_first_spaces(buffer);
-            result = handle_non_new_macro_line(asm_file, pos, original_line, macro_map, line_count);
+            if (*pos != ASM_COMMENT && *pos != EOS && *pos != NEW_LINE)
+                result = handle_non_new_macro_line(asm_file, pos, original_line, macro_map, line_count);
         }
     }
 
