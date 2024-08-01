@@ -11,6 +11,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/logger.h"
 #include "../include/output.h"
 #include "../include/preprocess.h"
+#include "globals.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 #define FILE_READ "r"

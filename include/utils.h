@@ -22,6 +22,7 @@ FILE* open_file(char* file, char* mode);
 /* Get operation Functions */
 int is_operation(char* li);
 int is_stop(char*);
+boolean is_register(char* str);
 
 /* Parse ASM line */
 char* find_next_symbol_in_str(char* line, char symbol);

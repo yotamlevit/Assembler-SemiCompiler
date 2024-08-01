@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "tables.h"
+#include "globals.h"
 
 
 #define COMMA ','

@@ -3,13 +3,13 @@
 //
 
 #include "../include/preprocess.h"
-#include "../include/tables.h"
 #include "../include/hash_map.h"
 #include "../include/utils.h"
 #include <stdio.h>
 #include <string.h>
 
 #include "../include/logger.h"
+#include "globals.h"
 
 
 #define MACRO_START "macr"
@@ -41,12 +41,6 @@ int count_macro_occurrences(FILE* file) {
 
 HashMapPtr init_macro_hash_map(FILE* file) {
     return createHashMap(count_macro_occurrences(file), NULL, NULL);
-}
-
-
-boolean is_register(char* str) {
-
-    return *str == REGISTER_SYMBOL && (*(str + 1) >= '0' && *(str + 1) <= '7');
 }
 
 
@@ -179,7 +173,6 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         pos = strtok(pos, " ");
 
         if (is_macro_definition(temp_buffer)) {
-//            pos = strtok(pos, " ");
             pos = strtok(NULL, " \n");
             if (!valid_mcro_decl(delete_first_spaces(temp_buffer), &pos, line_count))
                 result = NO;
@@ -256,7 +249,5 @@ int macro_exec(FILE* file, char* filename) {
     add_file_name_extension(filename, "asm");
     result = process_macro_file(file, macro_map, filename);
 
-
-    //printf("\n%s\n", (char*)hashMapFind(macro_map, "m_macr"));
     return result;
 }

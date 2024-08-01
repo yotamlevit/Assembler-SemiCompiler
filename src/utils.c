@@ -2,11 +2,16 @@
 // Created by Yotam Levit on 19/07/2024.
 //
 
+#include "../include/logger.h"
+#include <string.h>
+#include <stdio.h>
+#include "../include/hash_map.h"
+#include "../include/preprocess.h"
 #include "../include/globals.h"
 #include "../include/constants_tables.h"
 #include "../include/first_pass.h"
-#include "../include/tables.h"
 #include "../include/utils.h"
+#include "globals.h"
 
 
 /*Operation code.Reliable only when the action is valid*/
@@ -96,4 +101,9 @@ void clean_label_name(char* label)
 	int i;
 	for (i = 0; i < MAX_LABEL_LENGTH; i++)
 		label[i] = END_OF_STR;
+}
+
+boolean is_register(char* str) {
+
+    return *str == REGISTER_SYMBOL && (*(str + 1) >= '0' && *(str + 1) <= '7');
 }

@@ -2,6 +2,7 @@
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/logger.h"
+#include "globals.h"
 
 
 /**

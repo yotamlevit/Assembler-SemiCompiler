@@ -7,7 +7,6 @@
 #define TABLE_SIZE 150
 
 enum flag_state{OFF, ON};
-typedef enum { NO, YES } boolean;
 
 /*Structers*/
 
