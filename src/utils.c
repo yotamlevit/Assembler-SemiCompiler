@@ -24,7 +24,7 @@ FILE* open_file(char* file, char* mode)
     FILE* fp = fopen(file, mode);
     if (fp == NULL)
     {
-        printf("ERROR!! File not found or file with extension.\n");
+        error_log("Could not open file: %s", file_name);
         return NULL;
     }
     return fp;

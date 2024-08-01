@@ -11,7 +11,6 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/logger.h"
 #include "../include/output.h"
 #include "../include/preprocess.h"
-#include "globals.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 #define FILE_READ "r"
@@ -51,6 +50,11 @@ void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array
 }
 
 
+void prep_first_pass(FILE *file_handle) {
+
+}
+
+
 void reset_assembler()
 {
     /*Initialization: zero the data table i, code table i, data counter, instruction counter*/
@@ -83,15 +87,17 @@ boolean process_file(char* asm_file_name)
     strcat(file_name, INPUT_FILE_EXTENSION);
 
     fd = open_file(file_name, FILE_READ);
-    if (fd == NULL) {
-        error_log("Could not open file: %s", file_name);
+    if (fd == NULL)
         return openFileError;
-    }
 
 
-    info_log("starting preprocessing on %s", file_name);
+    info_log("Starting preprocessing on %s", file_name);
     macro_exec(fd, file_name);
-    rewind(fd);
+    fclose(fd);
+
+    fd = open_file(file_name, FILE_READ);
+    if (fd == NULL)
+        return openFileError;
 
     info_log("Starting first pass on %s", file_name);
     first_pass_exec_result = first_pass_exec(fd);
