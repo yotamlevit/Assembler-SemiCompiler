@@ -18,6 +18,7 @@
 
 /* File functions */
 FILE* open_file(char* file, char* mode);
+boolean write_line_to_file(FILE* fp, char* line);
 
 /* Get operation Functions */
 int is_operation(char* li);

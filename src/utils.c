@@ -107,3 +107,13 @@ boolean is_register(char* str) {
 
     return *str == REGISTER_SYMBOL && (*(str + 1) >= '0' && *(str + 1) <= '7');
 }
+
+
+boolean write_line_to_file(FILE* fp, char* line) {
+    if (fprintf(fp, "%s", line) < 0) {
+        // Handle error if the write fails
+        fclose(fp);
+        return NO;
+    }
+    return YES;
+}
