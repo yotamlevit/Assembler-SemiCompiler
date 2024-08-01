@@ -35,7 +35,7 @@ void add_extension_2_file_name(char*);
 void add_file_name_extension(char* filename,char* extension);
 
 void clean_line(char*);
-
 void clean_label_name(char*);
+boolean ends_with_newline(const char *str);
 
 #endif //ASSEMBLER_SEMICOMPILER_UTILS_H

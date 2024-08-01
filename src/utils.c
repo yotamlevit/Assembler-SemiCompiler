@@ -117,3 +117,14 @@ boolean write_line_to_file(FILE* fp, char* line) {
     }
     return YES;
 }
+
+/**
+ * Checks if a string ends with a newline character.
+ *
+ * @param str The string to check.
+ * @return A boolean indicating if the string ends with a newline (true) or not (false).
+ */
+boolean ends_with_newline(const char *str) {
+    size_t len = strlen(str);
+    return len > 0 && str[len - 1] == '\n';
+}
