@@ -1,11 +1,9 @@
-//
-// Created by Yotam Levit on 18/07/2024.
-//
+/*
+ * Created by Yotam Levit on 18/07/2024.
+*/
 
 #include "../include/validators.h"
-#include "../include/auxiliary.h"
-#include "../include/memory_map.h"
-#include "../include/globals.h"
+#include "../include/tables.h"
 #include "../include/status_codes.h"
 
 int validate_input(int argc, char** argv)
@@ -27,16 +25,3 @@ int validate_memory(int IC, int DC)
     return 1;
 }
 
-int validate_second_pass()
-{
-    if (!error_flag)
-    {
-        create_object_file();
-        create_entry_file();
-        create_external_file();
-
-        return 1;
-    }
-
-    return 0;
-}

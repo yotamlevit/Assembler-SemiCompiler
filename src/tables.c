@@ -1,5 +1,4 @@
-#include "../include/auxiliary.h"
-#include "../include/globals.h"
+#include "../include/tables.h"
 
 extern symbol* head_symbol;
 extern symbol* head_entries;
@@ -10,34 +9,6 @@ extern code_word code_table[TABLE_SIZE];
 extern int D;
 extern char* file_name;
 
-
-/*This function gets a string that represent the current line content and find a comma in it. It retruns the comma index if any.*/
-char* find_comma(char* line)
-{
-	int i;
-	for (i = 0; line[i] != '\0'; i++)
-	{
-		if (line[i] == ',')
-			break;
-	}
-	return line + i;
-}
-
-/*This function gets a string that represent a line content and skip the first white spaces in it. It return a pointer to the first non white space character. */
-char* delete_first_spaces(char* line)
-{
-	while (*line == ' ' || *line == '\t')
-		line++;
-	return line;
-}
-
-/*This function gets an extension of a file name and add/change extentsion in the global file_name variable.*/
-void add_extension_2_file_name(char* extension)
-{
-	int i;
-	for (i = 0; file_name[i] != '.'; i++);
-	strcpy((file_name + i), extension);
-}
 
 void free_data_table()
 {
@@ -61,8 +32,8 @@ void free_data_table()
 void free_code_table()
 {
 	int i;
-	word* temp;
-	word* temp2;
+	machine_word* temp;
+	machine_word* temp2;
 	for (i = 0; i < TABLE_SIZE; i++)
 	{
 		temp = code_table[i].c.next;
@@ -125,23 +96,5 @@ void free_externals_list()
 	head_externals = NULL;
 }
 
-/*This function gets a string that represent a line content and initalizes it.*/
-void clean_line(char* line)
-{
-	int i;
-	for (i = 0; i < MAX_LINE_LENGTH; i++)
-	{
-		line[i] = '\0';
-	}
-}
 
-/*This function gets a string that represent a label content and initalizes it.*/
-void clean_label_name(char* label)
-{
-	int i;
-	for (i = 0; i < MAX_LABEL_LENGTH; i++)
-	{
-		label[i] = '\0';
-	}
-}
 

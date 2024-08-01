@@ -2,15 +2,14 @@
 /*About the program: This program simulates an assembler. It gets a list of files names, (using the arguments in command line). Each file contains an assembly language code. It reads and analyzes the code line by line from each file, so at the end of reading proccess, the program prints detailed error messages, if any, or alternatively export files as required: object file (=contains the memory image of the machine code), entries file, externals file, (as detailed later in the program).
 Assumptions: *Source files names with '.as' extension. *Each source program provided as input has a possible maximum size. *Excess "white spaces" are ignored in an assembly language input file. *Lowercase and upper case letters are considered different in the assembly language. *Assembly language supports the representation of integers on a decimal base only. *There must be a white character separating (one or more) between command/label and operands, except commas.*/
 
-#include "../include/auxiliary.h"
 #include "../include/validators.h"
 #include "../include/second_pass.h"
 #include "../include/first_pass.h"
-#include "../include/globals.h"
 #include "../include/utils.h"
 #include "../include/first_pass.h"
 #include "../include/status_codes.h"
 #include "../include/logger.h"
+#include "../include/output.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 
@@ -29,7 +28,7 @@ int error_flag;
 
 
 int iterate_input_files(int argc, char** argv);
-int process_file(char* asm_file_name);
+boolean process_file(char* asm_file_name);
 
 void reset_assembler();
 
@@ -67,9 +66,11 @@ void reset_assembler()
 }
 
 
-int process_file(char* asm_file_name)
+boolean process_file(char* asm_file_name)
 {
-    int file_result = 0, first_pass_exec_result;
+    int line_index = 0;
+
+    boolean first_pass_exec_result;
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
         return memoryAllocationFailure;
@@ -91,16 +92,19 @@ int process_file(char* asm_file_name)
 
     prep_second_pass(fd);
 
-    file_result = second_pass_exec(fd);
+    info_log("Starting second pass on %s", file_name);
+
+    first_pass_exec_result = second_pass_exec(fd, &line_index);
+
+    create_output_files(&line_index);
 
     fclose(fd);
 
-    if (file_result)
+
+    if (first_pass_exec_result)
         info_log("The file %s has been successfully compiled", file_name);
     else
         info_log("Compilation failed for %s (second pass)", file_name);
-
-    reset_assembler();
 
     return success;
 
@@ -114,6 +118,7 @@ int iterate_input_files(int argc, char** argv)
     int i;
     for (i = 1; i < argc; i++)
     {
+        reset_assembler();
         asm_file_name = argv[i];
         info_log("Start processing file: %s", asm_file_name);
         process_file_result = process_file(asm_file_name);
@@ -133,8 +138,6 @@ int main(int argc, char** argv)
         printStatus(validate_input_result);
         return error;
     }
-
-    reset_assembler();
 
     int iterate_input_files_result = iterate_input_files(argc, argv);
     if (iterate_input_files_result != success)

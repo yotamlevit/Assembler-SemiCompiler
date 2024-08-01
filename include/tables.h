@@ -19,16 +19,16 @@ typedef struct symbols
 	boolean is_attached_directive;
 	boolean is_external;
 	struct symbols* next;
-}symbol;
+}symbol, * symbol_ptr;
 
-struct diveded_into_threes
+typedef struct diveded_into_threes
 {
 	unsigned w1 : 3;
 	unsigned w2 : 3;
 	unsigned w3 : 3;
 	unsigned w4 : 3;
 	unsigned w5 : 3;
-};
+} diveded_into_threes;
 
 struct data_word_fields
 {
@@ -45,7 +45,7 @@ typedef union dataword
 	struct diveded_into_threes parts;
 }data_word;
 
-struct machine_word_fields 
+typedef struct machine_word_fields
 {
 	unsigned E : 1;
 	unsigned R : 1;
@@ -54,16 +54,16 @@ struct machine_word_fields
 	unsigned : 0;
 	unsigned address;
 	union machine_word* next;
-};
+}machine_word_fields, * machine_word_fields_ptr;
 
 /*Machine word definition*/
 typedef union machine_word
-{ 
-	struct machine_word_fields c;
+{
+	machine_word_fields c;
 	struct diveded_into_threes parts;
-}word;
+}machine_word;
 
-struct code_word_fields
+typedef struct code_word_fields
 {
 	/*fields: external, relocatable, absoloute*/
 	unsigned int role : 3;
@@ -86,36 +86,21 @@ struct code_word_fields
 
 	unsigned address;
 	union machine_word* next;
-};
+} code_word_fields, * code_word_fields_ptr;
 
 /*Code machine word definition*/
 typedef union codeword
-{ 
-	struct code_word_fields c;
-	struct diveded_into_threes parts;
+{
+	code_word_fields c;
+	diveded_into_threes parts;
 }code_word;
 
-/*Analize input line functions*/
-void label_actions(char*);
-int is_label(char*);
-
-void insert_numerical_data(char*);
-void insert_string_data(char*);
-void operation(char*);
-
-void ext(char*);
-
-/*Auxiliary functions*/
-char* delete_first_spaces(char*);
-char* find_comma(char*);
-void clean_line(char*);
-void clean_label_name(char*);
-void add_extension_2_file_name(char*);
 void free_code_table();
 void free_data_table();
 void free_symbol_table();
 void free_entries_list();
 void free_externals_list();
+
 
 /*Tables and lists*/
 extern symbol* head_symbol;
