@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "globals.h"
+#include "status_codes.h"
 
 
 #define MAX_STRING 75
@@ -17,7 +18,7 @@ void analize_input_line(char*);
 
 void fix_symbol_addresses();
 
-int first_pass_exec(FILE * file_handle);
+StatusCode first_pass_exec(FILE * file_handle);
 
 int is_label(char*);
 

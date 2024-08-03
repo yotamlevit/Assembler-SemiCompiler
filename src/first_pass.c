@@ -54,17 +54,6 @@ void analize_input_line(char* l)
 	printf("ERROR!! line %d: The command was not found\n", line_counter);
 	error_flag = ON;
 }
-/*End of analize_input_line functiion*/
-
-/*End of is_label function*/
-
-/*End of label_actions function*/
-
-/*End of is_operation function*/
-
-/*End of is_stop function*/
-
-/*End of operation function*/
 
  /*Address method*/
 char addressing_mode(char* li)
@@ -155,21 +144,15 @@ void fix_symbol_addresses()
 	}
 }
 
-int first_pass_exec(FILE* file_handle)
+StatusCode first_pass_exec(FILE* file_handle)
 {
     line_counter = 0;
-    error_flag=OFF;
-    /*First pass*/
     while (!feof(file_handle))
     {
-        /*First analize*/
         analize_input_line(line);
         line_counter++;
-        /*Get one line from the file V */
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
-
-    //exe_first_pass(file_name);
     validate_memory(IC, DC);
 	return success;
 }
