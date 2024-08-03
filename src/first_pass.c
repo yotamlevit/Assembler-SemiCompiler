@@ -17,15 +17,11 @@ boolean analize_input_line(char* asm_line)
 		return ext(asm_line + strlen(EXTERN_LABEL));
 	if (!strncmp(asm_line, DATA_LABEL, strlen(DATA_LABEL)))
 		return insert_numerical_data(asm_line + strlen(DATA_LABEL));
+	if (!strncmp(asm_line, STRING_LABEL, strlen(STRING_LABEL)))
+		return insert_string_data(asm_line + strlen(STRING_LABEL));
 	if(*asm_line == ';' || *asm_line == '\0' || *asm_line == '\n' || (!strncmp(asm_line, ENTRY_LABEL, strlen(ENTRY_LABEL))))
 		return TRUE;
 
-
-	if (!strncmp(asm_line, ".string", 7))
-	{
-		insert_string_data(asm_line + 7);
-		return TRUE;
-	}
 	opcode = is_operation(asm_line);
     if (opcode != -1) // In second pass refactor i remove opcode global from the function
 	{
@@ -605,43 +601,54 @@ boolean insert_numerical_data(char* li)
 	return status;
 }
 
-/*This function gets as a parameter a string that represent a line content and copy  its content it to updation
-of the data_table. each character in the string will be inserted into separate cell.*/
-void insert_string_data(char* li)
+/**
+ * @brief Inserts string data from an assembly line into the data table.
+ *
+ * The insert_string_data function processes a given assembly line to extract string data.
+ * It checks for proper syntax, validates the string length, and inserts the string data
+ * into the data table. The function handles errors related to syntax, string length,
+ * and memory allocation.
+ *
+ * @param asm_line A pointer to the assembly line containing string data to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the string data is successfully processed and inserted
+ *         into the data table. Otherwise, returns FALSE.
+ */
+boolean insert_string_data(char* asm_line)
 {
+	boolean status = TRUE;
 	int i = 0;
 	int j = 2;
-	char* l = delete_first_spaces(li);
 	data_word* temp;
-	if (l[0] != '"')
+
+	asm_line = delete_first_spaces(asm_line);
+	if (asm_line[0] != '"')
 	{
-		printf("ERROR!! line %d: Syntax error missing\n", line_counter);
-		error_flag = ON;
+		error_log("line %d: Syntax error missing", line_counter);
+		status = FALSE;
 	}
-	while (l[i] != '\0' && l[i] != ' ')
-	{
-		i++;
-	}
+
+	while (asm_line[i] != '\0' && asm_line[i] != ' ') i++;
 	if (i > MAX_STRING)
 	{
-		printf("ERROR!! line %d: The string is too long, has more than 75 chars\n", line_counter);
-		error_flag = ON;
+		error_log("line %d: The string is too long, has more than 75 chars", line_counter);
+		status = FALSE;
 	}
-	if (l[i - 2] != '"')
+
+	if (asm_line[i - 2] != '"')
 	{
-		printf("ERROR!! line %d: Syntax error missing\n", line_counter);
-		error_flag = ON;
+		error_log("line %d: Syntax error missing", line_counter);
+		status = FALSE;
 	}
 	DC += i - 2;
 	/*If its leggal string*/
 	if (i > 3)
 		i = i - 3;
 	temp = (data_word*)malloc(sizeof(data_word));
-	if (!temp)
+	if (temp == NULL)
 	{
-		printf("ERROR!! Memory allocation faild\n");
-		error_flag = ON;
-		return;
+		error_log("Memory allocation failure");
+		return FALSE;
 	}
 	data_table[D] = temp;
 	temp->d.next = NULL;
@@ -650,17 +657,17 @@ void insert_string_data(char* li)
 	for (i = i; i >= 1; i--)
 	{
 		temp = (data_word*)malloc(sizeof(data_word));
-		if (!temp)
+		if (temp == NULL)
 		{
-			printf("ERROR!! Memory allocation faild\n");
-			error_flag = ON;
-			return;
+			error_log("Memory allocation failure");
+			return FALSE;
 		}
 		temp->d.next = data_table[D];
 		data_table[D] = temp;
-		data_table[D]->d.w = l[i];
+		data_table[D]->d.w = asm_line[i];
 		data_table[D]->d.address = DC - j;
 		j++;
 	}
 	D++;
+	return status;
 }

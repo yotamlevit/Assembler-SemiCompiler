@@ -18,6 +18,7 @@
 #define ENTRY_LABEL ".entry"
 #define EXTERN_LABEL ".extern"
 #define DATA_LABEL ".data"
+#define STRING_LABEL ".string"
 
 typedef enum { FALSE, TRUE } boolean;
 extern char line[MAX_LINE_LENGTH];
