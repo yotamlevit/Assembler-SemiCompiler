@@ -16,9 +16,8 @@
 #define IC_INITIAL_VALUE 100
 #define REGISTER_SYMBOL 'r'
 
-typedef enum { NO, YES } boolean;
+typedef enum { FALSE, TRUE } boolean;
 extern char line[MAX_LINE_LENGTH];
-
 
 /*Index*/
 extern int I;

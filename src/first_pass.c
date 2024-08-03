@@ -7,15 +7,15 @@
 #include "globals.h"
 
 /*Operation code.Reliable only when the action is valid*/
-int opcode; 
+int opcode;
 
 /*The first pass of the main function*/
 void analize_input_line(char* l)
 {
 	/*l1 is a point in the first place right after the first spaces*/
-	char* l1 = delete_first_spaces(l); 
+	char* l1 = delete_first_spaces(l);
 	/*This condition continues the text transition as long as the line is blank or consist comments*/
-	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n') 
+	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n')
 		return;
 	if (!strncmp(l1, ".entry", 6))
 		return;
@@ -57,14 +57,14 @@ void analize_input_line(char* l)
 
  /*Address method*/
 char addressing_mode(char* li)
-{ 
+{
 	int i = 2;
 	li = delete_first_spaces(li);
 	if (*li == '#')
 	{
 		/*If after # does not appear a number - throw an error*/
 		if (li[1] < 47 || li[1]>58)
-		{ 
+		{
 			if (li[1] != '-' && li[1] != '+')
 			{
 				printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
@@ -77,7 +77,7 @@ char addressing_mode(char* li)
 			{
 				/*If after # does not appear a number - throw an error*/
 				if (li[i] < 47 || li[i]>58)
-				{  
+				{
 					printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
 					error_flag = ON;
 					break;
@@ -86,18 +86,18 @@ char addressing_mode(char* li)
 			}
 		}
 		/*Immediate address*/
-		return '0'; 
+		return '0';
 	}
 	/*Indirect register address*/
 	else if (*li == '*')
-	{ 
+	{
 		if (!(*(li + 1) == 'r'))
 		{
 			printf("ERROR!! line %d: Invalid override parameter\n", line_counter);
 			error_flag = ON;
 		}
 		/*If the register is not between 0-7*/
-		else if (!(*(li + 2) > 47 && *(li + 2) < 56)) 
+		else if (!(*(li + 2) > 47 && *(li + 2) < 56))
 		{
 			printf("ERROR!! line %d: Invalid indirect address registration\n", line_counter);
 			error_flag = ON;
@@ -106,9 +106,9 @@ char addressing_mode(char* li)
 	}
 	/*Direct register address*/
 	else if (*li == 'r')
-	{ 
+	{
 		/*If the register is not between 0-7*/
-		if (!(*(li + 1) > 47 && *(li + 1) < 56)) 
+		if (!(*(li + 1) > 47 && *(li + 1) < 56))
 		{
 			printf("ERROR!! line %d: Invalid direct address registration\n", line_counter);
 			error_flag = ON;
@@ -116,19 +116,11 @@ char addressing_mode(char* li)
 		return '3';
 	}
 	/*The operand is a label - Direct address*/
-	else if (*li > 20 && *li < 127) 
+	else if (*li > 20 && *li < 127)
 		return '1';
 	else
 		return ' ';
 }/*End of addressing_mode function*/
-
-/*End of ext function*/
-
-/*End of insert_numerical_data function*/
-
-/*End of insert_string_data function��*/
-
-/*End of fix_symbol_addresses function*/
 
 /*This function updates the symbols address in the symbols list*/
 void fix_symbol_addresses()
@@ -217,8 +209,8 @@ void label_actions(char* li)
 			{
 				/*If its guide statement*/
 				head_symbol->address = DC;
-				head_symbol->is_attached_directive = YES;
-				head_symbol->is_external = NO;
+				head_symbol->is_attached_directive = TRUE;
+				head_symbol->is_external = FALSE;
 				if (!strncmp(p, ".entry", 6))
 					printf("WARNING!! line %d: A label defined at the beginig of entry statement is ignored\n" ,line_counter);
 				else if (!strncmp(p, ".extern", 7))
@@ -231,8 +223,8 @@ void label_actions(char* li)
 			{
 				/*If this is a statement of instruction*/
 				head_symbol->address = IC;
-				head_symbol->is_attached_directive = NO;
-				head_symbol->is_external = NO;
+				head_symbol->is_attached_directive = FALSE;
+				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
 				analize_input_line(p);
 			}
@@ -253,8 +245,8 @@ void operation(char* li)
 	/*Method of addrresing operand destanation*/
 	char operand_destination = ' ';
 	int i = 0;
-	boolean is_source = NO;
-	boolean is_destination = NO;
+	boolean is_source = FALSE;
+	boolean is_destination = FALSE;
 	machine_word* temp;
 	boolean miss_comma = 0;
 	for (k = 0; li[k] == ' ' || li[k] == '\t'; k++);
@@ -277,7 +269,7 @@ void operation(char* li)
 			{
 				printf("ERROR!! line %d: Missing comma\n", line_counter);
 				error_flag = ON;
-				miss_comma = YES;
+				miss_comma = TRUE;
 			}
 		}
 		else if (p[k] == ',')
@@ -314,7 +306,7 @@ void operation(char* li)
 	{
 		/*Checks if the specific op supports the source add method*/
 		if ((operation_mode[opcode][1])[i] == operand_source)
-			is_source = YES;
+			is_source = TRUE;
 		i++;
 	}
 	i = 0;
@@ -322,7 +314,7 @@ void operation(char* li)
 	{
 		/*Checks whether the specific OP supports the destination add method*/
 		if ((operation_mode[opcode][0])[i] == operand_destination)
-			is_destination = YES;
+			is_destination = TRUE;
 		i++;
 	}
 	/*If not rise an error*/
@@ -491,7 +483,7 @@ void ext(char* li)
 	head_symbol = temp;
 	clean_label_name(head_symbol->symbol_name);
 	strncpy(head_symbol->symbol_name, li, i);
-	head_symbol->is_external = YES;
+	head_symbol->is_external = TRUE;
 	head_symbol->address = 0;
 }
 

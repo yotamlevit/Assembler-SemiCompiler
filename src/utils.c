@@ -113,9 +113,9 @@ boolean write_line_to_file(FILE* fp, char* line) {
     if (fprintf(fp, "%s", line) < 0) {
         // Handle error if the write fails
         fclose(fp);
-        return NO;
+        return FALSE;
     }
-    return YES;
+    return TRUE;
 }
 
 /**

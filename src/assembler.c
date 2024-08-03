@@ -107,7 +107,7 @@ StatusCode process_file(char* asm_file_name)
     result = macro_exec(fd, file_name); /* TODO: Convert return type to StatusCode */
     fclose(fd);
 
-    if (result == NO)
+    if (result == FALSE)
         return failedPreprocess;
 
     fd = open_file(file_name, FILE_READ);
