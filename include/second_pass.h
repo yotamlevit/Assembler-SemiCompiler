@@ -7,8 +7,9 @@
 
 #include <stdio.h>
 #include "tables.h"
+#include "globals.h"
 
-#define REGISTER_SYMBOL 'r'
+
 #define COMMA ','
 #define SPACE ' '
 #define NEW_LINE '\n'

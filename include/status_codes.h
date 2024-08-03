@@ -16,7 +16,10 @@ typedef enum {
     noFilesProvided,
     memoryAllocationFailure,
     openFileError,
-    NumberOfErrors,
+    failedPreprocess,
+    failedFirstPass,
+    failedSecondPass,
+    NumberOfErrors
 } StatusCode;
 
 typedef struct {

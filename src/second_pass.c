@@ -2,6 +2,7 @@
 #include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/logger.h"
+#include "globals.h"
 
 
 /**
@@ -152,13 +153,13 @@ boolean handle_one_operand(char* asm_line, code_word_fields_ptr code_word) {
  */
 boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_word) {
     /* First Register */
-    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
+    asm_line = find_next_symbol_in_str(asm_line, REGISTER_SYMBOL);
     update_machine_word(machine_word, atoi(asm_line + 1), 1, YES);
 
     asm_line += 2; /* Move from the first register */
 
     /* Second Register */
-    asm_line = find_next_symbol_in_line(asm_line, REGISTER_SYMBOL);
+    asm_line = find_next_symbol_in_str(asm_line, REGISTER_SYMBOL);
     update_machine_word(machine_word, machine_word->w + atoi(asm_line + 1), 1, NO);
 
     return YES;
@@ -180,7 +181,7 @@ boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_wor
     if(result != NO)
     {
         /* Move from the first operand */
-        asm_line = find_next_symbol_in_line(asm_line, COMMA);
+        asm_line = find_next_symbol_in_str(asm_line, COMMA);
         asm_line++;
         asm_line = delete_first_spaces(asm_line);
 
@@ -255,7 +256,7 @@ boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* li
  */
 boolean isLabel2(char* asm_line)
 {
-    return *find_next_symbol_in_line(asm_line, LABEL_SYMBOL) == LABEL_SYMBOL;
+    return *find_next_symbol_in_str(asm_line, LABEL_SYMBOL) == LABEL_SYMBOL;
 }
 
 
@@ -268,7 +269,7 @@ boolean isLabel2(char* asm_line)
  */
 boolean process_label(char* asm_line, code_word_fields_ptr code_word, int* line_index)
 {
-    asm_line = find_next_symbol_in_line(asm_line, LABEL_SYMBOL);
+    asm_line = find_next_symbol_in_str(asm_line, LABEL_SYMBOL);
     return process_line(++asm_line, code_word, line_index);
 }
 

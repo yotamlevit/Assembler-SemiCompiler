@@ -4,6 +4,7 @@
 #include "../include/first_pass.h"
 #include "../include/constants_tables.h"
 #include "../include/status_codes.h"
+#include "globals.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode; 

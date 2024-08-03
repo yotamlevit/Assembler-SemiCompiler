@@ -21,7 +21,10 @@ StatusPtr getStatuses(void)
         {error, "ERROR - Error occurred"},
         {noFilesProvided, "ERROR - You must send files."},
         {memoryAllocationFailure, "ERROR - Memory allocation failure"},
-        {openFileError, "ERROR - Could not open a file"}
+        {openFileError, "ERROR - Could not open a file"},
+        {failedPreprocess, "ERROR - Could not finish preprocessing"},
+        {failedFirstPass, "ERROR - Could not finish first pass"},
+        {failedSecondPass, "ERROR - Could not finish second pass"},
     };
     return Statuses;
 }
