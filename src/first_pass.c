@@ -509,7 +509,7 @@ boolean ext(char* li)
  */
 boolean insert_numerical_data(char* li)
 {
-	/* TODO: Split logic to multiple functions */
+	/* TODO: Split logic to multiple functions, Fix memory leak */
 	boolean status = TRUE;
 	int a[MAX_LINE_LENGTH];
 	char b[MAX_LINE_LENGTH];
@@ -586,10 +586,10 @@ boolean insert_numerical_data(char* li)
 	for (j = counter - 1; j >= 0; j--)
 	{
 		temp = (data_word*)malloc(sizeof(data_word));
-		if (!temp)
+		if (temp == NULL)
 		{
 			error_log("Memory allocation failure");
-			status = FALSE;
+			return FALSE;
 		}
 		temp->d.next = data_table[D];
 		data_table[D] = temp;
@@ -616,6 +616,7 @@ boolean insert_numerical_data(char* li)
  */
 boolean insert_string_data(char* asm_line)
 {
+	/* TODO: Fix memory leak */
 	boolean status = TRUE;
 	int i = 0, j = 2, k;
 	data_word* temp;
