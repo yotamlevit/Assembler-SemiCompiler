@@ -617,8 +617,7 @@ boolean insert_numerical_data(char* li)
 boolean insert_string_data(char* asm_line)
 {
 	boolean status = TRUE;
-	int i = 0;
-	int j = 2;
+	int i = 0, j = 2, k;
 	data_word* temp;
 
 	asm_line = delete_first_spaces(asm_line);
@@ -654,7 +653,7 @@ boolean insert_string_data(char* asm_line)
 	temp->d.next = NULL;
 	data_table[D]->d.w = 0;
 	data_table[D]->d.address = DC - 1;
-	for (i = i; i >= 1; i--)
+	for (k = i; k >= 1; k--)
 	{
 		temp = (data_word*)malloc(sizeof(data_word));
 		if (temp == NULL)
@@ -664,7 +663,7 @@ boolean insert_string_data(char* asm_line)
 		}
 		temp->d.next = data_table[D];
 		data_table[D] = temp;
-		data_table[D]->d.w = asm_line[i];
+		data_table[D]->d.w = asm_line[k];
 		data_table[D]->d.address = DC - j;
 		j++;
 	}
