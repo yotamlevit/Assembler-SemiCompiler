@@ -340,7 +340,7 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
     /* Clean the line from spaces */
     char* clean_line = delete_first_spaces(asm_line);
     if (!strncmp(clean_line, ENTRY_LABEL, strlen(ENTRY_LABEL)))
-        return process_entry(clean_line + 6);
+        return process_entry(clean_line + strlen(ENTRY_LABEL));
     if (isLabel2(clean_line))
         return process_label(clean_line, code_word, line_index);
     /* Otherwise it is an operation*/

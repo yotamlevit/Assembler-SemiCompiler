@@ -3,58 +3,44 @@
 #include "../include/tables.h"
 #include "../include/first_pass.h"
 #include "../include/constants_tables.h"
-#include "../include/status_codes.h"
 #include "globals.h"
 #include "logger.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode;
 
-/*The first pass of the main function*/
-boolean analize_input_line(char* l)
-{
-	/*l1 is a point in the first place right after the first spaces*/
-	char* l1 = delete_first_spaces(l);
-	if (!strncmp(l1, ".extern", 7))
-	{
-		return ext(l1 + 7);
-	}
 
-	/*This condition continues the text transition as long as the line is blank or consist comments*/
-	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n')
+boolean analize_input_line(char* asm_line)
+{
+	asm_line = delete_first_spaces(asm_line);
+	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
+		return ext(asm_line + strlen(EXTERN_LABEL));
+	if (!strncmp(asm_line, DATA_LABEL, strlen(DATA_LABEL)))
+		return insert_numerical_data(asm_line + strlen(DATA_LABEL));
+	if(*asm_line == ';' || *asm_line == '\0' || *asm_line == '\n' || (!strncmp(asm_line, ENTRY_LABEL, strlen(ENTRY_LABEL))))
 		return TRUE;
-	if (!strncmp(l1, ".entry", 6))
-		return TRUE;
-	// if (!strncmp(l1, ".extern", 7))
-	// {
-	// 	ext(l1 + 7);
-	// 	return;
-	// }
-	if (!strncmp(l1, ".data", 5))
+
+
+	if (!strncmp(asm_line, ".string", 7))
 	{
-		insert_numerical_data(l1 + 5);
+		insert_string_data(asm_line + 7);
 		return TRUE;
 	}
-	if (!strncmp(l1, ".string", 7))
-	{
-		insert_string_data(l1 + 7);
-		return TRUE;
-	}
-	opcode = is_operation(l1);
+	opcode = is_operation(asm_line);
     if (opcode != -1) // In second pass refactor i remove opcode global from the function
 	{
-		operation(l1 + 3);
+		operation(asm_line + 3);
 		return TRUE;
 	}
-	opcode = is_stop(l1);
+	opcode = is_stop(asm_line);
 	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
 	{
-		operation(l1 + 4);
+		operation(asm_line + 4);
 		return TRUE;
 	}
-	if (is_label(l1))
+	if (is_label(asm_line))
 	{
-		label_actions(l1);
+		label_actions(asm_line);
 		return TRUE;
 	}
 	printf("ERROR!! line %d: The command was not found\n", line_counter);
@@ -478,7 +464,7 @@ void operation(char* li)
  */
 boolean ext(char* li)
 {
-	int status = TRUE;
+	boolean status = TRUE;
 	symbol* temp;
 	int i = 0;
 
@@ -512,24 +498,30 @@ boolean ext(char* li)
 	return status;
 }
 
-/*A functions to fill the data table*/
-void insert_numerical_data(char* li)
+/**
+ * @brief Inserts numerical data from a line into the data table.
+ *
+ * The insert_numerical_data function processes a given line to extract numerical data.
+ * It removes leading spaces, checks for missing or invalid parameters, and handles commas.
+ * The function converts the extracted data from string format to integer format, and
+ * inserts the data into the data table while updating the data counter.
+ *
+ * @param li A pointer to the line containing numerical data to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the numerical data is successfully processed and inserted
+ *         into the data table. Otherwise, returns FALSE.
+ */
+boolean insert_numerical_data(char* li)
 {
-	/*For numbers*/
-	/* Temp array of ints for storing the input numbers */
+	/* TODO: Split logic to multiple functions */
+	boolean status = TRUE;
 	int a[MAX_LINE_LENGTH];
-	/* Temp array of chars for storing the input numbers */
 	char b[MAX_LINE_LENGTH];
 	int i = 0, j, z, counter;
 	data_word* temp;
-	/* Removing spaces */
 	li = delete_first_spaces(li);
-	/* Analize, fill the auxiliary array of chars b and give relevant massages */
-	if (*li == '\0')
-	{
-		printf("ERROR!! line %d: Missing parameters\n", line_counter);
-		error_flag = ON;
-	}
+	if (*li == '\0' || *li == '\n')
+		error_log("line %d: Missing parameters", line_counter);
 	while (*li != '\0')
 	{
 		if (*li == '-')
@@ -539,8 +531,8 @@ void insert_numerical_data(char* li)
 			li++;
 			if (!(*(li) > 47 && *(li) < 58))
 			{
-				printf("ERROR!! line %d: Invalid parameter\n", line_counter);
-				error_flag = ON;
+				error_log("line %d: Invalid parameter", line_counter);
+				status = FALSE;
 			}
 		}
 		else if (*li == '+')
@@ -560,8 +552,8 @@ void insert_numerical_data(char* li)
 			li = delete_first_spaces(li + 1);
 			if (*(li + 1) == ',')
 			{
-				printf("ERROR!! line %d: Multiple number of consecutive commas\n", line_counter);
-				error_flag = ON;
+				error_log("line %d: Multiple number of consecutive commas\n", line_counter);
+				status = FALSE;
 			}
 		}
 		else
@@ -569,13 +561,12 @@ void insert_numerical_data(char* li)
 			li = delete_first_spaces(li);
 			if ((*li > 47 && *li < 58))
 			{
-				printf("ERROR!! line %d: Missing comma\n", line_counter);
-				error_flag = ON;
+				error_log("line %d: Missing comma\n", line_counter);
+				status = FALSE;
 			}
 			li++;
 		}
 	}
-	/* End of while loop */
 
 	/* Convert the chars array to integers and fill the int array */
 	j = 0;
@@ -601,9 +592,8 @@ void insert_numerical_data(char* li)
 		temp = (data_word*)malloc(sizeof(data_word));
 		if (!temp)
 		{
-			printf("ERROR!! Memory allocation faild\n");
-			error_flag = ON;
-			return;
+			error_log("Memory allocation failure");
+			status = FALSE;
 		}
 		temp->d.next = data_table[D];
 		data_table[D] = temp;
@@ -612,6 +602,7 @@ void insert_numerical_data(char* li)
 		z++;
 	}
 	D++;
+	return status;
 }
 
 /*This function gets as a parameter a string that represent a line content and copy  its content it to updation

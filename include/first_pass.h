@@ -28,6 +28,6 @@ void operation(char*);
 
 boolean ext(char*);
 
-void insert_numerical_data(char*);
+boolean insert_numerical_data(char*);
 
 void insert_string_data(char*);
