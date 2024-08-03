@@ -116,8 +116,7 @@ StatusCode process_file(char* asm_file_name)
 
     info_log("Starting first pass on %s", file_name);
     result = first_pass_exec(fd);
-    if (result != success){
-        printStatus(result);
+    if (!result){
         fclose(fd);
         return failedFirstPass;
     }

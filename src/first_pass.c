@@ -5,54 +5,62 @@
 #include "../include/constants_tables.h"
 #include "../include/status_codes.h"
 #include "globals.h"
+#include "logger.h"
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode;
 
 /*The first pass of the main function*/
-void analize_input_line(char* l)
+boolean analize_input_line(char* l)
 {
 	/*l1 is a point in the first place right after the first spaces*/
 	char* l1 = delete_first_spaces(l);
-	/*This condition continues the text transition as long as the line is blank or consist comments*/
-	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n')
-		return;
-	if (!strncmp(l1, ".entry", 6))
-		return;
 	if (!strncmp(l1, ".extern", 7))
 	{
-		ext(l1 + 7);
-		return;
+		return ext(l1 + 7);
 	}
+
+	/*This condition continues the text transition as long as the line is blank or consist comments*/
+	if (*l1 == ';' || *l1 == '\0' || *l1 == '\n')
+		return TRUE;
+	if (!strncmp(l1, ".entry", 6))
+		return TRUE;
+	// if (!strncmp(l1, ".extern", 7))
+	// {
+	// 	ext(l1 + 7);
+	// 	return;
+	// }
 	if (!strncmp(l1, ".data", 5))
 	{
 		insert_numerical_data(l1 + 5);
-		return;
+		return TRUE;
 	}
 	if (!strncmp(l1, ".string", 7))
 	{
 		insert_string_data(l1 + 7);
-		return;
+		return TRUE;
 	}
 	opcode = is_operation(l1);
     if (opcode != -1) // In second pass refactor i remove opcode global from the function
 	{
 		operation(l1 + 3);
-		return;
+		return TRUE;
 	}
 	opcode = is_stop(l1);
 	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
 	{
 		operation(l1 + 4);
-		return;
+		return TRUE;
 	}
 	if (is_label(l1))
 	{
 		label_actions(l1);
-		return;
+		return TRUE;
 	}
 	printf("ERROR!! line %d: The command was not found\n", line_counter);
 	error_flag = ON;
+
+	return TRUE;
 }
 
  /*Address method*/
@@ -136,7 +144,7 @@ void fix_symbol_addresses()
 	}
 }
 
-StatusCode first_pass_exec(FILE* file_handle)
+int first_pass_exec(FILE* file_handle)
 {
     line_counter = 0;
     while (!feof(file_handle))
@@ -146,7 +154,7 @@ StatusCode first_pass_exec(FILE* file_handle)
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
     validate_memory(IC, DC);
-	return success;
+	return TRUE;
 }
 
 /*This function checks if there is a label in the begining*/
@@ -455,36 +463,53 @@ void operation(char* li)
 	I++;
 }
 
-/*This function handles the external guides*/
-void ext(char* li)
+/**
+ * @brief Processes a line to check and handle an external label.
+ *
+ * The ext function processes a given line to determine if it contains a valid external
+ * label. It removes leading spaces, checks for an empty line, validates the label's length,
+ * and adds the label to the symbol table if valid. Errors are logged if the line is
+ * empty, the label is too long, or memory allocation fails.
+ *
+ * @param li A pointer to the line to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the line contains a valid external label and is processed
+ *         successfully. Otherwise, returns FALSE.
+ */
+boolean ext(char* li)
 {
+	int status = TRUE;
 	symbol* temp;
-	int i;
+	int i = 0;
+
 	li = delete_first_spaces(li);
-	if (*li == '\0')
-	{
-		printf("ERROR!! line %d: Label is missing\n", line_counter);
-		error_flag = ON;
+	if (*li == '\0' || *li == '\n') {
+		error_log("line %d: Label is missing", line_counter);
+		status = FALSE;
 	}
-	for (i = 0; li[i] != '\0' && li[i] != '\n' && li[i] != ' '; i++);
+
+	while (li[i] != '\0' && li[i] != '\n' && li[i] != ' ') { i++; }
 	if (i > MAX_LABEL_LENGTH)
 	{
-		printf("ERROR!! line %d: Label is too long\n", line_counter);
-		error_flag = ON;
+		error_log("line %d: Label is too long", line_counter);
+		status = FALSE;
 	}
+
 	temp = (symbol*)malloc(sizeof(symbol));
-	if (!temp)
+	if (temp == NULL)
 	{
-		printf("ERORR!! Memory allocation faild\n");
-		error_flag = ON;
-		return;
+		error_log("Memory allocation failure");
+		status = FALSE;
 	}
-	temp->next = head_symbol;
-	head_symbol = temp;
-	clean_label_name(head_symbol->symbol_name);
-	strncpy(head_symbol->symbol_name, li, i);
-	head_symbol->is_external = TRUE;
-	head_symbol->address = 0;
+	else {
+		temp->next = head_symbol;
+		head_symbol = temp;
+		clean_label_name(head_symbol->symbol_name);
+		strncpy(head_symbol->symbol_name, li, i);
+		head_symbol->is_external = TRUE;
+		head_symbol->address = 0;
+	}
+	return status;
 }
 
 /*A functions to fill the data table*/
