@@ -12,7 +12,18 @@
 /*Operation code.Reliable only when the action is valid*/
 int opcode;
 
-
+/**
+ * @brief Analyzes and processes an assembly line.
+ *
+ * The analyze_input_line function processes a given assembly line to determine its type
+ * (directive, instruction, comment, or label) and performs the corresponding actions.
+ * It handles external labels, numerical data, string data, entry labels, and operations.
+ * If the line contains an unrecognized command, an error is logged.
+ *
+ * @param asm_line A pointer to the assembly line to be analyzed and processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
+ */
 boolean analyze_input_line(char* asm_line)
 {
 	asm_line = delete_first_spaces(asm_line);
@@ -26,16 +37,10 @@ boolean analyze_input_line(char* asm_line)
 		return TRUE;
 	opcode = is_operation(asm_line);
     if (opcode != -1) // In second pass refactor i remove opcode global from the function
-	{
-		operation(asm_line + 3);
-		return TRUE;
-	}
+		return operation(asm_line + 3);
 	opcode = is_stop(asm_line);
 	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
-	{
-		operation(asm_line + 4);
-		return TRUE;
-	}
+		return operation(asm_line + 4);
 	if (is_label(asm_line))
 		return label_actions(asm_line);
 
@@ -233,9 +238,22 @@ boolean label_actions(char* asm_line)
 	return TRUE;
 }
 
-/*The first transition of the operations*/
-void operation(char* li)
+/**
+ * @brief Processes an operation line in the assembly code.
+ *
+ * The operation function processes an operation line in the assembly code.
+ * It handles operand addressing methods, checks for errors in operand syntax,
+ * and allocates memory for machine words. The function handles different types
+ * of operations and updates the code table accordingly.
+ *
+ * @param asm_line A pointer to the assembly line to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ */
+boolean operation(char* asm_line)
 {
+	/* TODO: Split the logic to multiple functions */
+	boolean result = TRUE;
 	int k;
 	int s;
 	int j;
@@ -250,8 +268,8 @@ void operation(char* li)
 	boolean is_destination = FALSE;
 	machine_word* temp;
 	boolean miss_comma = 0;
-	for (k = 0; li[k] == ' ' || li[k] == '\t'; k++);
-	strcpy(oper, li + k);
+	for (k = 0; asm_line[k] == ' ' || asm_line[k] == '\t'; k++);
+	strcpy(oper, asm_line + k);
 	for (k = 0; p[k] != '\0' && p[k] != '\n'; k++)
 	{
 		if (p[k] == ' ')
@@ -268,8 +286,8 @@ void operation(char* li)
 			}
 			else if (p[k] != '\0' && p[k] != '\n')
 			{
-				printf("ERROR!! line %d: Missing comma\n", line_counter);
-				error_flag = ON;
+				error_log("line %d: Missing comma\n", line_counter);
+				result = FALSE;
 				miss_comma = TRUE;
 			}
 		}
@@ -282,22 +300,22 @@ void operation(char* li)
 	}
 	if (miss_comma)
 	{
-		for (s = 0; li[s] == ' ' || li[s] == '\t'; s++);
-		for (s = s; li[s] != ' ' && li[s] != '\t'; s++);
-		*(li + s) = ',';
+		for (s = 0; asm_line[s] == ' ' || asm_line[s] == '\t'; s++);
+		for (s = s; asm_line[s] != ' ' && asm_line[s] != '\t'; s++);
+		*(asm_line + s) = ',';
 	}
 	/*Discover the address method of source*/
-	operand_source = addressing_mode(li);
-	for (j = 0; li[j] != '\0'; j++)
+	operand_source = addressing_mode(asm_line);
+	for (j = 0; asm_line[j] != '\0'; j++)
 	{
 		/*If thre is a comma, discover the address method of destination*/
-		if (li[j] == ',')
+		if (asm_line[j] == ',')
 		{
-			operand_destination = addressing_mode(li + j + 1);
+			operand_destination = addressing_mode(asm_line + j + 1);
 			break;
 		}
 	}
-	if (li[j] == '\0')
+	if (asm_line[j] == '\0')
 	{
 		/*If there isnt comma then the only operand is destination�*/
 		operand_destination = operand_source;
@@ -321,23 +339,22 @@ void operation(char* li)
 	/*If not rise an error*/
 	if (!is_source)
 	{
-		printf("ERROR!! line %d: Incorrect method for the source operand\n", line_counter);
-		error_flag = ON;
+		error_log("line %d: Incorrect method for the source operand\n", line_counter);
+		result = FALSE;
 	}
 	if (!is_destination)
 	{
-		printf("ERROR!! line %d: Incorrect method for the destination operand\n", line_counter);
-		error_flag = ON;
+		error_log("line %d: Incorrect method for the destination operand\n", line_counter);
+		result = FALSE;
 	}
 	/*If there is 2 operands and both of them 3 or 4 add method, they share the same memmory word--allocate one more word */
 	if ((operand_source == '3' && operand_destination == '2') || (operand_destination == '3' && operand_source == '2') || (operand_source == '3' && operand_destination == '3') || (operand_destination == '2' && operand_source == '2'))
 	{
 		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (!temp)
+		if (temp == NULL)
 		{
-			printf("ERORR!! Memory allocation faild\n");
-			error_flag = ON;
-			return;
+			error_log("Memory allocation failure");
+			return FALSE;
 		}
 		temp->c.next = code_table[I].c.next;
 		code_table[I].c.next = temp;
@@ -373,11 +390,10 @@ void operation(char* li)
 	else if (operand_source == ' ' && operand_destination != ' ')
 	{
 		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (!temp)
+		if (temp == NULL)
 		{
-			printf("ERORR!! Memory allocation faild\n");
-			error_flag = ON;
-			return;
+			error_log("Memory allocation failure");
+			return FALSE;
 		}
 		temp->c.next = NULL;
 		code_table[I].c.next = temp;
@@ -409,20 +425,18 @@ void operation(char* li)
 	{
 		/*Allocate two more memmory words*/
 		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (!temp)
+		if (temp == NULL)
 		{
-			printf("ERORR!!Memory allocation faild\n");
-			error_flag = ON;
-			return;
+			error_log("Memory allocation failure");
+			return FALSE;
 		}
 		temp->c.next = NULL;
 		code_table[I].c.next = temp;
 		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (!temp)
+		if (temp == NULL)
 		{
-			printf("ERORR!! Memory allocation faild\n");
-			error_flag = ON;
-			return;
+			error_log("Memory allocation failure");
+			return FALSE;
 		}
 		temp->c.next = code_table[I].c.next;
 		code_table[I].c.next = temp;
@@ -454,6 +468,7 @@ void operation(char* li)
 			code_table[I].c.source_direct_register = 1;
 	}
 	I++;
+	return result;
 }
 
 /**

@@ -24,7 +24,7 @@ boolean is_label(char*);
 
 boolean label_actions(char*);
 
-void operation(char*);
+boolean operation(char*);
 
 boolean ext(char*);
 
