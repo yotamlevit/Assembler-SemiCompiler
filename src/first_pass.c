@@ -461,38 +461,35 @@ void operation(char* li)
  */
 boolean ext(char* li)
 {
-	boolean status = TRUE;
 	symbol* temp;
 	int i = 0;
 
 	li = delete_first_spaces(li);
 	if (*li == '\0' || *li == '\n') {
 		error_log("line %d: Label is missing", line_counter);
-		status = FALSE;
+		return FALSE;
 	}
 
 	while (li[i] != '\0' && li[i] != '\n' && li[i] != ' ') { i++; }
 	if (i > MAX_LABEL_LENGTH)
 	{
 		error_log("line %d: Label is too long", line_counter);
-		status = FALSE;
+		return FALSE;
 	}
 
 	temp = (symbol*)malloc(sizeof(symbol));
 	if (temp == NULL)
 	{
 		error_log("Memory allocation failure");
-		status = FALSE;
+		return FALSE;
 	}
-	else {
-		temp->next = head_symbol;
-		head_symbol = temp;
-		clean_label_name(head_symbol->symbol_name);
-		strncpy(head_symbol->symbol_name, li, i);
-		head_symbol->is_external = TRUE;
-		head_symbol->address = 0;
-	}
-	return status;
+	temp->next = head_symbol;
+	head_symbol = temp;
+	clean_label_name(head_symbol->symbol_name);
+	strncpy(head_symbol->symbol_name, li, i);
+	head_symbol->is_external = TRUE;
+	head_symbol->address = 0;
+	return TRUE;
 }
 
 /**
@@ -511,7 +508,6 @@ boolean ext(char* li)
 boolean insert_numerical_data(char* li)
 {
 	/* TODO: Split logic to multiple functions, Fix memory leak */
-	boolean status = TRUE;
 	int a[MAX_LINE_LENGTH];
 	char b[MAX_LINE_LENGTH];
 	int i = 0, j, z, counter;
@@ -529,7 +525,7 @@ boolean insert_numerical_data(char* li)
 			if (!(*(li) > 47 && *(li) < 58))
 			{
 				error_log("line %d: Invalid parameter", line_counter);
-				status = FALSE;
+				return FALSE;
 			}
 		}
 		else if (*li == '+')
@@ -550,7 +546,7 @@ boolean insert_numerical_data(char* li)
 			if (*(li + 1) == ',')
 			{
 				error_log("line %d: Multiple number of consecutive commas\n", line_counter);
-				status = FALSE;
+				return FALSE;
 			}
 		}
 		else
@@ -559,7 +555,7 @@ boolean insert_numerical_data(char* li)
 			if ((*li > 47 && *li < 58))
 			{
 				error_log("line %d: Missing comma\n", line_counter);
-				status = FALSE;
+				return FALSE;
 			}
 			li++;
 		}
@@ -599,7 +595,7 @@ boolean insert_numerical_data(char* li)
 		z++;
 	}
 	D++;
-	return status;
+	return TRUE;
 }
 
 /**
@@ -617,8 +613,6 @@ boolean insert_numerical_data(char* li)
  */
 boolean insert_string_data(char* asm_line)
 {
-	/* TODO: Fix memory leak */
-	boolean status = TRUE;
 	int i = 0, j = 2, k;
 	data_word* temp;
 
@@ -626,20 +620,20 @@ boolean insert_string_data(char* asm_line)
 	if (asm_line[0] != '"')
 	{
 		error_log("line %d: Syntax error missing", line_counter);
-		status = FALSE;
+		return FALSE;
 	}
 
 	while (asm_line[i] != '\0' && asm_line[i] != ' ') i++;
 	if (i > MAX_STRING)
 	{
 		error_log("line %d: The string is too long, has more than 75 chars", line_counter);
-		status = FALSE;
+		return FALSE;
 	}
 
 	if (asm_line[i - 2] != '"')
 	{
 		error_log("line %d: Syntax error missing", line_counter);
-		status = FALSE;
+		return FALSE;
 	}
 	DC += i - 2;
 	/*If its leggal string*/
@@ -670,5 +664,5 @@ boolean insert_string_data(char* asm_line)
 		j++;
 	}
 	D++;
-	return status;
+	return TRUE;
 }
