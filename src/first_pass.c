@@ -113,7 +113,7 @@ char addressing_mode(char* li)
 		return '1';
 	else
 		return ' ';
-}/*End of addressing_mode function*/
+}
 
 /**
  * @brief Adjusts the addresses of symbols in the symbol table.
@@ -506,20 +506,21 @@ boolean operation(char* asm_line)
  */
 boolean ext(char* asm_line)
 {
+	boolean result = TRUE;
 	symbol* temp;
 	int i = 0;
 
 	asm_line = delete_first_spaces(asm_line);
 	if (*asm_line == '\0' || *asm_line == '\n') {
 		error_log("line %d: Label is missing", line_counter);
-		return FALSE;
+		result = FALSE;
 	}
 
 	while (asm_line[i] != '\0' && asm_line[i] != '\n' && asm_line[i] != ' ') { i++; }
 	if (i > MAX_LABEL_LENGTH)
 	{
 		error_log("line %d: Label is too long", line_counter);
-		return FALSE;
+		result = FALSE;
 	}
 
 	temp = (symbol*)malloc(sizeof(symbol));
@@ -534,7 +535,7 @@ boolean ext(char* asm_line)
 	strncpy(head_symbol->symbol_name, asm_line, i);
 	head_symbol->is_external = TRUE;
 	head_symbol->address = 0;
-	return TRUE;
+	return result;
 }
 
 /**
@@ -553,6 +554,7 @@ boolean ext(char* asm_line)
 boolean insert_numerical_data(char* asm_line)
 {
 	/* TODO: Split logic to multiple functions, Fix memory leak */
+	boolean result = TRUE;
 	int a[MAX_LINE_LENGTH];
 	char b[MAX_LINE_LENGTH];
 	int i = 0, j, z, counter;
@@ -570,7 +572,7 @@ boolean insert_numerical_data(char* asm_line)
 			if (!(*(asm_line) > 47 && *(asm_line) < 58))
 			{
 				error_log("line %d: Invalid parameter", line_counter);
-				return FALSE;
+				result = FALSE;
 			}
 		}
 		else if (*asm_line == '+')
@@ -591,7 +593,7 @@ boolean insert_numerical_data(char* asm_line)
 			if (*(asm_line + 1) == ',')
 			{
 				error_log("line %d: Multiple number of consecutive commas\n", line_counter);
-				return FALSE;
+				result = FALSE;;
 			}
 		}
 		else
@@ -600,7 +602,7 @@ boolean insert_numerical_data(char* asm_line)
 			if ((*asm_line > 47 && *asm_line < 58))
 			{
 				error_log("line %d: Missing comma\n", line_counter);
-				return FALSE;
+				result = FALSE;
 			}
 			asm_line++;
 		}
@@ -640,7 +642,7 @@ boolean insert_numerical_data(char* asm_line)
 		z++;
 	}
 	D++;
-	return TRUE;
+	return result;
 }
 
 /**
@@ -658,6 +660,8 @@ boolean insert_numerical_data(char* asm_line)
  */
 boolean insert_string_data(char* asm_line)
 {
+	/* TODO: Fix memory leak */
+	boolean result = TRUE;
 	int i = 0, j = 2, k;
 	data_word* temp;
 
@@ -665,20 +669,20 @@ boolean insert_string_data(char* asm_line)
 	if (asm_line[0] != '"')
 	{
 		error_log("line %d: Syntax error missing", line_counter);
-		return FALSE;
+		result = FALSE;
 	}
 
 	while (asm_line[i] != '\0' && asm_line[i] != ' ') i++;
 	if (i > MAX_STRING)
 	{
 		error_log("line %d: The string is too long, has more than 75 chars", line_counter);
-		return FALSE;
+		result = FALSE;
 	}
 
 	if (asm_line[i - 2] != '"')
 	{
 		error_log("line %d: Syntax error missing", line_counter);
-		return FALSE;
+		result = FALSE;
 	}
 	DC += i - 2;
 	/*If its leggal string*/
@@ -709,5 +713,5 @@ boolean insert_string_data(char* asm_line)
 		j++;
 	}
 	D++;
-	return TRUE;
+	return result;
 }
