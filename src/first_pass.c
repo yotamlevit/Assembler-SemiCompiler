@@ -115,7 +115,15 @@ char addressing_mode(char* li)
 		return ' ';
 }/*End of addressing_mode function*/
 
-/*This function updates the symbols address in the symbols list*/
+/**
+ * @brief Adjusts the addresses of symbols in the symbol table.
+ *
+ * The fix_symbol_addresses function traverses the symbol table and adjusts the addresses
+ * of symbols that are attached to directives. It increments their addresses by the
+ * current value of the instruction counter (IC) to reflect their final positions in memory.
+ *
+ * @return void This function does not return a value.
+ */
 void fix_symbol_addresses()
 {
 	symbol* temp = head_symbol;
@@ -129,20 +137,32 @@ void fix_symbol_addresses()
 	}
 }
 
+/**
+ * @brief Executes the first pass of the assembler process on the input file.
+ *
+ * The first_pass_exec function reads each line from the given input file, processes it
+ * using the analyze_input_line function, and increments the line counter. It also validates
+ * memory usage by checking the instruction counter (IC) and data counter (DC) at the end
+ * of the pass.
+ *
+ * @param file_handle A pointer to the file to be processed.
+ * @return A boolean value indicating the success of the first pass.
+ *         Returns TRUE if the first pass is executed successfully. Otherwise, returns FALSE.
+ */
 boolean first_pass_exec(FILE* file_handle)
 {
-	boolean status = TRUE, analyze_input_line_result;
+	boolean result = TRUE, analyze_input_line_result;
     line_counter = 0;
     while (!feof(file_handle))
     {
         analyze_input_line_result = analyze_input_line(line);
     	if (!analyze_input_line_result)
-    		status = FALSE;
+    		result = FALSE;
         line_counter++;
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
     validate_memory(IC, DC);
-	return status;
+	return result;
 }
 
 /**
