@@ -167,15 +167,27 @@ boolean is_label(char* asm_line)
 	return FALSE;
 }
 
-/*This function receives a word - if it is a label, and takes action on it*/
-boolean label_actions(char* li)
+/**
+ * @brief Processes label-related actions in an assembly line.
+ *
+ * The label_actions function processes a given assembly line to handle labels.
+ * It checks for the presence of a label (indicated by a colon ':'), validates the label length,
+ * allocates memory for a new symbol, and updates the symbol table. Depending on the type of
+ * statement following the label (directive or instruction), the function delegates further
+ * processing to the appropriate handler.
+ *
+ * @param asm_line A pointer to the assembly line to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
+ */
+boolean label_actions(char* asm_line)
 {
 	char* p;
 	symbol* temp;
 	int i;
 	for (i = 0; i < MAX_LINE_LENGTH; i++)
 	{
-		if (li[i] == ':')
+		if (asm_line[i] == ':')
 		{
 			if (i > MAX_LABEL_LENGTH)
 			{
@@ -193,9 +205,9 @@ boolean label_actions(char* li)
 				temp->next = head_symbol;
 				head_symbol = temp;
 				clean_label_name(head_symbol->symbol_name);
-				strncpy(head_symbol->symbol_name, li, i);
+				strncpy(head_symbol->symbol_name, asm_line, i);
 			}
-			p = (li + i + 1);
+			p = (asm_line + i + 1);
 			p = delete_first_spaces(p);
 			if (*p == '.')
 			{
@@ -209,7 +221,7 @@ boolean label_actions(char* li)
 					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					analyze_input_line(p);
+					return analyze_input_line(p);
 			}
 			else
 			{
@@ -218,10 +230,11 @@ boolean label_actions(char* li)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				analyze_input_line(p);
+				return analyze_input_line(p);
 			}
 		}
 	}
+	return TRUE;
 }
 
 /*The first transition of the operations*/
@@ -455,23 +468,23 @@ void operation(char* li)
  * and adds the label to the symbol table if valid. Errors are logged if the line is
  * empty, the label is too long, or memory allocation fails.
  *
- * @param li A pointer to the line to be processed.
+ * @param asm_line A pointer to the line to be processed.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line contains a valid external label and is processed
  *         successfully. Otherwise, returns FALSE.
  */
-boolean ext(char* li)
+boolean ext(char* asm_line)
 {
 	symbol* temp;
 	int i = 0;
 
-	li = delete_first_spaces(li);
-	if (*li == '\0' || *li == '\n') {
+	asm_line = delete_first_spaces(asm_line);
+	if (*asm_line == '\0' || *asm_line == '\n') {
 		error_log("line %d: Label is missing", line_counter);
 		return FALSE;
 	}
 
-	while (li[i] != '\0' && li[i] != '\n' && li[i] != ' ') { i++; }
+	while (asm_line[i] != '\0' && asm_line[i] != '\n' && asm_line[i] != ' ') { i++; }
 	if (i > MAX_LABEL_LENGTH)
 	{
 		error_log("line %d: Label is too long", line_counter);
@@ -487,7 +500,7 @@ boolean ext(char* li)
 	temp->next = head_symbol;
 	head_symbol = temp;
 	clean_label_name(head_symbol->symbol_name);
-	strncpy(head_symbol->symbol_name, li, i);
+	strncpy(head_symbol->symbol_name, asm_line, i);
 	head_symbol->is_external = TRUE;
 	head_symbol->address = 0;
 	return TRUE;
@@ -501,50 +514,50 @@ boolean ext(char* li)
  * The function converts the extracted data from string format to integer format, and
  * inserts the data into the data table while updating the data counter.
  *
- * @param li A pointer to the line containing numerical data to be processed.
+ * @param asm_line A pointer to the line containing numerical data to be processed.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the numerical data is successfully processed and inserted
  *         into the data table. Otherwise, returns FALSE.
  */
-boolean insert_numerical_data(char* li)
+boolean insert_numerical_data(char* asm_line)
 {
 	/* TODO: Split logic to multiple functions, Fix memory leak */
 	int a[MAX_LINE_LENGTH];
 	char b[MAX_LINE_LENGTH];
 	int i = 0, j, z, counter;
 	data_word* temp;
-	li = delete_first_spaces(li);
-	if (*li == '\0' || *li == '\n')
+	asm_line = delete_first_spaces(asm_line);
+	if (*asm_line == '\0' || *asm_line == '\n')
 		error_log("line %d: Missing parameters", line_counter);
-	while (*li != '\0')
+	while (*asm_line != '\0')
 	{
-		if (*li == '-')
+		if (*asm_line == '-')
 		{
 			b[i] = '-';
 			i++;
-			li++;
-			if (!(*(li) > 47 && *(li) < 58))
+			asm_line++;
+			if (!(*(asm_line) > 47 && *(asm_line) < 58))
 			{
 				error_log("line %d: Invalid parameter", line_counter);
 				return FALSE;
 			}
 		}
-		else if (*li == '+')
-			li++;
-		li = delete_first_spaces(li);
-		while ((*li > 47 && *li < 58))
+		else if (*asm_line == '+')
+			asm_line++;
+		asm_line = delete_first_spaces(asm_line);
+		while ((*asm_line > 47 && *asm_line < 58))
 		{
-			b[i] = *li;
+			b[i] = *asm_line;
 			i++;
-			li++;
+			asm_line++;
 		}
-		li = delete_first_spaces(li);
-		if (*li == ',')
+		asm_line = delete_first_spaces(asm_line);
+		if (*asm_line == ',')
 		{
 			b[i] = ',';
 			i++;
-			li = delete_first_spaces(li + 1);
-			if (*(li + 1) == ',')
+			asm_line = delete_first_spaces(asm_line + 1);
+			if (*(asm_line + 1) == ',')
 			{
 				error_log("line %d: Multiple number of consecutive commas\n", line_counter);
 				return FALSE;
@@ -552,13 +565,13 @@ boolean insert_numerical_data(char* li)
 		}
 		else
 		{
-			li = delete_first_spaces(li);
-			if ((*li > 47 && *li < 58))
+			asm_line = delete_first_spaces(asm_line);
+			if ((*asm_line > 47 && *asm_line < 58))
 			{
 				error_log("line %d: Missing comma\n", line_counter);
 				return FALSE;
 			}
-			li++;
+			asm_line++;
 		}
 	}
 
