@@ -21,7 +21,7 @@ FILE* open_file(char* file, char* mode);
 boolean write_line_to_file(FILE* fp, char* line);
 
 /* Get operation Functions */
-int is_operation(char* li);
+int is_operation(char* asm_line);
 int is_stop(char*);
 boolean is_register(char* str);
 

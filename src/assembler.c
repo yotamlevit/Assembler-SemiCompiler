@@ -90,7 +90,6 @@ StatusCode process_file(char* asm_file_name)
 {
     int line_index = 0;
     boolean result;
-
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
         return memoryAllocationFailure;

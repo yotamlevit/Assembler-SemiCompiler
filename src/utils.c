@@ -30,14 +30,24 @@ FILE* open_file(char* file, char* mode)
     return fp;
 }
 
-/*This function checks if it is an action statement*/
-int is_operation(char* li) // TODO add stop to this function
+/**
+ * @brief Checks if a given assembly line contains a valid operation.
+ *
+ * The is_operation function processes a given assembly line to determine if it contains
+ * a valid operation. It compares the line against a predefined list of operations,
+ * excluding the "stop" operation. If the operation exists, the function returns its opcode.
+ *
+ * @param asm_line A pointer to the assembly line to be checked for an operation.
+ * @return An integer representing the opcode of the operation if it exists.
+ *         Returns the opcode of the operation if found. Otherwise, returns -1.
+ */
+int is_operation(char* asm_line) // TODO add stop to this function
 {
 	int i;
- 	for(i = 0;i<OPERATIONS_AMOUNT -1; i++)
+ 	for(i = 0; i<OPERATIONS_AMOUNT - 1; i++)
 	{
 		/*Without stop op*/
-		if (!(strncmp(li, operation_mode[i][2], OPERATION_LENGTH)))
+		if (!(strncmp(asm_line, operation_mode[i][2], OPERATION_LENGTH)))
 		{
 			/*If the operation exist return the opcodde */
 			return i;

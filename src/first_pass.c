@@ -42,6 +42,7 @@ boolean analyze_input_line(char* asm_line)
 		label_actions(asm_line);
 		return TRUE;
 	}
+
 	error_log("line %d: The command was not found\n", line_counter);
 	return FALSE;
 }
@@ -167,7 +168,7 @@ boolean is_label(char* asm_line)
 }
 
 /*This function receives a word - if it is a label, and takes action on it*/
-void label_actions(char* li)
+boolean label_actions(char* li)
 {
 	char* p;
 	symbol* temp;
@@ -178,16 +179,16 @@ void label_actions(char* li)
 		{
 			if (i > MAX_LABEL_LENGTH)
 			{
-				printf("ERROR!! line %d: Lable is too long, has more than 30 chars\n", line_counter);
-				error_flag = ON;
+				error_log("line %d: Lable is too long, has more than 30 chars\n", line_counter);
+				return FALSE;
 			}
 			else
 			{
 				temp = (symbol*)malloc(sizeof(symbol));
-				if (!temp)
+				if (temp == NULL)
 				{
-					printf("no memmory\n");
-					break;
+					error_log("Memory allocation error");
+					return FALSE;
 				}
 				temp->next = head_symbol;
 				head_symbol = temp;
@@ -202,10 +203,10 @@ void label_actions(char* li)
 				head_symbol->address = DC;
 				head_symbol->is_attached_directive = TRUE;
 				head_symbol->is_external = FALSE;
-				if (!strncmp(p, ".entry", 6))
-					printf("WARNING!! line %d: A label defined at the beginig of entry statement is ignored\n" ,line_counter);
-				else if (!strncmp(p, ".extern", 7))
-					printf("WARNING!! line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
+				if (!strncmp(p, ENTRY_LABEL, strlen(ENTRY_LABEL)))
+					warning_log("line %d: A label defined at the beginig of entry statement is ignored\n" ,line_counter);
+				else if (!strncmp(p, EXTERN_LABEL, strlen(EXTERN_LABEL)))
+					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
 					analyze_input_line(p);

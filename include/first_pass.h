@@ -22,7 +22,7 @@ boolean first_pass_exec(FILE * file_handle);
 
 boolean is_label(char*);
 
-void label_actions(char*);
+boolean label_actions(char*);
 
 void operation(char*);
 
