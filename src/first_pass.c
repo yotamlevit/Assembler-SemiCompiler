@@ -15,7 +15,6 @@ int opcode;
 
 boolean analyze_input_line(char* asm_line)
 {
-	boolean stauts = TRUE;
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
 		return ext(asm_line + strlen(EXTERN_LABEL));
@@ -43,10 +42,8 @@ boolean analyze_input_line(char* asm_line)
 		label_actions(asm_line);
 		return TRUE;
 	}
-	printf("ERROR!! line %d: The command was not found\n", line_counter);
-	error_flag = ON;
-
-	return stauts;
+	error_log("line %d: The command was not found\n", line_counter);
+	return FALSE;
 }
 
  /*Address method*/
@@ -146,30 +143,27 @@ boolean first_pass_exec(FILE* file_handle)
 	return status;
 }
 
-/*This function checks if there is a label in the begining*/
-boolean is_label(char* li)
+/**
+ * @brief Checks if a given line contains a label.
+ *
+ * The is_label function processes a given line to determine if it contains a label.
+ * It removes leading spaces and then checks for the presence of a colon (':') which
+ * signifies a label in the line. The function scans up to the maximum line length.
+ *
+ * @param asm_line A pointer to the line to be checked for a label.
+ * @return A boolean value indicating whether the line contains a label.
+ *         Returns TRUE if the line contains a label. Otherwise, returns FALSE.
+ */
+boolean is_label(char* asm_line)
 {
 	int i;
-	char* p;
-	li = delete_first_spaces(li);
+	asm_line = delete_first_spaces(asm_line);
 	for (i = 0; i < MAX_LINE_LENGTH; i++)
 	{
-		if (li[i] == ':')
-			return 1;
-		else if (li[i] == ' ')
-		{
-			p = li;
-			p = delete_first_spaces(p);
-			if (li[i] != '\0')
-			{
-				printf("ERROR!! line %d: Missing : in order to be label\n", line_counter);
-				error_flag = ON;
-				*(p - 1) = ':';
-				return 1;
-			}
-		}
+		if (asm_line[i] == ':')
+			return TRUE;
 	}
-	return 0;
+	return FALSE;
 }
 
 /*This function receives a word - if it is a label, and takes action on it*/
