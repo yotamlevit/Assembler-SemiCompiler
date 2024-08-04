@@ -24,7 +24,6 @@ boolean analyze_input_line(char* asm_line)
 		return insert_string_data(asm_line + strlen(STRING_LABEL));
 	if(*asm_line == ';' || *asm_line == '\0' || *asm_line == '\n' || (!strncmp(asm_line, ENTRY_LABEL, strlen(ENTRY_LABEL))))
 		return TRUE;
-
 	opcode = is_operation(asm_line);
     if (opcode != -1) // In second pass refactor i remove opcode global from the function
 	{
@@ -38,10 +37,7 @@ boolean analyze_input_line(char* asm_line)
 		return TRUE;
 	}
 	if (is_label(asm_line))
-	{
-		label_actions(asm_line);
-		return TRUE;
-	}
+		return label_actions(asm_line);
 
 	error_log("line %d: The command was not found\n", line_counter);
 	return FALSE;
