@@ -2,6 +2,9 @@
 #include "../include/validators.h"
 #include "../include/tables.h"
 #include "../include/first_pass.h"
+
+#include <stdbool.h>
+
 #include "../include/constants_tables.h"
 #include "globals.h"
 #include "logger.h"
@@ -10,8 +13,9 @@
 int opcode;
 
 
-boolean analize_input_line(char* asm_line)
+boolean analyze_input_line(char* asm_line)
 {
+	boolean stauts = TRUE;
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
 		return ext(asm_line + strlen(EXTERN_LABEL));
@@ -42,7 +46,7 @@ boolean analize_input_line(char* asm_line)
 	printf("ERROR!! line %d: The command was not found\n", line_counter);
 	error_flag = ON;
 
-	return TRUE;
+	return stauts;
 }
 
  /*Address method*/
@@ -126,21 +130,24 @@ void fix_symbol_addresses()
 	}
 }
 
-int first_pass_exec(FILE* file_handle)
+boolean first_pass_exec(FILE* file_handle)
 {
+	boolean status = TRUE, analyze_input_line_result;
     line_counter = 0;
     while (!feof(file_handle))
     {
-        analize_input_line(line);
+        analyze_input_line_result = analyze_input_line(line);
+    	if (!analyze_input_line_result)
+    		status = FALSE;
         line_counter++;
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
     validate_memory(IC, DC);
-	return TRUE;
+	return status;
 }
 
 /*This function checks if there is a label in the begining*/
-int is_label(char* li)
+boolean is_label(char* li)
 {
 	int i;
 	char* p;
@@ -207,7 +214,7 @@ void label_actions(char* li)
 					printf("WARNING!! line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					analize_input_line(p);
+					analyze_input_line(p);
 			}
 			else
 			{
@@ -216,7 +223,7 @@ void label_actions(char* li)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				analize_input_line(p);
+				analyze_input_line(p);
 			}
 		}
 	}

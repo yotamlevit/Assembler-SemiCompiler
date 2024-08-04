@@ -14,13 +14,13 @@
 char addressing_mode(char*);
 
 /*Two transition functions*/
-boolean analize_input_line(char*);
+boolean analyze_input_line(char*);
 
 void fix_symbol_addresses();
 
-int first_pass_exec(FILE * file_handle);
+boolean first_pass_exec(FILE * file_handle);
 
-int is_label(char*);
+boolean is_label(char*);
 
 void label_actions(char*);
 
