@@ -16,6 +16,7 @@
 #define ASM_COMMENT ';'
 #define MACRO_OUTPUT_EXTENSION "asm"
 #define SPACE " "
+#define FILE_WRITE_MODE "w"
 
 #define REMOVE_NEW_LINE(str) *strchr(str, NEW_LINE) = EOS
 
@@ -93,7 +94,7 @@ boolean is_valid_macro_definition(char **name, int line_count) {
 
     temp_name = *name;//strtok(NULL, " \n");
     if (temp_name == NULL) {
-        error_log("ERROR_CODE_9 %s", *name);
+        error_log("A macro was declared without name definition %s", *name);
         return NO;
     }
 
@@ -104,9 +105,11 @@ boolean is_valid_macro_definition(char **name, int line_count) {
 
     extra = strtok(NULL, "\n");
     if (extra != NULL) {
-        error_log("ERROR_CODE_10 Extra params in macro definition on line %d - %s", line_count, extra);
+        error_log("Extra params in macro definition on line %d - %s", line_count, extra);
         return NO;
     }
+
+
 
     /* Copy the extracted macro name into a dynamically allocated string */
     *name = handle_malloc((strlen(temp_name) + 1) * sizeof(char));
@@ -224,8 +227,13 @@ boolean handle_new_macro(FILE* file, HashMapPtr macro_map, char* macro_name, int
     macro_name = strtok(NULL, " \n");
     if (!is_valid_macro_definition(&macro_name, line_count))
         result = NO;
+    else if ((hashMapFind(macro_map, macro_name)) != NULL)
+    {
+        error_log("Duplicate macro definition on line %d - %s", line_count, macro_name);
+        result = NO;
+    }
     else
-        result = result && add_macro_to_map(file, macro_map, macro_name, line_count);
+        result = add_macro_to_map(file, macro_map, macro_name, line_count);
 
     return result;
 }
@@ -289,7 +297,7 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
     int line_count = 0;
 
 
-    asm_file = open_file(asm_filename, "w");
+    asm_file = open_file(asm_filename, FILE_WRITE_MODE);
 
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
         line_count++;
@@ -328,7 +336,11 @@ int macro_exec(FILE* file, char* filename) {
     HashMapPtr macro_map = init_macro_hash_map(file);
 
     if (!macro_map)
+    {
+        error_log("Failed to initialize macro hash map");
         return NO;
+    }
+
     rewind(file);
 
     add_file_name_extension(filename, MACRO_OUTPUT_EXTENSION);
