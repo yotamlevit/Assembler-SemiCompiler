@@ -11,6 +11,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/logger.h"
 #include "../include/output.h"
 #include "../include/preprocess.h"
+#include "../include/hash_map.h"
 
 #define INPUT_FILE_EXTENSION ".as"
 #define FILE_READ "r"
@@ -72,6 +73,8 @@ StatusCode process_file(char* asm_file_name)
 {
     int line_index = 0;
     boolean result;
+    HashMapPtr macro_map = NULL;
+
 
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
@@ -87,7 +90,7 @@ StatusCode process_file(char* asm_file_name)
 
 
     info_log("Starting preprocessing on %s", file_name);
-    result = macro_exec(fd, file_name);
+    result = macro_exec(fd, file_name, macro_map);
     fclose(fd);
 
     if (result == NO)

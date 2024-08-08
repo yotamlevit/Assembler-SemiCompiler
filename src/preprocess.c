@@ -329,11 +329,11 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
  * @param filename The name of the file to process.
  * @return An integer indicating success (1) or failure (0).
  */
-int macro_exec(FILE* file, char* filename) {
+int macro_exec(FILE* file, char* filename, HashMapPtr macro_map) {
     boolean result;
     rewind(file);
 
-    HashMapPtr macro_map = init_macro_hash_map(file);
+    macro_map = init_macro_hash_map(file);
 
     if (!macro_map)
     {
