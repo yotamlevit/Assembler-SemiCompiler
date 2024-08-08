@@ -166,29 +166,6 @@ boolean first_pass_exec(FILE* file_handle)
 }
 
 /**
- * @brief Checks if a given line contains a label.
- *
- * The is_label function processes a given line to determine if it contains a label.
- * It removes leading spaces and then checks for the presence of a colon (':') which
- * signifies a label in the line. The function scans up to the maximum line length.
- *
- * @param asm_line A pointer to the line to be checked for a label.
- * @return A boolean value indicating whether the line contains a label.
- *         Returns TRUE if the line contains a label. Otherwise, returns FALSE.
- */
-boolean is_label(char* asm_line)
-{
-	int i;
-	asm_line = delete_first_spaces(asm_line);
-	for (i = 0; i < MAX_LINE_LENGTH; i++)
-	{
-		if (asm_line[i] == ':')
-			return TRUE;
-	}
-	return FALSE;
-}
-
-/**
  * @brief Processes label-related actions in an assembly line.
  *
  * The label_actions function processes a given assembly line to handle labels.

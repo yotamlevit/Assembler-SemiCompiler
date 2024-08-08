@@ -19,6 +19,10 @@
 #define EXTERN_LABEL ".extern"
 #define DATA_LABEL ".data"
 #define STRING_LABEL ".string"
+#define COMMA ','
+#define SPACE ' '
+#define NEW_LINE '\n'
+#define LABEL_SYMBOL ':'
 
 typedef enum { FALSE, TRUE } boolean;
 extern char line[MAX_LINE_LENGTH];
