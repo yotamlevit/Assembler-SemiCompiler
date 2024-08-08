@@ -6,7 +6,6 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #include "../include/second_pass.h"
 #include "../include/first_pass.h"
 #include "../include/utils.h"
-#include "../include/first_pass.h"
 #include "../include/status_codes.h"
 #include "../include/logger.h"
 #include "../include/output.h"
@@ -26,17 +25,17 @@ int IC;
 int line_counter;
 int error_flag;
 
-
-
-
-int iterate_input_files(int argc, char** argv);
-StatusCode process_file(char* asm_file_name);
-
-void reset_assembler();
-
-void prep_second_pass(FILE *file_handle);
-
-
+/**
+ * @brief Prepares the assembler for the second pass.
+ *
+ * The prep_second_pass function resets the necessary state and prepares the assembler
+ * for the second pass of file processing. It empties the line buffer, resets the file
+ * pointer to the beginning, zeros the line counter, cleans the line buffer, resets the
+ * code table index, and updates the addresses of guide labels in the symbol table.
+ *
+ * @param file_handle A pointer to the file being processed.
+ * @return void This function does not return a value.
+ */
 void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array*/
     line[0] = '\0';
     /*Return fd to point on the begining of the file.*/
@@ -49,7 +48,15 @@ void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array
     fix_symbol_addresses();
 }
 
-
+/**
+ * @brief Resets the assembler's state for a new file processing.
+ *
+ * The reset_assembler function initializes the assembler's data and instruction counters,
+ * zeroes the data and code table indices, and resets the line counter. It also frees
+ * any allocated memory for file names and clears all relevant tables and lists.
+ *
+ * @return void This function does not return a value.
+ */
 void reset_assembler()
 {
     /*Initialization: zero the data table i, code table i, data counter, instruction counter*/
@@ -67,12 +74,22 @@ void reset_assembler()
     free_externals_list();
 }
 
-
+/**
+ * @brief Processes the specified assembly file through multiple passes.
+ *
+ * The process_file function performs preprocessing, first pass, and second pass on the
+ * specified assembly file. It opens the file, executes each pass, and handles errors.
+ * If any stage fails, it returns the corresponding error status.
+ *
+ * @param asm_file_name The name of the assembly file to be processed.
+ * @return A StatusCode representing the result of the file processing.
+ *         Returns success if all stages complete successfully. Otherwise, returns
+ *         an appropriate error code indicating the failure stage.
+ */
 StatusCode process_file(char* asm_file_name)
 {
     int line_index = 0;
     boolean result;
-
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
         return memoryAllocationFailure;
@@ -85,12 +102,11 @@ StatusCode process_file(char* asm_file_name)
     if (fd == NULL)
         return openFileError;
 
-
     info_log("Starting preprocessing on %s", file_name);
-    result = macro_exec(fd, file_name);
+    result = macro_exec(fd, file_name); /* TODO: Convert return type to StatusCode */
     fclose(fd);
 
-    if (result == NO)
+    if (result == FALSE)
         return failedPreprocess;
 
     fd = open_file(file_name, FILE_READ);
@@ -99,22 +115,22 @@ StatusCode process_file(char* asm_file_name)
 
     info_log("Starting first pass on %s", file_name);
     result = first_pass_exec(fd);
-    if (error_flag == ON){ // change to result == NO
+    if (!result){
         fclose(fd);
         return failedFirstPass;
     }
+    info_log("Finished first pass sucessfully on %s", file_name);
 
-    prep_second_pass(fd);
+    prep_second_pass(fd); /* TODO: Return StatusCode and add logs of the operation */
     rewind(fd);
 
     info_log("Starting second pass on %s", file_name);
 
-    result = second_pass_exec(fd, &line_index);
+    result = second_pass_exec(fd, &line_index); /* TODO: Convert return type to StatusCode */
 
-    create_output_files(&line_index);
+    create_output_files(&line_index); /* TODO: Return StatusCode and add logs of the operation */
 
     fclose(fd);
-
 
     if (result)
     {
@@ -127,7 +143,19 @@ StatusCode process_file(char* asm_file_name)
     }
 }
 
-
+/**
+ * @brief Iterates through input files and processes each one.
+ *
+ * The iterate_input_files function processes each input file provided as a command-line
+ * argument. It resets the assembler for each file, logs the start of processing,
+ * and processes the file. If any file fails to process, it prints the status and
+ * sets the return status to error.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv An array of pointers to the command-line arguments.
+ * @return An integer representing the status of the file processing.
+ *         Returns success if all files are processed successfully, otherwise returns error.
+ */
 int iterate_input_files(int argc, char** argv)
 {
     int status = success, process_file_result;
@@ -147,7 +175,18 @@ int iterate_input_files(int argc, char** argv)
     return status;
 }
 
-
+/**
+ * @brief Main entry point of the program.
+ *
+ * The main function validates the input arguments and processes the input files.
+ * If the input validation fails, it prints the status and returns an error code.
+ * Otherwise, it processes the input files and returns a success code if no errors occur.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv An array of pointers to the command-line arguments.
+ * @return An integer representing the exit status of the program.
+ *         Returns success if all operations succeed, otherwise returns error.
+ */
 int main(int argc, char** argv)
 {
     int validate_input_result = validate_input(argc, argv);

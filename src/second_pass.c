@@ -61,12 +61,12 @@ void update_machine_word(machine_word_fields_ptr machine_word, int w, int A, boo
  */
 int get_operand_offset_value(code_word_fields_ptr code_word, boolean is_src)
 {
-    if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == NO) ||
-        (( code_word->source_immidiate || code_word->source_direct_register) && is_src == YES))
+    if (((code_word->destination_direct_register || code_word->destination_immidiate) && is_src == FALSE) ||
+        (( code_word->source_immidiate || code_word->source_direct_register) && is_src == TRUE))
         return 1;
 
-    if ((code_word->destination_indirect_register && is_src == NO) ||
-        (code_word->source_indirect_register && is_src == YES))
+    if ((code_word->destination_indirect_register && is_src == FALSE) ||
+        (code_word->source_indirect_register && is_src == TRUE))
         return 2;
 
     return 0;
@@ -86,7 +86,7 @@ boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_w
     symbol_ptr temp, ext;
     int symbol_name_length, offset_value;
 
-    if ((code_word->destination_direct && is_src == NO) || (code_word->source_direct && is_src == YES))
+    if ((code_word->destination_direct && is_src == FALSE) || (code_word->source_direct && is_src == TRUE))
     {
         symbol_name_length = get_symbol_length(asm_line);
 
@@ -101,7 +101,7 @@ boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_w
                 if (!ext)
                 {
                     error_log("Cannot allocate memory for ext (second pass) - raised on line: %s", asm_line);
-                    return NO;
+                    return FALSE;
                 }
                 ext->next = head_externals;
                 head_externals = ext;
@@ -121,13 +121,13 @@ boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_w
         if(offset_value == 0)
         {
             error_log("Error handling operand %s - raised on line: %s", is_src ? "source" : "destination", asm_line);
-            return NO;
+            return FALSE;
         }
 
         update_machine_word(dest_machine_word, atoi(asm_line + offset_value), 1, is_src);
     }
 
-    return YES;
+    return TRUE;
 }
 
 
@@ -140,7 +140,7 @@ boolean handle_operand(char* asm_line, code_word_fields_ptr code_word, machine_w
  */
 boolean handle_one_operand(char* asm_line, code_word_fields_ptr code_word) {
     /* Handling dest operand */
-    return handle_operand(asm_line, code_word, &code_word->next->c, NO);
+    return handle_operand(asm_line, code_word, &code_word->next->c, FALSE);
 }
 
 
@@ -154,15 +154,15 @@ boolean handle_one_operand(char* asm_line, code_word_fields_ptr code_word) {
 boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_word) {
     /* First Register */
     asm_line = find_next_symbol_in_str(asm_line, REGISTER_SYMBOL);
-    update_machine_word(machine_word, atoi(asm_line + 1), 1, YES);
+    update_machine_word(machine_word, atoi(asm_line + 1), 1, TRUE);
 
     asm_line += 2; /* Move from the first register */
 
     /* Second Register */
     asm_line = find_next_symbol_in_str(asm_line, REGISTER_SYMBOL);
-    update_machine_word(machine_word, machine_word->w + atoi(asm_line + 1), 1, NO);
+    update_machine_word(machine_word, machine_word->w + atoi(asm_line + 1), 1, FALSE);
 
-    return YES;
+    return TRUE;
 }
 
 
@@ -176,9 +176,9 @@ boolean handle_registers_method(char* asm_line, machine_word_fields_ptr machine_
 boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_word) {
     boolean result;
     /* Handle Source operand */
-    result = handle_operand(asm_line, code_word, &code_word->next->c, YES);
+    result = handle_operand(asm_line, code_word, &code_word->next->c, TRUE);
 
-    if(result != NO)
+    if(result != FALSE)
     {
         /* Move from the first operand */
         asm_line = find_next_symbol_in_str(asm_line, COMMA);
@@ -186,7 +186,7 @@ boolean handle_two_operands_method(char* asm_line, code_word_fields_ptr code_wor
         asm_line = delete_first_spaces(asm_line);
 
         /* Handle Destination operand */
-        result = handle_operand(asm_line, code_word, &code_word->next->c.next->c, NO);
+        result = handle_operand(asm_line, code_word, &code_word->next->c.next->c, FALSE);
     }
 
     return result;
@@ -234,7 +234,7 @@ boolean handle_two_operands(char* asm_line, code_word_fields_ptr code_word)
  */
 boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* line_index, int* opcode)
 {
-    boolean result = YES;
+    boolean result = TRUE;
     asm_line = delete_first_spaces(asm_line);
 	/*Operations with one operand only*/
 	if (*opcode <= 13 && *opcode >= 5)
@@ -283,7 +283,7 @@ boolean process_label(char* asm_line, code_word_fields_ptr code_word, int* line_
 boolean process_entry(char* asm_line)
 {
     symbol_ptr temp, temp2;
-    boolean is_lable_exist = NO;
+    boolean is_lable_exist = FALSE;
     int symbol_name_length;
 
     asm_line = delete_first_spaces(asm_line);
@@ -291,7 +291,7 @@ boolean process_entry(char* asm_line)
     if (*asm_line == END_OF_STR)
     {
         error_log("Label is missing on line %s", asm_line);
-        return NO;
+        return FALSE;
     }
 
     symbol_name_length = get_symbol_length(asm_line);
@@ -299,7 +299,7 @@ boolean process_entry(char* asm_line)
     temp = find_symbol(asm_line, symbol_name_length);
 
     if (temp){
-        is_lable_exist = YES;
+        is_lable_exist = TRUE;
         if (!temp->is_external)
         {
             /*Create a list of entry labels*/
@@ -307,7 +307,7 @@ boolean process_entry(char* asm_line)
             if (!temp2)
             {
                 error_log("Cannot allocate memory for entry labels (second pass) - raised on line: %s", asm_line);
-                return NO;
+                return FALSE;
             }
             temp2->next = head_entries;
             head_entries = temp2;
@@ -320,10 +320,10 @@ boolean process_entry(char* asm_line)
     if (!is_lable_exist)
     {
         error_log("Label does not exist on line %s", asm_line);
-        return NO;
+        return FALSE;
     }
 
-    return YES;
+    return TRUE;
 }
 
 
@@ -340,7 +340,7 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
     /* Clean the line from spaces */
     char* clean_line = delete_first_spaces(asm_line);
     if (!strncmp(clean_line, ENTRY_LABEL, strlen(ENTRY_LABEL)))
-        return process_entry(clean_line + 6);
+        return process_entry(clean_line + strlen(ENTRY_LABEL));
     if (isLabel2(clean_line))
         return process_label(clean_line, code_word, line_index);
     /* Otherwise it is an operation*/
@@ -352,7 +352,7 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
         return second_operation(clean_line + STOP_LENGTH, code_word, line_index, &opcode);
 
     /* If here then it is a .string, .data or .extern */
-    return YES;
+    return TRUE;
 }
 
 
@@ -371,12 +371,12 @@ boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen cha
         if (!process_line(line, &code_table[*line_index].c, line_index))
         {
             error_log("Second pass failed on line: %s", delete_first_spaces(line));
-            return NO;
+            return FALSE;
         }
         line_counter++;
         /*Get one line from the file V */
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
 
-    return YES;
+    return TRUE;
 }
