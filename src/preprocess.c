@@ -92,30 +92,28 @@ boolean is_valid_macro_definition(char **name, int line_count) {
     /* assumes "mcro " has been encountered right before the function was called */
     char *temp_name, *extra;
 
-    temp_name = *name;//strtok(NULL, " \n");
+    temp_name = *name;
     if (temp_name == NULL) {
         error_log("A macro was declared without name definition %s", *name);
-        return NO;
+        return FALSE;
     }
 
-    if (is_operation(temp_name) != -1 || is_stop(temp_name) != -1 || is_register(temp_name) == YES) {
+    if (is_operation(temp_name) != -1 || is_stop(temp_name) != -1 || is_register(temp_name) == TRUE) {
         error_log("Macro name is not valid on line %d in file %s", line_count);
-        return NO;
+        return FALSE;
     }
 
     extra = strtok(NULL, "\n");
     if (extra != NULL) {
         error_log("Extra params in macro definition on line %d - %s", line_count, extra);
-        return NO;
+        return FALSE;
     }
-
-
 
     /* Copy the extracted macro name into a dynamically allocated string */
     *name = handle_malloc((strlen(temp_name) + 1) * sizeof(char));
     strcpy(*name, temp_name);
 
-    return YES;
+    return TRUE;
 }
 
 
@@ -189,7 +187,7 @@ char *save_macro_content(FILE *fp, fpos_t *pos, int *line_count) {
  * @return A boolean indicating if the macro was successfully added to the hash map.
  */
 boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name, int line_count) {
-    boolean result = YES;
+    boolean result = TRUE;
     char *content;
     fpos_t pos;
 
@@ -197,14 +195,14 @@ boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name, int
     fgetpos(file, &pos);
     content = save_macro_content(file, &pos, &line_count);
     if (content == NULL) {
-        result = NO;
+        result = FALSE;
     }
     else {
         hashMapInsert(macro_map, macro_name, content);
         if(hashMapFind(macro_map, macro_name) == NULL)
         {
             error_log("Failed to add macro %s from line %d", macro_name, line);
-            result = NO;
+            result = FALSE;
         }
     }
 
@@ -222,15 +220,15 @@ boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name, int
  * @return A boolean indicating if the new macro was successfully handled.
  */
 boolean handle_new_macro(FILE* file, HashMapPtr macro_map, char* macro_name, int line_count) {
-    boolean result = YES;
+    boolean result = TRUE;
 
     macro_name = strtok(NULL, " \n");
     if (!is_valid_macro_definition(&macro_name, line_count))
-        result = NO;
+        result = FALSE;
     else if ((hashMapFind(macro_map, macro_name)) != NULL)
     {
         error_log("Duplicate macro definition on line %d - %s", line_count, macro_name);
-        result = NO;
+        result = FALSE;
     }
     else
         result = add_macro_to_map(file, macro_map, macro_name, line_count);
@@ -261,20 +259,20 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
         if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL)
         {
             /* If found, write the macro content to the output file */
-            if (write_line_to_file(file, macro_content) == NO) {
+            if (write_line_to_file(file, macro_content) == FALSE) {
                 error_log("Error while writing macro content into output file .asm with line %d", line_count);
-                return NO;
+                return FALSE;
             }
-            return YES;
+            return TRUE;
         }
     } while((pos = strtok(NULL, SPACE)) != NULL && macro_content == NULL);
 
 
     /* If no macro found, write the original line to the output file */
     if (*original_line != '\n') {
-        if (write_line_to_file(file, original_line) == NO) {
+        if (write_line_to_file(file, original_line) == FALSE) {
             error_log("Error while writing original code into output file .asm with line %d", line_count);
-            return NO;
+            return FALSE;
         }
     }
 }
@@ -290,7 +288,7 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
  * @return A boolean indicating if the macro file was successfully processed.
  */
 boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename) {
-    boolean result = YES;
+    boolean result = TRUE;
     FILE *asm_file;
     char buffer[MAX_LINE_LENGTH], temp_buffer[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH];
     char* pos;
@@ -307,18 +305,17 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         pos = strtok(pos, SPACE);
 
         if (is_macro_definition(temp_buffer)) {
-            result = handle_new_macro(file, macro_map, pos, line_count);
+            result = result && handle_new_macro(file, macro_map, pos, line_count);
         }
         else {
             pos = delete_first_spaces(buffer);
             if (*pos != ASM_COMMENT && *pos != EOS && *pos != NEW_LINE)
-                result = handle_non_new_macro_line(asm_file, pos, original_line, macro_map, line_count);
+                result = result && handle_non_new_macro_line(asm_file, pos, original_line, macro_map, line_count);
         }
     }
 
     fclose(asm_file);
     return result;
-
 }
 
 
@@ -338,7 +335,7 @@ int macro_exec(FILE* file, char* filename, HashMapPtr macro_map) {
     if (!macro_map)
     {
         error_log("Failed to initialize macro hash map");
-        return NO;
+        return FALSE;
     }
 
     rewind(file);

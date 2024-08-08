@@ -57,3 +57,29 @@ void error_log(const char *format, ...) {
 
     fprintf(stderr, "\n");
 }
+
+/**
+ * @brief Logs a warning message to stdout.
+ *
+ * This function logs a warning message to stdout, including a timestamp
+ * and a custom message. The message is formatted similarly to printf.
+ *
+ * @param format The format string (as in printf).
+ * @param ... Additional arguments (as in printf).
+ */
+void warning_log(const char *format, ...) {
+    va_list args;
+    time_t now;
+    char time_str[20];
+
+    time(&now);
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", localtime(&now));
+
+    fprintf(stdout, "[WARNING] %s: ", time_str);
+
+    va_start(args, format);
+    vfprintf(stdout, format, args);
+    va_end(args);
+
+    fprintf(stdout, "\n");
+}

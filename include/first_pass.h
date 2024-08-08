@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "globals.h"
+#include "status_codes.h"
 
 
 #define MAX_STRING 75
@@ -13,20 +14,20 @@
 char addressing_mode(char*);
 
 /*Two transition functions*/
-void analize_input_line(char*);
+boolean analyze_input_line(char*);
 
 void fix_symbol_addresses();
 
-int first_pass_exec(FILE * file_handle);
+boolean first_pass_exec(FILE * file_handle);
 
-int is_label(char*);
+boolean is_label(char*);
 
-void label_actions(char*);
+boolean label_actions(char*);
 
-void operation(char*);
+boolean operation(char*);
 
-void ext(char*);
+boolean ext(char*);
 
-void insert_numerical_data(char*);
+boolean insert_numerical_data(char*);
 
-void insert_string_data(char*);
+boolean insert_string_data(char*);

@@ -15,10 +15,13 @@
 #define DC_INITIAL_VALUE 0
 #define IC_INITIAL_VALUE 100
 #define REGISTER_SYMBOL 'r'
+#define ENTRY_LABEL ".entry"
+#define EXTERN_LABEL ".extern"
+#define DATA_LABEL ".data"
+#define STRING_LABEL ".string"
 
-typedef enum { NO, YES } boolean;
+typedef enum { FALSE, TRUE } boolean;
 extern char line[MAX_LINE_LENGTH];
-
 
 /*Index*/
 extern int I;

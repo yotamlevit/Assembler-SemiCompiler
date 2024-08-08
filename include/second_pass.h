@@ -14,7 +14,6 @@
 #define SPACE ' '
 #define NEW_LINE '\n'
 #define LABEL_SYMBOL ':'
-#define ENTRY_LABEL ".entry"
 
 int get_symbol_length(const char* asm_line);
 symbol_ptr find_symbol(const char* asm_line, int symbol_name_length);
