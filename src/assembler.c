@@ -106,7 +106,7 @@ StatusCode process_file(char* asm_file_name)
         return openFileError;
 
     info_log("Starting preprocessing on %s", file_name);
-    result = macro_exec(fd, file_name, macro_map);
+    result = macro_exec(fd, file_name, &macro_map);
 
     fclose(fd);
 
@@ -117,7 +117,8 @@ StatusCode process_file(char* asm_file_name)
     if (fd == NULL)
         return openFileError;
 
-    result = first_pass_exec(fd);
+    result = first_pass_exec(fd, macro_map);
+    hashMapFree(macro_map);
     if (!result){
         fclose(fd);
         return failedFirstPass;

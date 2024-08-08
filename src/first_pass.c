@@ -2,6 +2,7 @@
 #include "../include/validators.h"
 #include "../include/tables.h"
 #include "../include/first_pass.h"
+#include "../include/hash_map.h"
 
 #include <stdbool.h>
 
@@ -24,7 +25,7 @@ int opcode;
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
  */
-boolean analyze_input_line(char* asm_line)
+boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 {
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
@@ -42,7 +43,7 @@ boolean analyze_input_line(char* asm_line)
 	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
 		return operation(asm_line + 4);
 	if (is_label(asm_line))
-		return label_actions(asm_line);
+		return label_actions(asm_line, macro_map);
 
 	error_log("line %d: The command was not found\n", line_counter);
 	return FALSE;
@@ -149,13 +150,13 @@ void fix_symbol_addresses()
  * @return A boolean value indicating the success of the first pass.
  *         Returns TRUE if the first pass is executed successfully. Otherwise, returns FALSE.
  */
-boolean first_pass_exec(FILE* file_handle)
+boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map)
 {
 	boolean result = TRUE, analyze_input_line_result;
     line_counter = 0;
     while (!feof(file_handle))
     {
-        analyze_input_line_result = analyze_input_line(line);
+        analyze_input_line_result = analyze_input_line(line, macro_map);
     	if (!analyze_input_line_result)
     		result = FALSE;
         line_counter++;
@@ -178,11 +179,12 @@ boolean first_pass_exec(FILE* file_handle)
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
  */
-boolean label_actions(char* asm_line)
+boolean label_actions(char* asm_line, HashMapPtr macro_map)
 {
-	char* p;
+	char* p, * label_name;
 	symbol* temp;
 	int i;
+	boolean result = TRUE;
 	for (i = 0; i < MAX_LINE_LENGTH; i++)
 	{
 		if (asm_line[i] == ':')
@@ -190,21 +192,25 @@ boolean label_actions(char* asm_line)
 			if (i > MAX_LABEL_LENGTH)
 			{
 				error_log("line %d: Lable is too long, has more than 30 chars\n", line_counter);
+				result = FALSE;
+			}
+			label_name = (char*)malloc((i + 1) * sizeof(char));
+			strncpy(label_name, asm_line, i);
+			if ((hashMapFind(macro_map, label_name)) != NULL) {
+				error_log("line %d: A label cannot be a macro name\n" ,line_counter);
+				free(label_name);
 				return FALSE;
 			}
-			else
+			temp = (symbol*)malloc(sizeof(symbol));
+			if (temp == NULL)
 			{
-				temp = (symbol*)malloc(sizeof(symbol));
-				if (temp == NULL)
-				{
-					error_log("Memory allocation error");
-					return FALSE;
-				}
-				temp->next = head_symbol;
-				head_symbol = temp;
-				clean_label_name(head_symbol->symbol_name);
-				strncpy(head_symbol->symbol_name, asm_line, i);
+				error_log("Memory allocation error");
+				return FALSE;
 			}
+			temp->next = head_symbol;
+			head_symbol = temp;
+			clean_label_name(head_symbol->symbol_name);
+			strncpy(head_symbol->symbol_name, asm_line, i);
 			p = (asm_line + i + 1);
 			p = delete_first_spaces(p);
 			if (*p == '.')
@@ -219,7 +225,7 @@ boolean label_actions(char* asm_line)
 					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					return analyze_input_line(p);
+					return analyze_input_line(p, macro_map);
 			}
 			else
 			{
@@ -228,11 +234,11 @@ boolean label_actions(char* asm_line)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				return analyze_input_line(p);
+				return analyze_input_line(p, macro_map);
 			}
 		}
 	}
-	return TRUE;
+	return result;
 }
 
 /**

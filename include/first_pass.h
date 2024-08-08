@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "globals.h"
-#include "status_codes.h"
+#include "hash_map.h"
 
 
 #define MAX_STRING 75
@@ -14,15 +14,15 @@
 char addressing_mode(char*);
 
 /*Two transition functions*/
-boolean analyze_input_line(char*);
+boolean analyze_input_line(char*, HashMapPtr macro_map);
 
 void fix_symbol_addresses();
 
-boolean first_pass_exec(FILE * file_handle);
+boolean first_pass_exec(FILE * file_handle, HashMapPtr macro_map);
 
 boolean is_label(char*);
 
-boolean label_actions(char*);
+boolean label_actions(char*, HashMapPtr macro_map);
 
 boolean operation(char*);
 
