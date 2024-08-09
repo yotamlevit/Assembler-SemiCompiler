@@ -326,13 +326,13 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
  * @param filename The name of the file to process.
  * @return An integer indicating success (1) or failure (0).
  */
-int macro_exec(FILE* file, char* filename, HashMapPtr macro_map) {
+int macro_exec(FILE* file, char* filename, HashMapPtr* macro_map) {
     boolean result;
     rewind(file);
 
-    macro_map = init_macro_hash_map(file);
+    *macro_map = init_macro_hash_map(file);
 
-    if (!macro_map)
+    if (!*macro_map)
     {
         error_log("Failed to initialize macro hash map");
         return FALSE;
@@ -341,7 +341,6 @@ int macro_exec(FILE* file, char* filename, HashMapPtr macro_map) {
     rewind(file);
 
     add_file_name_extension(filename, MACRO_OUTPUT_EXTENSION);
-    result = process_macro_file(file, macro_map, filename);
-
+    result = process_macro_file(file, *macro_map, filename);
     return result;
 }

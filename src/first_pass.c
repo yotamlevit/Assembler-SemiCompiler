@@ -2,9 +2,7 @@
 #include "../include/validators.h"
 #include "../include/tables.h"
 #include "../include/first_pass.h"
-
-#include <stdbool.h>
-
+#include "../include/hash_map.h"
 #include "../include/constants_tables.h"
 #include "globals.h"
 #include "logger.h"
@@ -24,7 +22,7 @@ int opcode;
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
  */
-boolean analyze_input_line(char* asm_line)
+boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 {
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
@@ -42,77 +40,147 @@ boolean analyze_input_line(char* asm_line)
 	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
 		return operation(asm_line + 4);
 	if (is_label(asm_line))
-		return label_actions(asm_line);
+		return label_actions(asm_line, macro_map);
 
 	error_log("line %d: The command was not found\n", line_counter);
 	return FALSE;
 }
 
- /*Address method*/
-char addressing_mode(char* li)
-{
+/**
+ * @brief Checks and sets the addressing mode for an immediate address.
+ *
+ * This function checks if the given operand is a valid immediate address (prefixed with `#`).
+ * It validates that the characters following the `#` are digits, or optionally a `+` or `-` sign,
+ * followed by digits. If the operand is valid, the addressing mode is set to `'0'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the immediate address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean immediate_address(char* li, char* addressing_mode) {
 	int i = 2;
+	boolean result = TRUE;
+	/*If after # there is not a number - throw an error*/
+	if (li[1] < 47 || li[1]>58)
+	{
+		if (li[1] != '-' && li[1] != '+')
+		{
+			error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+			result = FALSE;
+		}
+	}
+	else
+	{
+		while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
+		{
+			/*If after # does not appear a number - throw an error*/
+			if (li[i] < 47 || li[i]>58)
+			{
+				error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+				result = FALSE;
+				break;
+			}
+			i++;
+		}
+	}
+	*addressing_mode = '0';
+	return result;
+}
+
+/**
+ * @brief Checks and sets the addressing mode for an indirect register address.
+ *
+ * This function checks if the given operand is a valid indirect register address (prefixed with `*r`).
+ * It validates that the register number is between 0 and 7. If the operand is valid, the addressing mode is set to `'2'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the indirect register address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean indirect_register_address(char* li, char* addressing_mode) {
+	boolean result = TRUE;
+	if (!(*(li + 1) == 'r'))
+	{
+		error_log("line %d: Invalid override parameter\n", line_counter);
+		result = FALSE;
+	}
+	/*If the register is not between 0-7*/
+	if (!(*(li + 2) > 47 && *(li + 2) < 56))
+	{
+		error_log("line %d: Invalid indirect address registration\n", line_counter);
+		result = FALSE;
+	}
+	*addressing_mode = '2';
+	return result;
+}
+
+/**
+ * @brief Checks and sets the addressing mode for a direct register address.
+ *
+ * This function checks if the given operand is a valid direct register address (e.g., `r0`, `r1`, etc.).
+ * It validates that the register number is between 0 and 7. If the operand is valid, the addressing mode is set to `'3'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the direct register address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean direct_register_address(char* li, char* addressing_mode) {
+	boolean result = TRUE;
+	/*If the register is not between 0-7*/
+	if (!(*(li + 1) > 47 && *(li + 1) < 56))
+	{
+		error_log("line %d: Invalid direct address registration\n", line_counter);
+		result = FALSE;
+	}
+	*addressing_mode = '3';
+	return result;
+}
+
+/**
+ * @brief Sets the addressing mode for a direct address.
+ *
+ * This function simply sets the addressing mode to `'1'` for a direct address.
+ * A direct address is usually a label or a memory address.
+ *
+ * @param li A pointer to the operand string (not used in this function).
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating success.
+ *         Always returns TRUE.
+ */
+boolean direct_address(char* li, char* addressing_mode) {
+	*addressing_mode = '1';
+	return TRUE;
+}
+
+/**
+ * @brief Determines and sets the addressing mode for the given operand.
+ *
+ * This function analyzes the operand string and determines its addressing mode.
+ * It delegates the specific checks to other functions depending on the operand's prefix
+ * (`#` for immediate, `*` for indirect register, `r` for direct register, or anything else for direct address).
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether a valid addressing mode was found.
+ *         Returns TRUE if a valid addressing mode is found, FALSE otherwise.
+ */
+boolean get_addressing_mode(char* li, char* addressing_mode)
+{
 	li = delete_first_spaces(li);
 	if (*li == '#')
-	{
-		/*If after # does not appear a number - throw an error*/
-		if (li[1] < 47 || li[1]>58)
-		{
-			if (li[1] != '-' && li[1] != '+')
-			{
-				printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-				error_flag = ON;
-			}
-		}
-		else
-		{
-			while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
-			{
-				/*If after # does not appear a number - throw an error*/
-				if (li[i] < 47 || li[i]>58)
-				{
-					printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-					error_flag = ON;
-					break;
-				}
-				i++;
-			}
-		}
-		/*Immediate address*/
-		return '0';
-	}
-	/*Indirect register address*/
-	else if (*li == '*')
-	{
-		if (!(*(li + 1) == 'r'))
-		{
-			printf("ERROR!! line %d: Invalid override parameter\n", line_counter);
-			error_flag = ON;
-		}
-		/*If the register is not between 0-7*/
-		else if (!(*(li + 2) > 47 && *(li + 2) < 56))
-		{
-			printf("ERROR!! line %d: Invalid indirect address registration\n", line_counter);
-			error_flag = ON;
-		}
-		return '2';
-	}
-	/*Direct register address*/
-	else if (*li == 'r')
-	{
-		/*If the register is not between 0-7*/
-		if (!(*(li + 1) > 47 && *(li + 1) < 56))
-		{
-			printf("ERROR!! line %d: Invalid direct address registration\n", line_counter);
-			error_flag = ON;
-		}
-		return '3';
-	}
-	/*The operand is a label - Direct address*/
-	else if (*li > 20 && *li < 127)
-		return '1';
-	else
-		return ' ';
+		return immediate_address(li, addressing_mode);
+	if (*li == '*')
+		return indirect_register_address(li, addressing_mode);
+	if (*li == 'r')
+		return direct_register_address(li, addressing_mode);
+	if (*li > 20 && *li < 127)
+		return direct_address(li, addressing_mode);
+
+	*addressing_mode = ' ';
+	return TRUE;
 }
 
 /**
@@ -149,13 +217,13 @@ void fix_symbol_addresses()
  * @return A boolean value indicating the success of the first pass.
  *         Returns TRUE if the first pass is executed successfully. Otherwise, returns FALSE.
  */
-boolean first_pass_exec(FILE* file_handle)
+boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map)
 {
 	boolean result = TRUE, analyze_input_line_result;
     line_counter = 0;
     while (!feof(file_handle))
     {
-        analyze_input_line_result = analyze_input_line(line);
+        analyze_input_line_result = analyze_input_line(line, macro_map);
     	if (!analyze_input_line_result)
     		result = FALSE;
         line_counter++;
@@ -163,29 +231,6 @@ boolean first_pass_exec(FILE* file_handle)
     }
     validate_memory(IC, DC);
 	return result;
-}
-
-/**
- * @brief Checks if a given line contains a label.
- *
- * The is_label function processes a given line to determine if it contains a label.
- * It removes leading spaces and then checks for the presence of a colon (':') which
- * signifies a label in the line. The function scans up to the maximum line length.
- *
- * @param asm_line A pointer to the line to be checked for a label.
- * @return A boolean value indicating whether the line contains a label.
- *         Returns TRUE if the line contains a label. Otherwise, returns FALSE.
- */
-boolean is_label(char* asm_line)
-{
-	int i;
-	asm_line = delete_first_spaces(asm_line);
-	for (i = 0; i < MAX_LINE_LENGTH; i++)
-	{
-		if (asm_line[i] == ':')
-			return TRUE;
-	}
-	return FALSE;
 }
 
 /**
@@ -201,33 +246,38 @@ boolean is_label(char* asm_line)
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
  */
-boolean label_actions(char* asm_line)
+boolean label_actions(char* asm_line, HashMapPtr macro_map)
 {
-	char* p;
+	char* p, * label_name;
 	symbol* temp;
 	int i;
+	boolean result = TRUE;
 	for (i = 0; i < MAX_LINE_LENGTH; i++)
 	{
 		if (asm_line[i] == ':')
 		{
+			label_name = (char*)malloc((i + 1) * sizeof(char));
+			strncpy(label_name, asm_line, i);
+			if ((hashMapFind(macro_map, label_name)) != NULL) {
+				error_log("line %d: A label cannot be a macro name\n" ,line_counter);
+				free(label_name);
+				result = FALSE;
+			}
 			if (i > MAX_LABEL_LENGTH)
 			{
 				error_log("line %d: Lable is too long, has more than 30 chars\n", line_counter);
 				return FALSE;
 			}
-			else
+			temp = (symbol*)malloc(sizeof(symbol));
+			if (temp == NULL)
 			{
-				temp = (symbol*)malloc(sizeof(symbol));
-				if (temp == NULL)
-				{
-					error_log("Memory allocation error");
-					return FALSE;
-				}
-				temp->next = head_symbol;
-				head_symbol = temp;
-				clean_label_name(head_symbol->symbol_name);
-				strncpy(head_symbol->symbol_name, asm_line, i);
+				error_log("Memory allocation error");
+				return FALSE;
 			}
+			temp->next = head_symbol;
+			head_symbol = temp;
+			clean_label_name(head_symbol->symbol_name);
+			strncpy(head_symbol->symbol_name, asm_line, i);
 			p = (asm_line + i + 1);
 			p = delete_first_spaces(p);
 			if (*p == '.')
@@ -242,7 +292,7 @@ boolean label_actions(char* asm_line)
 					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					return analyze_input_line(p);
+					return analyze_input_line(p, macro_map);
 			}
 			else
 			{
@@ -251,11 +301,11 @@ boolean label_actions(char* asm_line)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				return analyze_input_line(p);
+				return analyze_input_line(p, macro_map);
 			}
 		}
 	}
-	return TRUE;
+	return result;
 }
 
 /**
@@ -325,13 +375,13 @@ boolean operation(char* asm_line)
 		*(asm_line + s) = ',';
 	}
 	/*Discover the address method of source*/
-	operand_source = addressing_mode(asm_line);
+	result &= get_addressing_mode(asm_line, &operand_source);
 	for (j = 0; asm_line[j] != '\0'; j++)
 	{
 		/*If thre is a comma, discover the address method of destination*/
 		if (asm_line[j] == ',')
 		{
-			operand_destination = addressing_mode(asm_line + j + 1);
+			result &= get_addressing_mode(asm_line + j + 1, &operand_destination);
 			break;
 		}
 	}

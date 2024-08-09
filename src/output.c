@@ -1,5 +1,7 @@
 #include "../include/tables.h"
 #include "../include/output.h"
+
+#include "logger.h"
 #include "../include/utils.h"
 
 extern char* file_name;
@@ -24,8 +26,7 @@ void create_object_file()
 	fd = fopen(file_name, "w");
 	if (!fd)
 	{
-		printf("ERROR!! Cannot create object file");
-		error_flag = ON;
+		error_log("Cannot create object file");
 		return;
 	}
 	fprintf(fd, "   %d %d\n", IC - IC_INITIAL_VALUE, DC);/*fprint IC and DC*/
@@ -75,7 +76,7 @@ void create_entry_file()
 	fd = fopen(file_name, "w");
 	if (!fd)
 	{
-		printf("ERROR!! Cannot create %s file", file_name);
+		error_log("Cannot create %s file", file_name);
 		return;
 	}
 	while (entry_symbol)
@@ -98,7 +99,7 @@ void create_external_file()
 	fd = fopen(file_name, "w");
 	if (!fd)
 	{
-		printf("ERROR!! Cannot create %s file", file_name);
+		error_log("Cannot create %s file", file_name);
 		return;
 	}
 	while (entry_symbol)

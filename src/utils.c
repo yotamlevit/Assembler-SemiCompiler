@@ -6,13 +6,10 @@
 #include <string.h>
 #include <stdio.h>
 #include "../include/hash_map.h"
-#include "../include/preprocess.h"
 #include "../include/globals.h"
 #include "../include/constants_tables.h"
 #include "../include/first_pass.h"
 #include "../include/utils.h"
-#include "globals.h"
-
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode;
@@ -137,4 +134,15 @@ boolean write_line_to_file(FILE* fp, char* line) {
 boolean ends_with_newline(const char *str) {
     size_t len = strlen(str);
     return len > 0 && str[len - 1] == '\n';
+}
+
+/**
+ * Checks if an assembly line contains a label.
+ *
+ * @param asm_line The assembly line to be checked.
+ * @return A boolean indicating if the line contains a label.
+ */
+boolean is_label(char* asm_line)
+{
+	return *find_next_symbol_in_str(asm_line, LABEL_SYMBOL) == LABEL_SYMBOL;
 }

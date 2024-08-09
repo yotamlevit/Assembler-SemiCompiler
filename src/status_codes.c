@@ -2,7 +2,6 @@
  * Created by Hadar Nir on 20/07/2024.
  */
 
-#include <stdio.h>
 #include "../include/status_codes.h"
 
 /**
@@ -14,17 +13,17 @@
  *
  * @return StatusPtr A pointer to the static array of `Status` structures.
  */
-StatusPtr getStatuses(void)
+StatusPtr get_statuses(void)
 {
     static Status Statuses[NumberOfErrors] = {
-        {success, "INFO - The operation was successful"},
-        {error, "ERROR - Error occurred"},
-        {noFilesProvided, "ERROR - You must send files."},
-        {memoryAllocationFailure, "ERROR - Memory allocation failure"},
-        {openFileError, "ERROR - Could not open a file"},
-        {failedPreprocess, "ERROR - Could not finish preprocessing"},
-        {failedFirstPass, "ERROR - Could not finish first pass"},
-        {failedSecondPass, "ERROR - Could not finish second pass"},
+        {success, "The operation was successful"},
+        {error, "Error occurred"},
+        {noFilesProvided, "You must send files."},
+        {memoryAllocationFailure, "Memory allocation failure"},
+        {openFileError, "Could not open a file"},
+        {failedPreprocess, "Could not finish preprocessing"},
+        {failedFirstPass, "Could not finish first pass"},
+        {failedSecondPass, "Could not finish second pass"},
     };
     return Statuses;
 }
@@ -39,10 +38,10 @@ StatusPtr getStatuses(void)
  * @param statusCode The status code for which to retrieve the status message.
  * @return StatusPtr A pointer to the status message corresponding to the status code.
  */
-StatusPtr getStatus(StatusCode statusCode)
+StatusPtr get_status(StatusCode statusCode)
 {
     StatusPtr statuses;
-    statuses = getStatuses();
+    statuses = get_statuses();
     return &statuses[statusCode];
 }
 
@@ -54,7 +53,7 @@ StatusPtr getStatus(StatusCode statusCode)
  *
  * @param statusCode The status code for which to print the status message.
  */
-void printStatus(StatusCode statusCode)
+char* get_status_message(StatusCode statusCode)
 {
-    printf("%s\n", getStatus(statusCode)->status_msg);
+    return get_status(statusCode)->status_msg;
 }
