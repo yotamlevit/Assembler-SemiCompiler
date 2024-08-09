@@ -3,17 +3,11 @@
 #include "globals.h"
 #include "hash_map.h"
 
-
 #define MAX_STRING 75
 #define OPERATIONS_AMOUNT 16
 
-//extern char line[MAX_LINE_LENGTH];
+boolean get_addressing_mode(char*, char* addressing_mode);
 
-
-/*Functions*/
-char addressing_mode(char*);
-
-/*Two transition functions*/
 boolean analyze_input_line(char*, HashMapPtr macro_map);
 
 void fix_symbol_addresses();

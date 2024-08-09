@@ -50,9 +50,10 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 }
 
  /*Address method*/
-char addressing_mode(char* li)
+boolean get_addressing_mode(char* li, char* addressing_mode)
 {
 	int i = 2;
+	boolean result = TRUE;
 	li = delete_first_spaces(li);
 	if (*li == '#')
 	{
@@ -61,8 +62,8 @@ char addressing_mode(char* li)
 		{
 			if (li[1] != '-' && li[1] != '+')
 			{
-				printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-				error_flag = ON;
+				error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+				result = FALSE;
 			}
 		}
 		else
@@ -72,48 +73,54 @@ char addressing_mode(char* li)
 				/*If after # does not appear a number - throw an error*/
 				if (li[i] < 47 || li[i]>58)
 				{
-					printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-					error_flag = ON;
+					error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+					result = FALSE;
 					break;
 				}
 				i++;
 			}
 		}
 		/*Immediate address*/
-		return '0';
+		*addressing_mode = '0';
+		return result;
 	}
 	/*Indirect register address*/
-	else if (*li == '*')
+	if (*li == '*')
 	{
 		if (!(*(li + 1) == 'r'))
 		{
-			printf("ERROR!! line %d: Invalid override parameter\n", line_counter);
-			error_flag = ON;
+			error_log("line %d: Invalid override parameter\n", line_counter);
+			result = FALSE;
 		}
 		/*If the register is not between 0-7*/
 		else if (!(*(li + 2) > 47 && *(li + 2) < 56))
 		{
-			printf("ERROR!! line %d: Invalid indirect address registration\n", line_counter);
-			error_flag = ON;
+			error_log("line %d: Invalid indirect address registration\n", line_counter);
+			result = FALSE;
 		}
-		return '2';
+		*addressing_mode = '2';
+		return result;
 	}
 	/*Direct register address*/
-	else if (*li == 'r')
+	if (*li == 'r')
 	{
 		/*If the register is not between 0-7*/
 		if (!(*(li + 1) > 47 && *(li + 1) < 56))
 		{
-			printf("ERROR!! line %d: Invalid direct address registration\n", line_counter);
-			error_flag = ON;
+			error_log("line %d: Invalid direct address registration\n", line_counter);
+			result = FALSE;
 		}
-		return '3';
+		*addressing_mode = '3';
+		return result;
 	}
 	/*The operand is a label - Direct address*/
-	else if (*li > 20 && *li < 127)
-		return '1';
+	if (*li > 20 && *li < 127) {
+		*addressing_mode = '1';
+		return result;
+	}
 	else
-		return ' ';
+		*addressing_mode = ' ';
+	return result;
 }
 
 /**
@@ -308,13 +315,13 @@ boolean operation(char* asm_line)
 		*(asm_line + s) = ',';
 	}
 	/*Discover the address method of source*/
-	operand_source = addressing_mode(asm_line);
+	result &= get_addressing_mode(asm_line, &operand_source);
 	for (j = 0; asm_line[j] != '\0'; j++)
 	{
 		/*If thre is a comma, discover the address method of destination*/
 		if (asm_line[j] == ',')
 		{
-			operand_destination = addressing_mode(asm_line + j + 1);
+			result &= get_addressing_mode(asm_line + j + 1, &operand_destination);
 			break;
 		}
 	}
