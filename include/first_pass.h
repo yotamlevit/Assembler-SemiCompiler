@@ -6,6 +6,10 @@
 #define MAX_STRING 75
 #define OPERATIONS_AMOUNT 16
 
+boolean immediate_address(char* li, char* addressing_mode);
+
+boolean indirect_register_address(char* li, char* addressing_mode);
+
 boolean get_addressing_mode(char*, char* addressing_mode);
 
 boolean analyze_input_line(char*, HashMapPtr macro_map);

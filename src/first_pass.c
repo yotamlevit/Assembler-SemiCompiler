@@ -46,78 +46,141 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 	return FALSE;
 }
 
- /*Address method*/
-boolean get_addressing_mode(char* li, char* addressing_mode)
-{
+/**
+ * @brief Checks and sets the addressing mode for an immediate address.
+ *
+ * This function checks if the given operand is a valid immediate address (prefixed with `#`).
+ * It validates that the characters following the `#` are digits, or optionally a `+` or `-` sign,
+ * followed by digits. If the operand is valid, the addressing mode is set to `'0'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the immediate address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean immediate_address(char* li, char* addressing_mode) {
 	int i = 2;
 	boolean result = TRUE;
-	li = delete_first_spaces(li);
-	if (*li == '#')
+	/*If after # there is not a number - throw an error*/
+	if (li[1] < 47 || li[1]>58)
 	{
-		/*If after # does not appear a number - throw an error*/
-		if (li[1] < 47 || li[1]>58)
+		if (li[1] != '-' && li[1] != '+')
 		{
-			if (li[1] != '-' && li[1] != '+')
+			error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+			result = FALSE;
+		}
+	}
+	else
+	{
+		while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
+		{
+			/*If after # does not appear a number - throw an error*/
+			if (li[i] < 47 || li[i]>58)
 			{
 				error_log("line %d: Invalid parameter for the instant address\n", line_counter);
 				result = FALSE;
+				break;
 			}
+			i++;
 		}
-		else
-		{
-			while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
-			{
-				/*If after # does not appear a number - throw an error*/
-				if (li[i] < 47 || li[i]>58)
-				{
-					error_log("line %d: Invalid parameter for the instant address\n", line_counter);
-					result = FALSE;
-					break;
-				}
-				i++;
-			}
-		}
-		/*Immediate address*/
-		*addressing_mode = '0';
-		return result;
 	}
-	/*Indirect register address*/
-	if (*li == '*')
-	{
-		if (!(*(li + 1) == 'r'))
-		{
-			error_log("line %d: Invalid override parameter\n", line_counter);
-			result = FALSE;
-		}
-		/*If the register is not between 0-7*/
-		else if (!(*(li + 2) > 47 && *(li + 2) < 56))
-		{
-			error_log("line %d: Invalid indirect address registration\n", line_counter);
-			result = FALSE;
-		}
-		*addressing_mode = '2';
-		return result;
-	}
-	/*Direct register address*/
-	if (*li == 'r')
-	{
-		/*If the register is not between 0-7*/
-		if (!(*(li + 1) > 47 && *(li + 1) < 56))
-		{
-			error_log("line %d: Invalid direct address registration\n", line_counter);
-			result = FALSE;
-		}
-		*addressing_mode = '3';
-		return result;
-	}
-	/*The operand is a label - Direct address*/
-	if (*li > 20 && *li < 127) {
-		*addressing_mode = '1';
-		return result;
-	}
-	else
-		*addressing_mode = ' ';
+	*addressing_mode = '0';
 	return result;
+}
+
+/**
+ * @brief Checks and sets the addressing mode for an indirect register address.
+ *
+ * This function checks if the given operand is a valid indirect register address (prefixed with `*r`).
+ * It validates that the register number is between 0 and 7. If the operand is valid, the addressing mode is set to `'2'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the indirect register address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean indirect_register_address(char* li, char* addressing_mode) {
+	boolean result = TRUE;
+	if (!(*(li + 1) == 'r'))
+	{
+		error_log("line %d: Invalid override parameter\n", line_counter);
+		result = FALSE;
+	}
+	/*If the register is not between 0-7*/
+	if (!(*(li + 2) > 47 && *(li + 2) < 56))
+	{
+		error_log("line %d: Invalid indirect address registration\n", line_counter);
+		result = FALSE;
+	}
+	*addressing_mode = '2';
+	return result;
+}
+
+/**
+ * @brief Checks and sets the addressing mode for a direct register address.
+ *
+ * This function checks if the given operand is a valid direct register address (e.g., `r0`, `r1`, etc.).
+ * It validates that the register number is between 0 and 7. If the operand is valid, the addressing mode is set to `'3'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the direct register address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean direct_register_address(char* li, char* addressing_mode) {
+	boolean result = TRUE;
+	/*If the register is not between 0-7*/
+	if (!(*(li + 1) > 47 && *(li + 1) < 56))
+	{
+		error_log("line %d: Invalid direct address registration\n", line_counter);
+		result = FALSE;
+	}
+	*addressing_mode = '3';
+	return result;
+}
+
+/**
+ * @brief Sets the addressing mode for a direct address.
+ *
+ * This function simply sets the addressing mode to `'1'` for a direct address.
+ * A direct address is usually a label or a memory address.
+ *
+ * @param li A pointer to the operand string (not used in this function).
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating success.
+ *         Always returns TRUE.
+ */
+boolean direct_address(char* li, char* addressing_mode) {
+	*addressing_mode = '1';
+	return TRUE;
+}
+
+/**
+ * @brief Determines and sets the addressing mode for the given operand.
+ *
+ * This function analyzes the operand string and determines its addressing mode.
+ * It delegates the specific checks to other functions depending on the operand's prefix
+ * (`#` for immediate, `*` for indirect register, `r` for direct register, or anything else for direct address).
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether a valid addressing mode was found.
+ *         Returns TRUE if a valid addressing mode is found, FALSE otherwise.
+ */
+boolean get_addressing_mode(char* li, char* addressing_mode)
+{
+	li = delete_first_spaces(li);
+	if (*li == '#')
+		return immediate_address(li, addressing_mode);
+	if (*li == '*')
+		return indirect_register_address(li, addressing_mode);
+	if (*li == 'r')
+		return direct_register_address(li, addressing_mode);
+	if (*li > 20 && *li < 127)
+		return direct_address(li, addressing_mode);
+
+	*addressing_mode = ' ';
+	return TRUE;
 }
 
 /**
