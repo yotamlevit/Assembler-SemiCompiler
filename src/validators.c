@@ -5,7 +5,6 @@
 #include "../include/validators.h"
 
 #include "logger.h"
-#include "../include/tables.h"
 #include "../include/status_codes.h"
 
 int validate_input(int argc, char** argv)

@@ -2,7 +2,6 @@
  * Created by Hadar Nir on 20/07/2024.
  */
 
-#include <stdio.h>
 #include "../include/status_codes.h"
 
 /**

@@ -3,9 +3,6 @@
 #include "../include/tables.h"
 #include "../include/first_pass.h"
 #include "../include/hash_map.h"
-
-#include <stdbool.h>
-
 #include "../include/constants_tables.h"
 #include "globals.h"
 #include "logger.h"

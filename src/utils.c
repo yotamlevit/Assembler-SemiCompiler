@@ -6,13 +6,10 @@
 #include <string.h>
 #include <stdio.h>
 #include "../include/hash_map.h"
-#include "../include/preprocess.h"
 #include "../include/globals.h"
 #include "../include/constants_tables.h"
 #include "../include/first_pass.h"
 #include "../include/utils.h"
-#include "globals.h"
-
 
 /*Operation code.Reliable only when the action is valid*/
 int opcode;
