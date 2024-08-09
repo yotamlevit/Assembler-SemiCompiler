@@ -124,14 +124,14 @@ StatusCode process_file(char* asm_file_name)
     }
     info_log("Finished first pass sucessfully on %s", file_name);
 
-    prep_second_pass(fd); /* TODO: Return StatusCode and add logs of the operation */
+    prep_second_pass(fd);
     rewind(fd);
 
     info_log("Starting second pass on %s", file_name);
 
-    result = second_pass_exec(fd, &line_index); /* TODO: Convert return type to StatusCode */
+    result = second_pass_exec(fd, &line_index);
 
-    create_output_files(&line_index); /* TODO: Return StatusCode and add logs of the operation */
+    create_output_files(&line_index);
 
     fclose(fd);
 
