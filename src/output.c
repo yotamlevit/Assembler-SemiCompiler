@@ -27,7 +27,6 @@ void create_object_file()
 	if (!fd)
 	{
 		error_log("Cannot create object file");
-		error_flag = ON;
 		return;
 	}
 	fprintf(fd, "   %d %d\n", IC - IC_INITIAL_VALUE, DC);/*fprint IC and DC*/

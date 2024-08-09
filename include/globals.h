@@ -36,7 +36,5 @@ extern int IC;
 extern int DC;
 /*Globals*/
 extern int line_counter;
-/*Globals*/
-extern int error_flag;
 #endif
 

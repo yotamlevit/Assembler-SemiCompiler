@@ -24,7 +24,6 @@ int DC;
 int IC;
 
 int line_counter;
-int error_flag;
 
 /**
  * @brief Prepares the assembler for the second pass.
