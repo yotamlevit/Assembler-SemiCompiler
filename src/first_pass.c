@@ -309,37 +309,26 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map)
 }
 
 /**
- * @brief Processes an operation line in the assembly code.
+ * @brief Handles and validates comma placement in an assembly line.
  *
- * The operation function processes an operation line in the assembly code.
- * It handles operand addressing methods, checks for errors in operand syntax,
- * and allocates memory for machine words. The function handles different types
- * of operations and updates the code table accordingly.
+ * This function checks the placement of commas within an assembly instruction line. It ensures
+ * that commas are correctly used to separate operands and that no invalid characters are
+ * present between operands. If a comma is missing where expected, it logs an error and
+ * attempts to correct the line by inserting a missing comma.
  *
- * @param asm_line A pointer to the assembly line to be processed.
- * @return A boolean value indicating the success of the operation.
- *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ * @param asm_line A pointer to the assembly instruction line to be checked.
+ * @return A boolean value indicating whether the comma placement is valid.
+ *         Returns TRUE if commas are correctly placed, FALSE if there is an issue.
  */
-boolean operation(char* asm_line)
-{
-	/* TODO: Split the logic to multiple functions */
-	boolean result = TRUE;
-	int k;
-	int s;
-	int j;
+boolean handle_coma(char* asm_line) {
+	boolean result = TRUE, miss_comma = FALSE;
+	int s, k;
 	char oper[MAX_LINE_LENGTH - 4];
 	char* p = oper;
-	/*Method of addrresing operand source*/
-	char operand_source;
-	/*Method of addrresing operand destanation*/
-	char operand_destination = ' ';
-	int i = 0;
-	boolean is_source = FALSE;
-	boolean is_destination = FALSE;
-	machine_word* temp;
-	boolean miss_comma = 0;
+
 	for (k = 0; asm_line[k] == ' ' || asm_line[k] == '\t'; k++);
 	strcpy(oper, asm_line + k);
+
 	for (k = 0; p[k] != '\0' && p[k] != '\n'; k++)
 	{
 		if (p[k] == ' ')
@@ -374,6 +363,34 @@ boolean operation(char* asm_line)
 		for (s = s; asm_line[s] != ' ' && asm_line[s] != '\t'; s++);
 		*(asm_line + s) = ',';
 	}
+	return result;
+}
+
+/**
+ * @brief Processes an operation line in the assembly code.
+ *
+ * The operation function processes an operation line in the assembly code.
+ * It handles operand addressing methods, checks for errors in operand syntax,
+ * and allocates memory for machine words. The function handles different types
+ * of operations and updates the code table accordingly.
+ *
+ * @param asm_line A pointer to the assembly line to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ */
+boolean operation(char* asm_line)
+{
+	boolean result = TRUE;
+	int j;
+	char operand_source;
+	char operand_destination = ' ';
+	int i = 0;
+	boolean is_source = FALSE;
+	boolean is_destination = FALSE;
+	machine_word* temp;
+
+	result &= handle_coma(asm_line);
+
 	/*Discover the address method of source*/
 	result &= get_addressing_mode(asm_line, &operand_source);
 	for (j = 0; asm_line[j] != '\0'; j++)
