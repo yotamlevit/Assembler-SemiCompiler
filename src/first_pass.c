@@ -143,7 +143,6 @@ boolean direct_register_address(char* li, char* addressing_mode) {
  * This function simply sets the addressing mode to `'1'` for a direct address.
  * A direct address is usually a label or a memory address.
  *
- * @param li A pointer to the operand string (not used in this function).
  * @param addressing_mode A pointer to a character where the addressing mode will be stored.
  * @return A boolean value indicating success.
  *         Always returns TRUE.
