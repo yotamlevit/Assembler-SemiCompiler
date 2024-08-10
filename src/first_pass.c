@@ -367,6 +367,43 @@ boolean handle_coma(char* asm_line) {
 }
 
 /**
+ * @brief Extracts and determines the addressing modes of source and destination operands.
+ *
+ * This function parses an assembly instruction line to identify the source and destination operands,
+ * determining their respective addressing modes. It first identifies the addressing mode of the source
+ * operand, then looks for a comma to identify and determine the addressing mode of the destination operand.
+ * If no comma is found, it assumes that the only operand is the destination, and the source operand is set to a space.
+ *
+ * @param asm_line A pointer to the assembly instruction line.
+ * @param operand_src A pointer to a character where the addressing mode of the source operand will be stored.
+ * @param operand_dst A pointer to a character where the addressing mode of the destination operand will be stored.
+ * @return A boolean value indicating whether the operands' addressing modes were successfully identified.
+ *         Returns TRUE if successful, FALSE if any errors occurred during parsing.
+ */
+boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operand_dst) {
+	boolean result = TRUE;
+	int j;
+	/*Discover the address method of source*/
+	result &= get_addressing_mode(asm_line, operand_src);
+	for (j = 0; asm_line[j] != '\0'; j++)
+	{
+		/*If thre is a comma, discover the address method of destination*/
+		if (asm_line[j] == ',')
+		{
+			result &= get_addressing_mode(asm_line + j + 1, operand_dst);
+			break;
+		}
+	}
+	if (asm_line[j] == '\0')
+	{
+		/*If there isnt comma then the only operand is destination�*/
+		*operand_dst = *operand_src;
+		*operand_src = ' ';
+	}
+	return result;
+}
+
+/**
  * @brief Processes an operation line in the assembly code.
  *
  * The operation function processes an operation line in the assembly code.
@@ -381,61 +418,43 @@ boolean handle_coma(char* asm_line) {
 boolean operation(char* asm_line)
 {
 	boolean result = TRUE;
-	int j;
-	char operand_source;
-	char operand_destination = ' ';
+	char operand_src;
+	char operand_dst = ' ';
 	int i = 0;
-	boolean is_source = FALSE;
-	boolean is_destination = FALSE;
+	boolean is_src = FALSE;
+	boolean is_dst = FALSE;
 	machine_word* temp;
 
 	result &= handle_coma(asm_line);
+	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst);
 
-	/*Discover the address method of source*/
-	result &= get_addressing_mode(asm_line, &operand_source);
-	for (j = 0; asm_line[j] != '\0'; j++)
-	{
-		/*If thre is a comma, discover the address method of destination*/
-		if (asm_line[j] == ',')
-		{
-			result &= get_addressing_mode(asm_line + j + 1, &operand_destination);
-			break;
-		}
-	}
-	if (asm_line[j] == '\0')
-	{
-		/*If there isnt comma then the only operand is destination�*/
-		operand_destination = operand_source;
-		operand_source = ' ';
-	}
 	while ((operation_mode[opcode][1])[i] != '\0')
 	{
 		/*Checks if the specific op supports the source add method*/
-		if ((operation_mode[opcode][1])[i] == operand_source)
-			is_source = TRUE;
+		if ((operation_mode[opcode][1])[i] == operand_src)
+			is_src = TRUE;
 		i++;
 	}
 	i = 0;
 	while ((operation_mode[opcode][0])[i] != '\0')
 	{
 		/*Checks whether the specific OP supports the destination add method*/
-		if ((operation_mode[opcode][0])[i] == operand_destination)
-			is_destination = TRUE;
+		if ((operation_mode[opcode][0])[i] == operand_dst)
+			is_dst = TRUE;
 		i++;
 	}
-	/*If not rise an error*/
-	if (!is_source)
+	if (!is_src)
 	{
 		error_log("line %d: Incorrect method for the source operand\n", line_counter);
 		result = FALSE;
 	}
-	if (!is_destination)
+	if (!is_dst)
 	{
 		error_log("line %d: Incorrect method for the destination operand\n", line_counter);
 		result = FALSE;
 	}
 	/*If there is 2 operands and both of them 3 or 4 add method, they share the same memmory word--allocate one more word */
-	if ((operand_source == '3' && operand_destination == '2') || (operand_destination == '3' && operand_source == '2') || (operand_source == '3' && operand_destination == '3') || (operand_destination == '2' && operand_source == '2'))
+	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
 	{
 		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (temp == NULL)
@@ -451,17 +470,17 @@ boolean operation(char* asm_line)
 		code_table[I].c.next->c.address = IC;
 		IC++;
 		code_table[I].c.op_code = opcode;
-		if (operand_source == '3' && operand_destination == '2')
+		if (operand_src == '3' && operand_dst == '2')
 		{
 			code_table[I].c.source_direct_register = 1;
 			code_table[I].c.destination_indirect_register = 1;
 		}
-		else if (operand_source == '2' && operand_destination == '3')
+		else if (operand_src == '2' && operand_dst == '3')
 		{
 			code_table[I].c.source_indirect_register = 1;
 			code_table[I].c.destination_direct_register = 1;
 		}
-		else if (operand_source == '2' && operand_destination == '2')
+		else if (operand_src == '2' && operand_dst == '2')
 		{
 			code_table[I].c.source_indirect_register = 1;
 			code_table[I].c.destination_indirect_register = 1;
@@ -474,7 +493,7 @@ boolean operation(char* asm_line)
 	}
 
 	/* If there is only one operand, allocate one more word in memory*/
-	else if (operand_source == ' ' && operand_destination != ' ')
+	else if (operand_src == ' ' && operand_dst != ' ')
 	{
 		temp = (machine_word*)malloc(sizeof(machine_word));
 		if (temp == NULL)
@@ -490,17 +509,17 @@ boolean operation(char* asm_line)
 		code_table[I].c.next->c.address = IC;
 		IC++;
 		code_table[I].c.op_code = opcode;
-		if (operand_destination == '0')
+		if (operand_dst == '0')
 			code_table[I].c.destination_immidiate = 1;
-		else if (operand_destination == '1')
+		else if (operand_dst == '1')
 			code_table[I].c.destination_direct = 1;
-		else if (operand_destination == '2')
+		else if (operand_dst == '2')
 			code_table[I].c.destination_indirect_register = 1;
 		else
 			code_table[I].c.destination_direct_register = 1;
 	}
 	/*If there are no operands at all, do not allocate memory words*/
-	else if ((operand_source == ' ' && operand_destination == ' '))
+	else if ((operand_src == ' ' && operand_dst == ' '))
 	{
 		code_table[I].c.role = 4; /*Its absolute*/
 		code_table[I].c.address = IC; /*Give address*/
@@ -536,20 +555,20 @@ boolean operation(char* asm_line)
 		IC++;
 		code_table[I].c.op_code = opcode;
 		/*For destination*/
-		if (operand_destination == '0')
+		if (operand_dst == '0')
 			code_table[I].c.destination_immidiate = 1;
-		else if (operand_destination == '1')
+		else if (operand_dst == '1')
 			code_table[I].c.destination_direct = 1;
-		else if (operand_destination == '2')
+		else if (operand_dst == '2')
 			code_table[I].c.destination_indirect_register = 1;
 		else
 			code_table[I].c.destination_direct_register = 1;
 		/*For source*/
-		if (operand_source == '0')
+		if (operand_src == '0')
 			code_table[I].c.source_immidiate = 1;
-		else if (operand_source == '1')
+		else if (operand_src == '1')
 			code_table[I].c.source_direct = 1;
-		else if (operand_source == '2')
+		else if (operand_src == '2')
 			code_table[I].c.source_indirect_register = 1;
 		else
 			code_table[I].c.source_direct_register = 1;

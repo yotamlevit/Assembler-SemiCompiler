@@ -26,6 +26,10 @@ boolean is_label(char*);
 
 boolean label_actions(char*, HashMapPtr macro_map);
 
+boolean handle_coma(char* asm_line);
+
+boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operand_dst);
+
 boolean operation(char*);
 
 boolean ext(char*);
