@@ -7,7 +7,6 @@
 #include "globals.h"
 #include "logger.h"
 
-/*Operation code.Reliable only when the action is valid*/
 int opcode;
 
 /**
@@ -404,29 +403,20 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
 }
 
 /**
- * @brief Processes an operation line in the assembly code.
+ * @brief Validates the opcode against the provided source and destination operands.
  *
- * The operation function processes an operation line in the assembly code.
- * It handles operand addressing methods, checks for errors in operand syntax,
- * and allocates memory for machine words. The function handles different types
- * of operations and updates the code table accordingly.
+ * This function checks whether the given opcode supports the addressing modes of the source and destination operands.
+ * It compares the operand addressing modes against the allowed modes for the specific opcode.
+ * If the addressing modes are not supported, it logs an error and returns FALSE.
  *
- * @param asm_line A pointer to the assembly line to be processed.
- * @return A boolean value indicating the success of the operation.
- *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ * @param operand_src The addressing mode of the source operand.
+ * @param operand_dst The addressing mode of the destination operand.
+ * @return A boolean value indicating whether the opcode is valid with the given operands.
+ *         Returns TRUE if both the source and destination operands are valid for the opcode, FALSE otherwise.
  */
-boolean operation(char* asm_line)
-{
-	boolean result = TRUE;
-	char operand_src;
-	char operand_dst = ' ';
+boolean validate_opcode_with_operands(char operand_src, char operand_dst) {
 	int i = 0;
-	boolean is_src = FALSE;
-	boolean is_dst = FALSE;
-	machine_word* temp;
-
-	result &= handle_coma(asm_line);
-	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst);
+	boolean result = TRUE, is_src = FALSE, is_dst = FALSE;
 
 	while ((operation_mode[opcode][1])[i] != '\0')
 	{
@@ -453,6 +443,33 @@ boolean operation(char* asm_line)
 		error_log("line %d: Incorrect method for the destination operand\n", line_counter);
 		result = FALSE;
 	}
+	return result;
+}
+
+/**
+ * @brief Processes an operation line in the assembly code.
+ *
+ * The operation function processes an operation line in the assembly code.
+ * It handles operand addressing methods, checks for errors in operand syntax,
+ * and allocates memory for machine words. The function handles different types
+ * of operations and updates the code table accordingly.
+ *
+ * @param asm_line A pointer to the assembly line to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ */
+boolean operation(char* asm_line)
+{
+	boolean result = TRUE;
+	char operand_src;
+	char operand_dst = ' ';
+	machine_word* temp;
+
+	result &= handle_coma(asm_line);
+	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst);
+	result &= validate_opcode_with_operands(operand_src, operand_dst);
+
+
 	/*If there is 2 operands and both of them 3 or 4 add method, they share the same memmory word--allocate one more word */
 	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
 	{
