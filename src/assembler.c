@@ -24,7 +24,6 @@ int DC;
 int IC;
 
 int line_counter;
-int error_flag;
 
 /**
  * @brief Prepares the assembler for the second pass.
@@ -40,7 +39,7 @@ int error_flag;
 void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array*/
     line[0] = '\0';
     /*Return fd to point on the begining of the file.*/
-    rewind(file_handle); // TODO move rewind to each place that needed
+    rewind(file_handle);
     /*Zero the parameters before the next analize*/
     line_counter = 0;
     clean_line(line);
@@ -106,7 +105,7 @@ StatusCode process_file(char* asm_file_name)
         return openFileError;
 
     info_log("Starting preprocessing on %s", file_name);
-    result = macro_exec(fd, file_name, macro_map);
+    result = macro_exec(fd, file_name, &macro_map);
 
     fclose(fd);
 
@@ -117,33 +116,30 @@ StatusCode process_file(char* asm_file_name)
     if (fd == NULL)
         return openFileError;
 
-    result = first_pass_exec(fd);
+    result = first_pass_exec(fd, macro_map);
+    hashMapFree(macro_map);
     if (!result){
         fclose(fd);
         return failedFirstPass;
     }
     info_log("Finished first pass sucessfully on %s", file_name);
 
-    prep_second_pass(fd); /* TODO: Return StatusCode and add logs of the operation */
+    prep_second_pass(fd);
     rewind(fd);
 
     info_log("Starting second pass on %s", file_name);
 
-    result = second_pass_exec(fd, &line_index); /* TODO: Convert return type to StatusCode */
+    result = second_pass_exec(fd, &line_index);
 
-    create_output_files(&line_index); /* TODO: Return StatusCode and add logs of the operation */
+    create_output_files(&line_index);
 
     fclose(fd);
 
-    if (result)
-    {
-        info_log("The file %s has been successfully compiled", file_name);
-        return success;
-    }
-    else{
-        info_log("Compilation failed for %s (first pass)", file_name);
+    if (!result)
         return failedSecondPass;
-    }
+
+    info_log("The file %s has been successfully compiled", file_name);
+    return success;
 }
 
 /**
@@ -171,7 +167,7 @@ int iterate_input_files(int argc, char** argv)
         info_log("Start processing file: %s", asm_file_name);
         process_file_result = process_file(asm_file_name);
         if (process_file_result != success) {
-            printStatus(process_file_result);
+            error_log(get_status_message(process_file_result));
             status = error;
         }
     }
@@ -194,7 +190,7 @@ int main(int argc, char** argv)
 {
     int validate_input_result = validate_input(argc, argv);
     if (validate_input_result != success) {
-        printStatus(validate_input_result);
+        error_log(get_status_message(validate_input_result));
         return error;
     }
 
@@ -202,5 +198,6 @@ int main(int argc, char** argv)
     if (iterate_input_files_result != success)
         return error;
 
+    info_log(get_status_message(success));
     return success;
 }

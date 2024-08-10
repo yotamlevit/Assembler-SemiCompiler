@@ -3,7 +3,8 @@
 */
 
 #include "../include/validators.h"
-#include "../include/tables.h"
+
+#include "logger.h"
 #include "../include/status_codes.h"
 
 int validate_input(int argc, char** argv)
@@ -18,7 +19,7 @@ int validate_memory(int IC, int DC)
     /*Checking memory limit exceeded.*/
     if (IC + DC > MEMORY_SIZE)
     {
-        printf("ERROR!! The program has exceeded the memory limits.\n");
+        error_log("The program has exceeded the memory limits.\n");
         return 0;
     }
 

@@ -1,5 +1,4 @@
 #include "../include/utils.h"
-#include "../include/first_pass.h"
 #include "../include/second_pass.h"
 #include "../include/logger.h"
 #include "globals.h"
@@ -249,18 +248,6 @@ boolean second_operation(char* asm_line, code_word_fields_ptr code_word, int* li
 
 
 /**
- * Checks if an assembly line contains a label.
- *
- * @param asm_line The assembly line to be checked.
- * @return A boolean indicating if the line contains a label.
- */
-boolean isLabel2(char* asm_line)
-{
-    return *find_next_symbol_in_str(asm_line, LABEL_SYMBOL) == LABEL_SYMBOL;
-}
-
-
-/**
  * Processes a label in an assembly line.
  *
  * @param asm_line The assembly line containing the label.
@@ -341,7 +328,7 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
     char* clean_line = delete_first_spaces(asm_line);
     if (!strncmp(clean_line, ENTRY_LABEL, strlen(ENTRY_LABEL)))
         return process_entry(clean_line + strlen(ENTRY_LABEL));
-    if (isLabel2(clean_line))
+    if (is_label(clean_line))
         return process_label(clean_line, code_word, line_index);
     /* Otherwise it is an operation*/
     opcode = is_operation(clean_line);
@@ -360,9 +347,10 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
  * Executes the second pass on the assembly file.
  *
  * @param file_handle The file handle for the assembly file.
+ * @param line_index Pointer for line index.
  * @return A boolean indicating success or failure.
  */
-boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen changing the global get an argumentof code_table //// TODO Change boolean to status?
+boolean second_pass_exec(FILE* file_handle, int* line_index)
 {
     /*Second pass*/
     while (!feof(file_handle))

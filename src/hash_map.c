@@ -5,13 +5,6 @@ Created by Yotam Levit on 26/04/2024.
 #include "../include/hash_map.h"
 
 
-/*
-  Created by Yotam Levit on 26/04/2024.
-*/
-
-#include "../include/hash_map.h"
-
-
 #define HASH_PRIME 109951
 
 

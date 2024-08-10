@@ -1,15 +1,12 @@
-#include "../include/utils.h"
-#include "../include/validators.h"
-#include "../include/tables.h"
-#include "../include/first_pass.h"
-
-#include <stdbool.h>
-
-#include "../include/constants_tables.h"
+#include "utils.h"
+#include "validators.h"
+#include "tables.h"
+#include "first_pass.h"
+#include "hash_map.h"
+#include "constants_tables.h"
 #include "globals.h"
 #include "logger.h"
 
-/*Operation code.Reliable only when the action is valid*/
 int opcode;
 
 /**
@@ -24,7 +21,7 @@ int opcode;
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
  */
-boolean analyze_input_line(char* asm_line)
+boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 {
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
@@ -42,77 +39,147 @@ boolean analyze_input_line(char* asm_line)
 	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
 		return operation(asm_line + 4);
 	if (is_label(asm_line))
-		return label_actions(asm_line);
+		return label_actions(asm_line, macro_map);
 
 	error_log("line %d: The command was not found\n", line_counter);
 	return FALSE;
 }
 
- /*Address method*/
-char addressing_mode(char* li)
-{
+/**
+ * @brief Checks and sets the addressing mode for an immediate address.
+ *
+ * This function checks if the given operand is a valid immediate address (prefixed with `#`).
+ * It validates that the characters following the `#` are digits, or optionally a `+` or `-` sign,
+ * followed by digits. If the operand is valid, the addressing mode is set to `'0'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the immediate address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean immediate_address(char* li, char* addressing_mode) {
 	int i = 2;
+	boolean result = TRUE;
+	/*If after # there is not a number - throw an error*/
+	if (li[1] < 47 || li[1]>58)
+	{
+		if (li[1] != '-' && li[1] != '+')
+		{
+			error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+			result = FALSE;
+		}
+	}
+	else
+	{
+		while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
+		{
+			/*If after # does not appear a number - throw an error*/
+			if (li[i] < 47 || li[i]>58)
+			{
+				error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+				result = FALSE;
+				break;
+			}
+			i++;
+		}
+	}
+	*addressing_mode = '0';
+	return result;
+}
+
+/**
+ * @brief Checks and sets the addressing mode for an indirect register address.
+ *
+ * This function checks if the given operand is a valid indirect register address (prefixed with `*r`).
+ * It validates that the register number is between 0 and 7. If the operand is valid, the addressing mode is set to `'2'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the indirect register address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean indirect_register_address(char* li, char* addressing_mode) {
+	boolean result = TRUE;
+	if (!(*(li + 1) == 'r'))
+	{
+		error_log("line %d: Invalid override parameter\n", line_counter);
+		result = FALSE;
+	}
+	/*If the register is not between 0-7*/
+	if (!(*(li + 2) > 47 && *(li + 2) < 56))
+	{
+		error_log("line %d: Invalid indirect address registration\n", line_counter);
+		result = FALSE;
+	}
+	*addressing_mode = '2';
+	return result;
+}
+
+/**
+ * @brief Checks and sets the addressing mode for a direct register address.
+ *
+ * This function checks if the given operand is a valid direct register address (e.g., `r0`, `r1`, etc.).
+ * It validates that the register number is between 0 and 7. If the operand is valid, the addressing mode is set to `'3'`.
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether the direct register address is valid.
+ *         Returns TRUE if valid, FALSE otherwise.
+ */
+boolean direct_register_address(char* li, char* addressing_mode) {
+	boolean result = TRUE;
+	/*If the register is not between 0-7*/
+	if (!(*(li + 1) > 47 && *(li + 1) < 56))
+	{
+		error_log("line %d: Invalid direct address registration\n", line_counter);
+		result = FALSE;
+	}
+	*addressing_mode = '3';
+	return result;
+}
+
+/**
+ * @brief Sets the addressing mode for a direct address.
+ *
+ * This function simply sets the addressing mode to `'1'` for a direct address.
+ * A direct address is usually a label or a memory address.
+ *
+ * @param li A pointer to the operand string (not used in this function).
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating success.
+ *         Always returns TRUE.
+ */
+boolean direct_address(char* li, char* addressing_mode) {
+	*addressing_mode = '1';
+	return TRUE;
+}
+
+/**
+ * @brief Determines and sets the addressing mode for the given operand.
+ *
+ * This function analyzes the operand string and determines its addressing mode.
+ * It delegates the specific checks to other functions depending on the operand's prefix
+ * (`#` for immediate, `*` for indirect register, `r` for direct register, or anything else for direct address).
+ *
+ * @param li A pointer to the operand string.
+ * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @return A boolean value indicating whether a valid addressing mode was found.
+ *         Returns TRUE if a valid addressing mode is found, FALSE otherwise.
+ */
+boolean get_addressing_mode(char* li, char* addressing_mode)
+{
 	li = delete_first_spaces(li);
 	if (*li == '#')
-	{
-		/*If after # does not appear a number - throw an error*/
-		if (li[1] < 47 || li[1]>58)
-		{
-			if (li[1] != '-' && li[1] != '+')
-			{
-				printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-				error_flag = ON;
-			}
-		}
-		else
-		{
-			while (li[i] != ' ' && li[i] != ',' && li[i] != '\0' && li[i] != '\n' && li[i] != '\t')
-			{
-				/*If after # does not appear a number - throw an error*/
-				if (li[i] < 47 || li[i]>58)
-				{
-					printf("ERROR!! line %d: Invalid parameter for the instant address\n", line_counter);
-					error_flag = ON;
-					break;
-				}
-				i++;
-			}
-		}
-		/*Immediate address*/
-		return '0';
-	}
-	/*Indirect register address*/
-	else if (*li == '*')
-	{
-		if (!(*(li + 1) == 'r'))
-		{
-			printf("ERROR!! line %d: Invalid override parameter\n", line_counter);
-			error_flag = ON;
-		}
-		/*If the register is not between 0-7*/
-		else if (!(*(li + 2) > 47 && *(li + 2) < 56))
-		{
-			printf("ERROR!! line %d: Invalid indirect address registration\n", line_counter);
-			error_flag = ON;
-		}
-		return '2';
-	}
-	/*Direct register address*/
-	else if (*li == 'r')
-	{
-		/*If the register is not between 0-7*/
-		if (!(*(li + 1) > 47 && *(li + 1) < 56))
-		{
-			printf("ERROR!! line %d: Invalid direct address registration\n", line_counter);
-			error_flag = ON;
-		}
-		return '3';
-	}
-	/*The operand is a label - Direct address*/
-	else if (*li > 20 && *li < 127)
-		return '1';
-	else
-		return ' ';
+		return immediate_address(li, addressing_mode);
+	if (*li == '*')
+		return indirect_register_address(li, addressing_mode);
+	if (*li == 'r')
+		return direct_register_address(li, addressing_mode);
+	if (*li > 20 && *li < 127)
+		return direct_address(li, addressing_mode);
+
+	*addressing_mode = ' ';
+	return TRUE;
 }
 
 /**
@@ -149,13 +216,13 @@ void fix_symbol_addresses()
  * @return A boolean value indicating the success of the first pass.
  *         Returns TRUE if the first pass is executed successfully. Otherwise, returns FALSE.
  */
-boolean first_pass_exec(FILE* file_handle)
+boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map)
 {
 	boolean result = TRUE, analyze_input_line_result;
     line_counter = 0;
     while (!feof(file_handle))
     {
-        analyze_input_line_result = analyze_input_line(line);
+        analyze_input_line_result = analyze_input_line(line, macro_map);
     	if (!analyze_input_line_result)
     		result = FALSE;
         line_counter++;
@@ -163,29 +230,6 @@ boolean first_pass_exec(FILE* file_handle)
     }
     validate_memory(IC, DC);
 	return result;
-}
-
-/**
- * @brief Checks if a given line contains a label.
- *
- * The is_label function processes a given line to determine if it contains a label.
- * It removes leading spaces and then checks for the presence of a colon (':') which
- * signifies a label in the line. The function scans up to the maximum line length.
- *
- * @param asm_line A pointer to the line to be checked for a label.
- * @return A boolean value indicating whether the line contains a label.
- *         Returns TRUE if the line contains a label. Otherwise, returns FALSE.
- */
-boolean is_label(char* asm_line)
-{
-	int i;
-	asm_line = delete_first_spaces(asm_line);
-	for (i = 0; i < MAX_LINE_LENGTH; i++)
-	{
-		if (asm_line[i] == ':')
-			return TRUE;
-	}
-	return FALSE;
 }
 
 /**
@@ -201,33 +245,38 @@ boolean is_label(char* asm_line)
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
  */
-boolean label_actions(char* asm_line)
+boolean label_actions(char* asm_line, HashMapPtr macro_map)
 {
-	char* p;
+	char* p, * label_name;
 	symbol* temp;
 	int i;
+	boolean result = TRUE;
 	for (i = 0; i < MAX_LINE_LENGTH; i++)
 	{
 		if (asm_line[i] == ':')
 		{
+			label_name = (char*)malloc((i + 1) * sizeof(char));
+			strncpy(label_name, asm_line, i);
+			if ((hashMapFind(macro_map, label_name)) != NULL) {
+				error_log("line %d: A label cannot be a macro name\n" ,line_counter);
+				free(label_name);
+				result = FALSE;
+			}
 			if (i > MAX_LABEL_LENGTH)
 			{
 				error_log("line %d: Lable is too long, has more than 30 chars\n", line_counter);
 				return FALSE;
 			}
-			else
+			temp = (symbol*)malloc(sizeof(symbol));
+			if (temp == NULL)
 			{
-				temp = (symbol*)malloc(sizeof(symbol));
-				if (temp == NULL)
-				{
-					error_log("Memory allocation error");
-					return FALSE;
-				}
-				temp->next = head_symbol;
-				head_symbol = temp;
-				clean_label_name(head_symbol->symbol_name);
-				strncpy(head_symbol->symbol_name, asm_line, i);
+				error_log("Memory allocation error");
+				return FALSE;
 			}
+			temp->next = head_symbol;
+			head_symbol = temp;
+			clean_label_name(head_symbol->symbol_name);
+			strncpy(head_symbol->symbol_name, asm_line, i);
 			p = (asm_line + i + 1);
 			p = delete_first_spaces(p);
 			if (*p == '.')
@@ -242,7 +291,7 @@ boolean label_actions(char* asm_line)
 					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					return analyze_input_line(p);
+					return analyze_input_line(p, macro_map);
 			}
 			else
 			{
@@ -251,45 +300,34 @@ boolean label_actions(char* asm_line)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				return analyze_input_line(p);
+				return analyze_input_line(p, macro_map);
 			}
 		}
 	}
-	return TRUE;
+	return result;
 }
 
 /**
- * @brief Processes an operation line in the assembly code.
+ * @brief Handles and validates comma placement in an assembly line.
  *
- * The operation function processes an operation line in the assembly code.
- * It handles operand addressing methods, checks for errors in operand syntax,
- * and allocates memory for machine words. The function handles different types
- * of operations and updates the code table accordingly.
+ * This function checks the placement of commas within an assembly instruction line. It ensures
+ * that commas are correctly used to separate operands and that no invalid characters are
+ * present between operands. If a comma is missing where expected, it logs an error and
+ * attempts to correct the line by inserting a missing comma.
  *
- * @param asm_line A pointer to the assembly line to be processed.
- * @return A boolean value indicating the success of the operation.
- *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ * @param asm_line A pointer to the assembly instruction line to be checked.
+ * @return A boolean value indicating whether the comma placement is valid.
+ *         Returns TRUE if commas are correctly placed, FALSE if there is an issue.
  */
-boolean operation(char* asm_line)
-{
-	/* TODO: Split the logic to multiple functions */
-	boolean result = TRUE;
-	int k;
-	int s;
-	int j;
+boolean handle_coma(char* asm_line) {
+	boolean result = TRUE, miss_comma = FALSE;
+	int s, k;
 	char oper[MAX_LINE_LENGTH - 4];
 	char* p = oper;
-	/*Method of addrresing operand source*/
-	char operand_source;
-	/*Method of addrresing operand destanation*/
-	char operand_destination = ' ';
-	int i = 0;
-	boolean is_source = FALSE;
-	boolean is_destination = FALSE;
-	machine_word* temp;
-	boolean miss_comma = 0;
+
 	for (k = 0; asm_line[k] == ' ' || asm_line[k] == '\t'; k++);
 	strcpy(oper, asm_line + k);
+
 	for (k = 0; p[k] != '\0' && p[k] != '\n'; k++)
 	{
 		if (p[k] == ' ')
@@ -324,169 +362,289 @@ boolean operation(char* asm_line)
 		for (s = s; asm_line[s] != ' ' && asm_line[s] != '\t'; s++);
 		*(asm_line + s) = ',';
 	}
+	return result;
+}
+
+/**
+ * @brief Extracts and determines the addressing modes of source and destination operands.
+ *
+ * This function parses an assembly instruction line to identify the source and destination operands,
+ * determining their respective addressing modes. It first identifies the addressing mode of the source
+ * operand, then looks for a comma to identify and determine the addressing mode of the destination operand.
+ * If no comma is found, it assumes that the only operand is the destination, and the source operand is set to a space.
+ *
+ * @param asm_line A pointer to the assembly instruction line.
+ * @param operand_src A pointer to a character where the addressing mode of the source operand will be stored.
+ * @param operand_dst A pointer to a character where the addressing mode of the destination operand will be stored.
+ * @return A boolean value indicating whether the operands' addressing modes were successfully identified.
+ *         Returns TRUE if successful, FALSE if any errors occurred during parsing.
+ */
+boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operand_dst) {
+	boolean result = TRUE;
+	int j;
 	/*Discover the address method of source*/
-	operand_source = addressing_mode(asm_line);
+	result &= get_addressing_mode(asm_line, operand_src);
 	for (j = 0; asm_line[j] != '\0'; j++)
 	{
 		/*If thre is a comma, discover the address method of destination*/
 		if (asm_line[j] == ',')
 		{
-			operand_destination = addressing_mode(asm_line + j + 1);
+			result &= get_addressing_mode(asm_line + j + 1, operand_dst);
 			break;
 		}
 	}
 	if (asm_line[j] == '\0')
 	{
 		/*If there isnt comma then the only operand is destination�*/
-		operand_destination = operand_source;
-		operand_source = ' ';
+		*operand_dst = *operand_src;
+		*operand_src = ' ';
 	}
+	return result;
+}
+
+/**
+ * @brief Validates the opcode against the provided source and destination operands.
+ *
+ * This function checks whether the given opcode supports the addressing modes of the source and destination operands.
+ * It compares the operand addressing modes against the allowed modes for the specific opcode.
+ * If the addressing modes are not supported, it logs an error and returns FALSE.
+ *
+ * @param operand_src The addressing mode of the source operand.
+ * @param operand_dst The addressing mode of the destination operand.
+ * @return A boolean value indicating whether the opcode is valid with the given operands.
+ *         Returns TRUE if both the source and destination operands are valid for the opcode, FALSE otherwise.
+ */
+boolean validate_opcode_with_operands(char operand_src, char operand_dst) {
+	int i = 0;
+	boolean result = TRUE, is_src = FALSE, is_dst = FALSE;
+
 	while ((operation_mode[opcode][1])[i] != '\0')
 	{
 		/*Checks if the specific op supports the source add method*/
-		if ((operation_mode[opcode][1])[i] == operand_source)
-			is_source = TRUE;
+		if ((operation_mode[opcode][1])[i] == operand_src)
+			is_src = TRUE;
 		i++;
 	}
 	i = 0;
 	while ((operation_mode[opcode][0])[i] != '\0')
 	{
 		/*Checks whether the specific OP supports the destination add method*/
-		if ((operation_mode[opcode][0])[i] == operand_destination)
-			is_destination = TRUE;
+		if ((operation_mode[opcode][0])[i] == operand_dst)
+			is_dst = TRUE;
 		i++;
 	}
-	/*If not rise an error*/
-	if (!is_source)
+	if (!is_src)
 	{
 		error_log("line %d: Incorrect method for the source operand\n", line_counter);
 		result = FALSE;
 	}
-	if (!is_destination)
+	if (!is_dst)
 	{
 		error_log("line %d: Incorrect method for the destination operand\n", line_counter);
 		result = FALSE;
 	}
-	/*If there is 2 operands and both of them 3 or 4 add method, they share the same memmory word--allocate one more word */
-	if ((operand_source == '3' && operand_destination == '2') || (operand_destination == '3' && operand_source == '2') || (operand_source == '3' && operand_destination == '3') || (operand_destination == '2' && operand_source == '2'))
-	{
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = code_table[I].c.next;
-		code_table[I].c.next = temp;
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.next->c.address = IC;
-		IC++;
-		code_table[I].c.op_code = opcode;
-		if (operand_source == '3' && operand_destination == '2')
-		{
-			code_table[I].c.source_direct_register = 1;
-			code_table[I].c.destination_indirect_register = 1;
-		}
-		else if (operand_source == '2' && operand_destination == '3')
-		{
-			code_table[I].c.source_indirect_register = 1;
-			code_table[I].c.destination_direct_register = 1;
-		}
-		else if (operand_source == '2' && operand_destination == '2')
-		{
-			code_table[I].c.source_indirect_register = 1;
-			code_table[I].c.destination_indirect_register = 1;
-		}
-		else
-		{
-			code_table[I].c.source_direct_register = 1;
-			code_table[I].c.destination_direct_register = 1;
-		}
-	}
+	return result;
+}
 
-	/* If there is only one operand, allocate one more word in memory*/
-	else if (operand_source == ' ' && operand_destination != ' ')
+/**
+ * @brief Configures a machine word with addressing modes and links it into the code table.
+ *
+ * This function sets up a `machine_word` structure by linking it into the existing code table, assigning
+ * the role and address fields, and configuring the addressing modes for the source and destination operands.
+ * The function handles specific combinations of direct and indirect register addressing modes and updates
+ * the instruction counter (IC) accordingly.
+ *
+ * @param temp A pointer to the `machine_word` structure to be configured and linked.
+ * @param operand_src The addressing mode of the source operand ('3' for direct register, '2' for indirect register).
+ * @param operand_dst The addressing mode of the destination operand ('3' for direct register, '2' for indirect register).
+ * @return A boolean value indicating success (TRUE) or failure (FALSE). Currently always returns TRUE.
+ */
+boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst) {
+	temp->c.next = code_table[I].c.next;
+	code_table[I].c.next = temp;
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.next->c.address = IC;
+	IC++;
+	code_table[I].c.op_code = opcode;
+	if (operand_src == '3' && operand_dst == '2')
 	{
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = NULL;
-		code_table[I].c.next = temp;
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.next->c.address = IC;
-		IC++;
-		code_table[I].c.op_code = opcode;
-		if (operand_destination == '0')
-			code_table[I].c.destination_immidiate = 1;
-		else if (operand_destination == '1')
-			code_table[I].c.destination_direct = 1;
-		else if (operand_destination == '2')
-			code_table[I].c.destination_indirect_register = 1;
-		else
-			code_table[I].c.destination_direct_register = 1;
+		code_table[I].c.source_direct_register = 1;
+		code_table[I].c.destination_indirect_register = 1;
 	}
-	/*If there are no operands at all, do not allocate memory words*/
-	else if ((operand_source == ' ' && operand_destination == ' '))
+	else if (operand_src == '2' && operand_dst == '3')
 	{
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.op_code = opcode;
-		code_table[I].c.next = NULL;
+		code_table[I].c.source_indirect_register = 1;
+		code_table[I].c.destination_direct_register = 1;
+	}
+	else if (operand_src == '2' && operand_dst == '2')
+	{
+		code_table[I].c.source_indirect_register = 1;
+		code_table[I].c.destination_indirect_register = 1;
 	}
 	else
 	{
-		/*Allocate two more memmory words*/
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = NULL;
-		code_table[I].c.next = temp;
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = code_table[I].c.next;
-		code_table[I].c.next = temp;
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.next->c.address = IC;
-		IC++;
-		code_table[I].c.next->c.next->c.address = IC;
-		IC++;
-		code_table[I].c.op_code = opcode;
-		/*For destination*/
-		if (operand_destination == '0')
-			code_table[I].c.destination_immidiate = 1;
-		else if (operand_destination == '1')
-			code_table[I].c.destination_direct = 1;
-		else if (operand_destination == '2')
-			code_table[I].c.destination_indirect_register = 1;
-		else
-			code_table[I].c.destination_direct_register = 1;
-		/*For source*/
-		if (operand_source == '0')
-			code_table[I].c.source_immidiate = 1;
-		else if (operand_source == '1')
-			code_table[I].c.source_direct = 1;
-		else if (operand_source == '2')
-			code_table[I].c.source_indirect_register = 1;
-		else
-			code_table[I].c.source_direct_register = 1;
+		code_table[I].c.source_direct_register = 1;
+		code_table[I].c.destination_direct_register = 1;
 	}
+	return TRUE;
+}
+
+/**
+ * @brief Configures the machine word for the destination operand in the code table.
+ *
+ * This function sets up a `machine_word` structure for the destination operand by linking it into the existing code table.
+ * It assigns the role and address fields, sets the operation code, and configures the appropriate addressing mode
+ * based on the provided destination operand. The function also ensures that the instruction counter (IC) is incremented
+ * as addresses are assigned.
+ *
+ * @param temp A pointer to the `machine_word` structure that is being configured.
+ * @param operand_dst The addressing mode of the destination operand. Valid values are:
+ *        - '0': Immediate addressing mode
+ *        - '1': Direct addressing mode
+ *        - '2': Indirect register addressing mode
+ *        - Any other value is treated as direct register addressing mode.
+ * @return A boolean value indicating success (TRUE). Currently, the function always returns TRUE.
+ */
+boolean configure_destination_operand(machine_word* temp, char operand_dst) {
+	temp->c.next = NULL;
+	code_table[I].c.next = temp;
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.next->c.address = IC;
+	IC++;
+	code_table[I].c.op_code = opcode;
+	if (operand_dst == '0')
+		code_table[I].c.destination_immidiate = 1;
+	else if (operand_dst == '1')
+		code_table[I].c.destination_direct = 1;
+	else if (operand_dst == '2')
+		code_table[I].c.destination_indirect_register = 1;
+	else
+		code_table[I].c.destination_direct_register = 1;
+	return TRUE;
+}
+
+/**
+ * @brief Handles the configuration of a machine word for instructions with no operands.
+ *
+ * This function sets up a `machine_word` structure in the code table for instructions that do not have any operands.
+ * It assigns the role, address, and operation code fields, and ensures that no additional memory is allocated
+ * by setting the `next` pointer to `NULL`. The instruction counter (IC) is incremented after the address is assigned.
+ *
+ * @return A boolean value indicating success (TRUE). The function always returns TRUE.
+ */
+boolean handle_no_operands() {
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.op_code = opcode;
+	code_table[I].c.next = NULL;
+	return TRUE;
+}
+
+/**
+ * @brief Configures a machine word for an instruction with both source and destination operands.
+ *
+ * This function sets up a `machine_word` structure for an instruction that involves both source and destination operands.
+ * It handles the linking of the machine word into the existing code table, allocates additional memory for subsequent
+ * machine words, sets the role and address fields, and configures the appropriate addressing modes for both the source
+ * and destination operands. The instruction counter (IC) is incremented accordingly as addresses are assigned.
+ *
+ * @param temp A pointer to the `machine_word` structure that is being configured and linked into the code table.
+ * @param operand_src The addressing mode of the source operand. Valid values are:
+ *        - '0': Immediate addressing mode
+ *        - '1': Direct addressing mode
+ *        - '2': Indirect register addressing mode
+ *        - Any other value is treated as direct register addressing mode.
+ * @param operand_dst The addressing mode of the destination operand. Valid values are:
+ *        - '0': Immediate addressing mode
+ *        - '1': Direct addressing mode
+ *        - '2': Indirect register addressing mode
+ *        - Any other value is treated as direct register addressing mode.
+ * @return A boolean value indicating success (TRUE) or failure (FALSE) due to memory allocation issues.
+ */
+boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst) {
+	temp->c.next = NULL;
+	code_table[I].c.next = temp;
+	temp = (machine_word*)malloc(sizeof(machine_word));
+	if (temp == NULL)
+	{
+		error_log("Memory allocation failure");
+		return FALSE;
+	}
+	temp->c.next = code_table[I].c.next;
+	code_table[I].c.next = temp;
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.next->c.address = IC;
+	IC++;
+	code_table[I].c.next->c.next->c.address = IC;
+	IC++;
+	code_table[I].c.op_code = opcode;
+	/*For destination*/
+	if (operand_dst == '0')
+		code_table[I].c.destination_immidiate = 1;
+	else if (operand_dst == '1')
+		code_table[I].c.destination_direct = 1;
+	else if (operand_dst == '2')
+		code_table[I].c.destination_indirect_register = 1;
+	else
+		code_table[I].c.destination_direct_register = 1;
+	/*For source*/
+	if (operand_src == '0')
+		code_table[I].c.source_immidiate = 1;
+	else if (operand_src == '1')
+		code_table[I].c.source_direct = 1;
+	else if (operand_src == '2')
+		code_table[I].c.source_indirect_register = 1;
+	else
+		code_table[I].c.source_direct_register = 1;
+	return TRUE;
+}
+
+/**
+ * @brief Processes an operation line in the assembly code.
+ *
+ * The operation function processes an operation line in the assembly code.
+ * It handles operand addressing methods, checks for errors in operand syntax,
+ * and allocates memory for machine words. The function handles different types
+ * of operations and updates the code table accordingly.
+ *
+ * @param asm_line A pointer to the assembly line to be processed.
+ * @return A boolean value indicating the success of the operation.
+ *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
+ */
+boolean operation(char* asm_line)
+{
+	boolean result = TRUE;
+	char operand_src;
+	char operand_dst = ' ';
+	machine_word* temp;
+
+	result &= handle_coma(asm_line);
+	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst);
+	result &= validate_opcode_with_operands(operand_src, operand_dst);
+
+	temp = (machine_word*)malloc(sizeof(machine_word));
+	if (temp == NULL)
+	{
+		error_log("Memory allocation failure");
+		return FALSE;
+	}
+
+	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
+		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst);
+	else if (operand_src == ' ' && operand_dst != ' ')
+		result &= configure_destination_operand(temp, operand_dst);
+	else if ((operand_src == ' ' && operand_dst == ' '))
+		result &= handle_no_operands();
+	else
+		result &= configure_dual_operand_instruction(temp, operand_src, operand_dst);
+
 	I++;
 	return result;
 }
@@ -553,7 +711,6 @@ boolean ext(char* asm_line)
  */
 boolean insert_numerical_data(char* asm_line)
 {
-	/* TODO: Split logic to multiple functions, Fix memory leak */
 	boolean result = TRUE;
 	int a[MAX_LINE_LENGTH];
 	char b[MAX_LINE_LENGTH];
@@ -660,7 +817,6 @@ boolean insert_numerical_data(char* asm_line)
  */
 boolean insert_string_data(char* asm_line)
 {
-	/* TODO: Fix memory leak */
 	boolean result = TRUE;
 	int i = 0, j = 2, k;
 	data_word* temp;
