@@ -15,7 +15,7 @@ boolean indirect_register_address(char* li, char* addressing_mode);
 
 boolean direct_register_address(char* li, char* addressing_mode);
 
-boolean direct_address(char* li, char* addressing_mode);
+boolean direct_address(char* addressing_mode);
 
 boolean get_addressing_mode(char*, char* addressing_mode);
 
