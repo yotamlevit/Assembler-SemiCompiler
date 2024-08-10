@@ -1,4 +1,7 @@
 
+#ifndef ASSEMBLER_SEMICOMPILER_FIRST_PASS_H
+#define ASSEMBLER_SEMICOMPILER_FIRST_PASS_H
+
 #include <stdio.h>
 #include "globals.h"
 #include "hash_map.h"
@@ -32,9 +35,6 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
 
 boolean validate_opcode_with_operands(char operand_src, char operand_dst);
 
-// boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst);
-
-
 boolean operation(char*);
 
 boolean ext(char*);
@@ -42,3 +42,5 @@ boolean ext(char*);
 boolean insert_numerical_data(char*);
 
 boolean insert_string_data(char*);
+
+#endif
