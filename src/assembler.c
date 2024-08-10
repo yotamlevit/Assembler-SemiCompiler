@@ -135,15 +135,11 @@ StatusCode process_file(char* asm_file_name)
 
     fclose(fd);
 
-    if (result)
-    {
-        info_log("The file %s has been successfully compiled", file_name);
-        return success;
-    }
-    else{
-        info_log("Compilation failed for %s (first pass)", file_name);
+    if (!result)
         return failedSecondPass;
-    }
+
+    info_log("The file %s has been successfully compiled", file_name);
+    return success;
 }
 
 /**
