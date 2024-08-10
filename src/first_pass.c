@@ -447,6 +447,88 @@ boolean validate_opcode_with_operands(char operand_src, char operand_dst) {
 }
 
 /**
+ * @brief Configures a machine word with addressing modes and links it into the code table.
+ *
+ * This function sets up a `machine_word` structure by linking it into the existing code table, assigning
+ * the role and address fields, and configuring the addressing modes for the source and destination operands.
+ * The function handles specific combinations of direct and indirect register addressing modes and updates
+ * the instruction counter (IC) accordingly.
+ *
+ * @param temp A pointer to the `machine_word` structure to be configured and linked.
+ * @param operand_src The addressing mode of the source operand ('3' for direct register, '2' for indirect register).
+ * @param operand_dst The addressing mode of the destination operand ('3' for direct register, '2' for indirect register).
+ * @return A boolean value indicating success (TRUE) or failure (FALSE). Currently always returns TRUE.
+ */
+boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst) {
+	temp->c.next = code_table[I].c.next;
+	code_table[I].c.next = temp;
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.next->c.address = IC;
+	IC++;
+	code_table[I].c.op_code = opcode;
+	if (operand_src == '3' && operand_dst == '2')
+	{
+		code_table[I].c.source_direct_register = 1;
+		code_table[I].c.destination_indirect_register = 1;
+	}
+	else if (operand_src == '2' && operand_dst == '3')
+	{
+		code_table[I].c.source_indirect_register = 1;
+		code_table[I].c.destination_direct_register = 1;
+	}
+	else if (operand_src == '2' && operand_dst == '2')
+	{
+		code_table[I].c.source_indirect_register = 1;
+		code_table[I].c.destination_indirect_register = 1;
+	}
+	else
+	{
+		code_table[I].c.source_direct_register = 1;
+		code_table[I].c.destination_direct_register = 1;
+	}
+	return TRUE;
+}
+
+/**
+ * @brief Configures the machine word for the destination operand in the code table.
+ *
+ * This function sets up a `machine_word` structure for the destination operand by linking it into the existing code table.
+ * It assigns the role and address fields, sets the operation code, and configures the appropriate addressing mode
+ * based on the provided destination operand. The function also ensures that the instruction counter (IC) is incremented
+ * as addresses are assigned.
+ *
+ * @param temp A pointer to the `machine_word` structure that is being configured.
+ * @param operand_src The addressing mode of the source operand. (This parameter is included for consistency but not used in this function.)
+ * @param operand_dst The addressing mode of the destination operand. Valid values are:
+ *        - '0': Immediate addressing mode
+ *        - '1': Direct addressing mode
+ *        - '2': Indirect register addressing mode
+ *        - Any other value is treated as direct register addressing mode.
+ * @return A boolean value indicating success (TRUE). Currently, the function always returns TRUE.
+ */
+boolean configure_destination_operand(machine_word* temp, char operand_src, char operand_dst) {
+	temp->c.next = NULL;
+	code_table[I].c.next = temp;
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.next->c.address = IC;
+	IC++;
+	code_table[I].c.op_code = opcode;
+	if (operand_dst == '0')
+		code_table[I].c.destination_immidiate = 1;
+	else if (operand_dst == '1')
+		code_table[I].c.destination_direct = 1;
+	else if (operand_dst == '2')
+		code_table[I].c.destination_indirect_register = 1;
+	else
+		code_table[I].c.destination_direct_register = 1;
+	return TRUE;
+}
+
+/**
  * @brief Processes an operation line in the assembly code.
  *
  * The operation function processes an operation line in the assembly code.
@@ -469,72 +551,17 @@ boolean operation(char* asm_line)
 	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst);
 	result &= validate_opcode_with_operands(operand_src, operand_dst);
 
+	temp = (machine_word*)malloc(sizeof(machine_word));
+	if (temp == NULL)
+	{
+		error_log("Memory allocation failure");
+		return FALSE;
+	}
 
-	/*If there is 2 operands and both of them 3 or 4 add method, they share the same memmory word--allocate one more word */
 	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
-	{
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = code_table[I].c.next;
-		code_table[I].c.next = temp;
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.next->c.address = IC;
-		IC++;
-		code_table[I].c.op_code = opcode;
-		if (operand_src == '3' && operand_dst == '2')
-		{
-			code_table[I].c.source_direct_register = 1;
-			code_table[I].c.destination_indirect_register = 1;
-		}
-		else if (operand_src == '2' && operand_dst == '3')
-		{
-			code_table[I].c.source_indirect_register = 1;
-			code_table[I].c.destination_direct_register = 1;
-		}
-		else if (operand_src == '2' && operand_dst == '2')
-		{
-			code_table[I].c.source_indirect_register = 1;
-			code_table[I].c.destination_indirect_register = 1;
-		}
-		else
-		{
-			code_table[I].c.source_direct_register = 1;
-			code_table[I].c.destination_direct_register = 1;
-		}
-	}
-
-	/* If there is only one operand, allocate one more word in memory*/
+		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst);
 	else if (operand_src == ' ' && operand_dst != ' ')
-	{
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = NULL;
-		code_table[I].c.next = temp;
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.next->c.address = IC;
-		IC++;
-		code_table[I].c.op_code = opcode;
-		if (operand_dst == '0')
-			code_table[I].c.destination_immidiate = 1;
-		else if (operand_dst == '1')
-			code_table[I].c.destination_direct = 1;
-		else if (operand_dst == '2')
-			code_table[I].c.destination_indirect_register = 1;
-		else
-			code_table[I].c.destination_direct_register = 1;
-	}
+		result &= configure_destination_operand(temp, operand_src, operand_dst);
 	/*If there are no operands at all, do not allocate memory words*/
 	else if ((operand_src == ' ' && operand_dst == ' '))
 	{
@@ -546,13 +573,6 @@ boolean operation(char* asm_line)
 	}
 	else
 	{
-		/*Allocate two more memmory words*/
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
 		temp->c.next = NULL;
 		code_table[I].c.next = temp;
 		temp = (machine_word*)malloc(sizeof(machine_word));
