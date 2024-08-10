@@ -500,7 +500,6 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
  * as addresses are assigned.
  *
  * @param temp A pointer to the `machine_word` structure that is being configured.
- * @param operand_src The addressing mode of the source operand. (This parameter is included for consistency but not used in this function.)
  * @param operand_dst The addressing mode of the destination operand. Valid values are:
  *        - '0': Immediate addressing mode
  *        - '1': Direct addressing mode
@@ -508,7 +507,7 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
  *        - Any other value is treated as direct register addressing mode.
  * @return A boolean value indicating success (TRUE). Currently, the function always returns TRUE.
  */
-boolean configure_destination_operand(machine_word* temp, char operand_src, char operand_dst) {
+boolean configure_destination_operand(machine_word* temp, char operand_dst) {
 	temp->c.next = NULL;
 	code_table[I].c.next = temp;
 	code_table[I].c.role = 4; /*Its absolute*/
@@ -640,7 +639,7 @@ boolean operation(char* asm_line)
 	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
 		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst);
 	else if (operand_src == ' ' && operand_dst != ' ')
-		result &= configure_destination_operand(temp, operand_src, operand_dst);
+		result &= configure_destination_operand(temp, operand_dst);
 	else if ((operand_src == ' ' && operand_dst == ' '))
 		result &= handle_no_operands();
 	else
