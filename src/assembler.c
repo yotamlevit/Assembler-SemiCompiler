@@ -39,7 +39,7 @@ int line_counter;
 void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array*/
     line[0] = '\0';
     /*Return fd to point on the begining of the file.*/
-    rewind(file_handle); // TODO move rewind to each place that needed
+    rewind(file_handle);
     /*Zero the parameters before the next analize*/
     line_counter = 0;
     clean_line(line);
@@ -137,7 +137,7 @@ StatusCode process_file(char* asm_file_name)
 
     if (!result)
         return failedSecondPass;
-    
+
     info_log("The file %s has been successfully compiled", file_name);
     return success;
 }

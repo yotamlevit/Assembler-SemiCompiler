@@ -38,7 +38,7 @@ FILE* open_file(char* file, char* mode)
  * @return An integer representing the opcode of the operation if it exists.
  *         Returns the opcode of the operation if found. Otherwise, returns -1.
  */
-int is_operation(char* asm_line) // TODO add stop to this function
+int is_operation(char* asm_line)
 {
 	int i;
  	for(i = 0; i<OPERATIONS_AMOUNT - 1; i++)

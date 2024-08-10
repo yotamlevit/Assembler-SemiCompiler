@@ -711,7 +711,6 @@ boolean ext(char* asm_line)
  */
 boolean insert_numerical_data(char* asm_line)
 {
-	/* TODO: Split logic to multiple functions, Fix memory leak */
 	boolean result = TRUE;
 	int a[MAX_LINE_LENGTH];
 	char b[MAX_LINE_LENGTH];
@@ -818,7 +817,6 @@ boolean insert_numerical_data(char* asm_line)
  */
 boolean insert_string_data(char* asm_line)
 {
-	/* TODO: Fix memory leak */
 	boolean result = TRUE;
 	int i = 0, j = 2, k;
 	data_word* temp;
