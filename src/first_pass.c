@@ -529,6 +529,24 @@ boolean configure_destination_operand(machine_word* temp, char operand_src, char
 }
 
 /**
+ * @brief Handles the configuration of a machine word for instructions with no operands.
+ *
+ * This function sets up a `machine_word` structure in the code table for instructions that do not have any operands.
+ * It assigns the role, address, and operation code fields, and ensures that no additional memory is allocated
+ * by setting the `next` pointer to `NULL`. The instruction counter (IC) is incremented after the address is assigned.
+ *
+ * @return A boolean value indicating success (TRUE). The function always returns TRUE.
+ */
+boolean handle_no_operands() {
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.op_code = opcode;
+	code_table[I].c.next = NULL;
+	return TRUE;
+}
+
+/**
  * @brief Processes an operation line in the assembly code.
  *
  * The operation function processes an operation line in the assembly code.
@@ -562,15 +580,8 @@ boolean operation(char* asm_line)
 		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst);
 	else if (operand_src == ' ' && operand_dst != ' ')
 		result &= configure_destination_operand(temp, operand_src, operand_dst);
-	/*If there are no operands at all, do not allocate memory words*/
 	else if ((operand_src == ' ' && operand_dst == ' '))
-	{
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.op_code = opcode;
-		code_table[I].c.next = NULL;
-	}
+		result &= handle_no_operands();
 	else
 	{
 		temp->c.next = NULL;
