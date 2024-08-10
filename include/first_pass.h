@@ -32,6 +32,9 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
 
 boolean validate_opcode_with_operands(char operand_src, char operand_dst);
 
+// boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst);
+
+
 boolean operation(char*);
 
 boolean ext(char*);
