@@ -33,10 +33,10 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 	if(*asm_line == ';' || *asm_line == '\0' || *asm_line == '\n' || (!strncmp(asm_line, ENTRY_LABEL, strlen(ENTRY_LABEL))))
 		return TRUE;
 	opcode = is_operation(asm_line);
-    if (opcode != -1) // In second pass refactor i remove opcode global from the function
+    if (opcode != -1)
 		return operation(asm_line + 3);
 	opcode = is_stop(asm_line);
-	if (opcode != -1)/*if it is stop operation*/ // In second pass refactor i remove opcode global from the function
+	if (opcode != -1)
 		return operation(asm_line + 4);
 	if (is_label(asm_line))
 		return label_actions(asm_line, macro_map);
@@ -60,7 +60,6 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 boolean immediate_address(char* li, char* addressing_mode) {
 	int i = 2;
 	boolean result = TRUE;
-	/*If after # there is not a number - throw an error*/
 	if (li[1] < 47 || li[1]>58)
 	{
 		if (li[1] != '-' && li[1] != '+')
@@ -144,12 +143,11 @@ boolean direct_register_address(char* li, char* addressing_mode) {
  * This function simply sets the addressing mode to `'1'` for a direct address.
  * A direct address is usually a label or a memory address.
  *
- * @param li A pointer to the operand string (not used in this function).
  * @param addressing_mode A pointer to a character where the addressing mode will be stored.
  * @return A boolean value indicating success.
  *         Always returns TRUE.
  */
-boolean direct_address(char* li, char* addressing_mode) {
+boolean direct_address(char* addressing_mode) {
 	*addressing_mode = '1';
 	return TRUE;
 }
@@ -176,7 +174,7 @@ boolean get_addressing_mode(char* li, char* addressing_mode)
 	if (*li == 'r')
 		return direct_register_address(li, addressing_mode);
 	if (*li > 20 && *li < 127)
-		return direct_address(li, addressing_mode);
+		return direct_address(addressing_mode);
 
 	*addressing_mode = ' ';
 	return TRUE;
