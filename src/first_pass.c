@@ -547,6 +547,67 @@ boolean handle_no_operands() {
 }
 
 /**
+ * @brief Configures a machine word for an instruction with both source and destination operands.
+ *
+ * This function sets up a `machine_word` structure for an instruction that involves both source and destination operands.
+ * It handles the linking of the machine word into the existing code table, allocates additional memory for subsequent
+ * machine words, sets the role and address fields, and configures the appropriate addressing modes for both the source
+ * and destination operands. The instruction counter (IC) is incremented accordingly as addresses are assigned.
+ *
+ * @param temp A pointer to the `machine_word` structure that is being configured and linked into the code table.
+ * @param operand_src The addressing mode of the source operand. Valid values are:
+ *        - '0': Immediate addressing mode
+ *        - '1': Direct addressing mode
+ *        - '2': Indirect register addressing mode
+ *        - Any other value is treated as direct register addressing mode.
+ * @param operand_dst The addressing mode of the destination operand. Valid values are:
+ *        - '0': Immediate addressing mode
+ *        - '1': Direct addressing mode
+ *        - '2': Indirect register addressing mode
+ *        - Any other value is treated as direct register addressing mode.
+ * @return A boolean value indicating success (TRUE) or failure (FALSE) due to memory allocation issues.
+ */
+boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst) {
+	temp->c.next = NULL;
+	code_table[I].c.next = temp;
+	temp = (machine_word*)malloc(sizeof(machine_word));
+	if (temp == NULL)
+	{
+		error_log("Memory allocation failure");
+		return FALSE;
+	}
+	temp->c.next = code_table[I].c.next;
+	code_table[I].c.next = temp;
+	code_table[I].c.role = 4; /*Its absolute*/
+	code_table[I].c.address = IC; /*Give address*/
+	IC++;
+	code_table[I].c.next->c.address = IC;
+	IC++;
+	code_table[I].c.next->c.next->c.address = IC;
+	IC++;
+	code_table[I].c.op_code = opcode;
+	/*For destination*/
+	if (operand_dst == '0')
+		code_table[I].c.destination_immidiate = 1;
+	else if (operand_dst == '1')
+		code_table[I].c.destination_direct = 1;
+	else if (operand_dst == '2')
+		code_table[I].c.destination_indirect_register = 1;
+	else
+		code_table[I].c.destination_direct_register = 1;
+	/*For source*/
+	if (operand_src == '0')
+		code_table[I].c.source_immidiate = 1;
+	else if (operand_src == '1')
+		code_table[I].c.source_direct = 1;
+	else if (operand_src == '2')
+		code_table[I].c.source_indirect_register = 1;
+	else
+		code_table[I].c.source_direct_register = 1;
+	return TRUE;
+}
+
+/**
  * @brief Processes an operation line in the assembly code.
  *
  * The operation function processes an operation line in the assembly code.
@@ -583,44 +644,8 @@ boolean operation(char* asm_line)
 	else if ((operand_src == ' ' && operand_dst == ' '))
 		result &= handle_no_operands();
 	else
-	{
-		temp->c.next = NULL;
-		code_table[I].c.next = temp;
-		temp = (machine_word*)malloc(sizeof(machine_word));
-		if (temp == NULL)
-		{
-			error_log("Memory allocation failure");
-			return FALSE;
-		}
-		temp->c.next = code_table[I].c.next;
-		code_table[I].c.next = temp;
-		code_table[I].c.role = 4; /*Its absolute*/
-		code_table[I].c.address = IC; /*Give address*/
-		IC++;
-		code_table[I].c.next->c.address = IC;
-		IC++;
-		code_table[I].c.next->c.next->c.address = IC;
-		IC++;
-		code_table[I].c.op_code = opcode;
-		/*For destination*/
-		if (operand_dst == '0')
-			code_table[I].c.destination_immidiate = 1;
-		else if (operand_dst == '1')
-			code_table[I].c.destination_direct = 1;
-		else if (operand_dst == '2')
-			code_table[I].c.destination_indirect_register = 1;
-		else
-			code_table[I].c.destination_direct_register = 1;
-		/*For source*/
-		if (operand_src == '0')
-			code_table[I].c.source_immidiate = 1;
-		else if (operand_src == '1')
-			code_table[I].c.source_direct = 1;
-		else if (operand_src == '2')
-			code_table[I].c.source_indirect_register = 1;
-		else
-			code_table[I].c.source_direct_register = 1;
-	}
+		result &= configure_dual_operand_instruction(temp, operand_src, operand_dst);
+
 	I++;
 	return result;
 }
