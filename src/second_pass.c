@@ -347,9 +347,10 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
  * Executes the second pass on the assembly file.
  *
  * @param file_handle The file handle for the assembly file.
+ * @param line_index Pointer for line index.
  * @return A boolean indicating success or failure.
  */
-boolean second_pass_exec(FILE* file_handle, int* line_index)  //// TODO WHen changing the global get an argumentof code_table //// TODO Change boolean to status?
+boolean second_pass_exec(FILE* file_handle, int* line_index)
 {
     /*Second pass*/
     while (!feof(file_handle))
