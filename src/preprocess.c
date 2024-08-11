@@ -253,6 +253,7 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
         /* Check if the tokenized part of the line matches a macro name in the hash map */
         if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL)
         {
+            info_log("Processingaaaaaaaaaaa line %d", line_count);
             /* If found, write the macro content to the output file */
             if (write_line_to_file(file, macro_content) == FALSE) {
                 error_log("Error while writing macro content into output file .asm with line %d", line_count);
@@ -260,7 +261,6 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
             }
             return TRUE;
         }
-        info_log("Processingaaaaaaaaaaa line %d", line_count);
     } while((pos = strtok(NULL, STR_SPACE)) != NULL && macro_content == NULL);
 
 
