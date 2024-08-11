@@ -327,7 +327,7 @@ int macro_exec(FILE* file, char* filename, HashMapPtr* macro_map) {
     rewind(file);
 
     *macro_map = init_macro_hash_map(file);
-
+    info_log("Asdasdasdasdasd");
     if (!*macro_map)
     {
         error_log("Failed to initialize macro hash map");
