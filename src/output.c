@@ -18,13 +18,13 @@ code_word code_table[150];/*code array*/
 
 /*End of create_external_file function*//*This function creates an object file that contains the machine code translating to octal base with the appropriate
 memmory addres in decimal base (code divided to 3 bits every time as an octal number). */
-void create_object_file()
+void create_object_file(char* file_name)
 {
 	int i;
 	machine_word* temp;
 	data_word* tempD;
 	FILE* fd;
-	add_extension_2_file_name(".ob");
+	add_extension_2_file_name(file_name, ".ob");
 	fd = fopen(file_name, "w");
 	if (!fd)
 	{
@@ -69,11 +69,11 @@ void create_object_file()
 
 /*This function creates an enteranl file that contain the labels that defined in the assembly text as an entry label
 with it's appropriate value in the labels table.*/
-void create_entry_file()
+void create_entry_file(char* file_name)
 {
 	symbol* entry_symbol = head_entries;
 	FILE* fd;
-	add_extension_2_file_name(".ent");
+	add_extension_2_file_name(file_name, ".ent");
 	if (!entry_symbol)
 		return;
 	fd = fopen(file_name, "w");
@@ -93,11 +93,11 @@ void create_entry_file()
 
 /*This function creates an external file that contain the labels that defined as externals and the appropriate
 address that they have been used in the asseembly program.*/
-void create_external_file()
+void create_external_file(char* file_name)
 {
 	symbol* entry_symbol = head_externals;
 	FILE* fd;
-	add_extension_2_file_name(".ext");
+	add_extension_2_file_name(file_name, ".ext");
 	if (!entry_symbol)
 		return;
 	fd = fopen(file_name, "w");
@@ -115,10 +115,10 @@ void create_external_file()
 }
 
 
-void create_output_files(int* line_index)
+void create_output_files(char* file_name, int* line_index)
 {
     I = *line_index;
-    create_object_file();
-    create_entry_file();
-    create_external_file();
+    create_object_file(file_name);
+    create_entry_file(file_name);
+    create_external_file(file_name);
 }

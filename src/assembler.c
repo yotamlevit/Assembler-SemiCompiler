@@ -19,8 +19,7 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #define FILE_READ "r"
 
 /*Array to get line by line*/
-char line[MAX_LINE_LENGTH]; 
-char* file_name;
+char line[MAX_LINE_LENGTH];
 FILE* fd;
 
 int DC;
@@ -66,7 +65,6 @@ void reset_assembler()
     DC = DC_INITIAL_VALUE;
     IC = IC_INITIAL_VALUE;
     /*Clean & Free all tables.*/
-    free(file_name);
     free_data_table();
     free_code_table();
     free_symbol_table();
@@ -89,6 +87,7 @@ void reset_assembler()
  */
 StatusCode process_file(char* asm_file_name)
 {
+    char* file_name;
     int line_index = 0;
     boolean result;
     HashMapPtr macro_map = NULL;
@@ -133,7 +132,7 @@ StatusCode process_file(char* asm_file_name)
 
     result = second_pass_exec(fd, &line_index);
 
-    create_output_files(&line_index);
+    create_output_files(file_name, &line_index);
 
     fclose(fd);
 

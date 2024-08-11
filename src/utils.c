@@ -8,14 +8,13 @@
 #include "../include/first_pass.h"
 #include "../include/utils.h"
 
-extern char* file_name;
 
 FILE* open_file(char* file, char* mode)
 {
     FILE* fp = fopen(file, mode);
     if (fp == NULL)
     {
-        error_log("Could not open file: %s", file_name);
+        error_log("Could not open file: %s", file);
         return NULL;
     }
     return fp;
@@ -78,7 +77,7 @@ char* delete_first_spaces(char* line)
 
 
 /*This function gets an extension of a file name and add/change extentsion in the global file_name variable.*/
-void add_extension_2_file_name(char* extension)
+void add_extension_2_file_name(char* file_name, char* extension)
 {
 	int i;
 	for (i = 0; file_name[i] != '.'; i++);
