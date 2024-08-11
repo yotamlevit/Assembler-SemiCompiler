@@ -23,4 +23,4 @@ void clean_label_name(char*);
 boolean ends_with_newline(const char *str);
 boolean is_label(char* asm_line);
 
-#endif //ASSEMBLER_SEMICOMPILER_UTILS_H
+#endif

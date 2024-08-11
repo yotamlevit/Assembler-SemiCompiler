@@ -16,7 +16,6 @@ boolean direct_register_address(char* li, char* addressing_mode, int* line_index
 boolean direct_address(char* addressing_mode);
 boolean get_addressing_mode(char*, char* addressing_mode, int* line_index);
 boolean analyze_input_line(char*, HashMapPtr macro_map, int* line_index, int* opcode);
-void fix_symbol_addresses();
 boolean first_pass_exec(FILE * file_handle, HashMapPtr macro_map, int* line_index);
 boolean label_actions(char*, HashMapPtr macro_map, int* line_index, int* opcode);
 boolean handle_coma(char* asm_line, int* line_index);
@@ -27,5 +26,6 @@ boolean operation(char*, int* line_index, int* opcode);
 boolean ext(char*, int* line_index);
 boolean insert_numerical_data(char*, int* line_index);
 boolean insert_string_data(char*, int* line_index);
+void fix_symbol_addresses();
 
 #endif

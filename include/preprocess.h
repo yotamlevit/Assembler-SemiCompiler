@@ -7,7 +7,7 @@
 #include "globals.h"
 #include "hash_map.h"
 
-#define MACRO_OUTPUT_EXTENSION "asm" // Extension for the output file after processing macros.
+#define MACRO_OUTPUT_EXTENSION "asm" /* Extension for the output file after processing macros. */
 
 boolean is_macro_definition(char* pos);
 int count_macro_occurrences(FILE* file);
