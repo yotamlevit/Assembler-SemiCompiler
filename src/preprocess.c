@@ -247,8 +247,9 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
     if(ends_with_newline(pos)) {
         REMOVE_NEW_LINE(pos);
     }
-    info_log("Processingaaaaaaaaaaa line %d", line_count);
+
     do{
+        info_log("Processing line %d", line_count);
         /* Check if the tokenized part of the line matches a macro name in the hash map */
         if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL)
         {
@@ -259,6 +260,7 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
             }
             return TRUE;
         }
+        info_log("Processingaaaaaaaaaaa line %d", line_count);
     } while((pos = strtok(NULL, STR_SPACE)) != NULL && macro_content == NULL);
 
 
@@ -306,7 +308,6 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         else {
             pos = delete_first_spaces(buffer);
             if (*pos != ASM_COMMENT && *pos != EOS && *pos != NEW_LINE)
-                info_log("Processing line %d", line_count);
                 result = result && handle_non_new_macro_line(asm_file, pos, original_line, macro_map, line_count);
         }
     }
