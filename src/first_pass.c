@@ -240,7 +240,7 @@ boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map, int* line_index
         analyze_input_line_result = analyze_input_line(line, macro_map, line_index);
     	if (!analyze_input_line_result)
     		result = FALSE;
-        *line_index++;
+        *line_index = *line_index + 1;
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
     validate_memory(IC, DC);
