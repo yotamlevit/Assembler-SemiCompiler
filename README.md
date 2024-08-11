@@ -83,8 +83,3 @@ The project follows best practices in C programming, including:
 This project was developed as a learning exercise in systems programming. Contributions to this project are encouraged, particularly in the areas of optimization and extending functionality to support additional assembly features.
 
 ---
-
-### End of README
-
-This document provides an overview of the project's structure, usage, and key functions. For detailed information on the assembly process and specific implementation details, refer to the inline comments and documentation within the code files.
-
