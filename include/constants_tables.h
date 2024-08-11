@@ -1,3 +1,7 @@
+
+#ifndef ASSEMBLER_SEMICOMPILER_CONSTANTS_TABLES_H
+#define ASSEMBLER_SEMICOMPILER_CONSTANTS_TABLES_H
+
 /*Adress method table according operations*/
 
 static char* operation_mode[16][3] = {
@@ -19,3 +23,5 @@ static char* operation_mode[16][3] = {
 		 {" "," ","rts"},
 		 {" "," ","stop"}
 };
+
+#endif

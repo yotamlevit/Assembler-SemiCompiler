@@ -1,7 +1,9 @@
+
+#include <stdio.h>
+
 #include "../include/tables.h"
 #include "../include/output.h"
-
-#include "logger.h"
+#include "../include/logger.h"
 #include "../include/utils.h"
 
 extern char* file_name;
@@ -64,6 +66,7 @@ void create_object_file()
 	fclose(fd);
 }
 
+
 /*This function creates an enteranl file that contain the labels that defined in the assembly text as an entry label
 with it's appropriate value in the labels table.*/
 void create_entry_file()
@@ -87,6 +90,7 @@ void create_entry_file()
 	fclose(fd);
 }
 
+
 /*This function creates an external file that contain the labels that defined as externals and the appropriate
 address that they have been used in the asseembly program.*/
 void create_external_file()
@@ -109,6 +113,7 @@ void create_external_file()
 	}
 	fclose(fd);
 }
+
 
 void create_output_files(int* line_counter)
 {

@@ -1,11 +1,8 @@
-//
-// Created by Yotam Levit on 19/07/2024.
-//
 
-#include "../include/logger.h"
 #include <string.h>
 #include <stdio.h>
-#include "../include/hash_map.h"
+
+#include "../include/logger.h"
 #include "../include/globals.h"
 #include "../include/constants_tables.h"
 #include "../include/first_pass.h"
@@ -26,6 +23,7 @@ FILE* open_file(char* file, char* mode)
     }
     return fp;
 }
+
 
 /**
  * @brief Checks if a given assembly line contains a valid operation.
@@ -53,6 +51,7 @@ int is_operation(char* asm_line)
 	return -1;
 }
 
+
 /*This function checks if it is stop operation*/
 int is_stop(char* line)
 {
@@ -63,12 +62,14 @@ int is_stop(char* line)
 	return -1;
 }
 
+
 char* find_next_symbol_in_str(char* search_line, char symbol)
 {
     char* symbol_pos;
     for (symbol_pos = search_line; *symbol_pos != symbol && *symbol_pos != END_OF_STR; symbol_pos++);
     return symbol_pos;
 }
+
 
 /*This function gets a string that represent a line content and skip the first white spaces in it. It return a pointer to the first non white space character. */
 char* delete_first_spaces(char* line)
@@ -78,6 +79,7 @@ char* delete_first_spaces(char* line)
 	return line;
 }
 
+
 /*This function gets an extension of a file name and add/change extentsion in the global file_name variable.*/
 void add_extension_2_file_name(char* extension)
 {
@@ -86,11 +88,13 @@ void add_extension_2_file_name(char* extension)
 	strcpy((file_name + i), extension);
 }
 
+
 void add_file_name_extension(char* filename,char* extension)
 {
     char* dot = find_next_symbol_in_str(filename, '.');
     strcpy(dot+1, extension);
 }
+
 
 /*This function gets a string that represent a line content and initalizes it.*/
 void clean_line(char* line)
@@ -100,6 +104,7 @@ void clean_line(char* line)
 		line[i] = END_OF_STR;
 }
 
+
 /*This function gets a string that represent a label content and initalizes it.*/
 void clean_label_name(char* label)
 {
@@ -107,6 +112,7 @@ void clean_label_name(char* label)
 	for (i = 0; i < MAX_LABEL_LENGTH; i++)
 		label[i] = END_OF_STR;
 }
+
 
 boolean is_register(char* str) {
 
@@ -123,6 +129,7 @@ boolean write_line_to_file(FILE* fp, char* line) {
     return TRUE;
 }
 
+
 /**
  * Checks if a string ends with a newline character.
  *
@@ -133,6 +140,7 @@ boolean ends_with_newline(const char *str) {
     size_t len = strlen(str);
     return len > 0 && str[len - 1] == '\n';
 }
+
 
 /**
  * Checks if an assembly line contains a label.
