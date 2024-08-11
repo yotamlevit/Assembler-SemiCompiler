@@ -269,6 +269,8 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
             return FALSE;
         }
     }
+
+    return TRUE;
 }
 
 
