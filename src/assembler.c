@@ -128,6 +128,7 @@ StatusCode process_file(char* asm_file_name)
         return failedFirstPass;
     }
     info_log("Finished first pass sucessfully on %s", file_name);
+    line_index = 0;
 
     prep_second_pass(fd);
     rewind(fd);
