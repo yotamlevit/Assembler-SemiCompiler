@@ -1,4 +1,7 @@
 # Assembler-SemiCompiler
+
+### Authors - @hadarnir33 @yotamlevit
+
 This project is an assembler for a 15-bit assembly language, designed as part of a course on systems programming.
 <br>
 The assembler processes assembly language files, translating them into machine code.
