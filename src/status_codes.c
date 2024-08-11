@@ -1,6 +1,3 @@
-/*
- * Created by Hadar Nir on 20/07/2024.
- */
 
 #include "../include/status_codes.h"
 
@@ -28,6 +25,7 @@ StatusPtr get_statuses(void)
     return Statuses;
 }
 
+
 /**
  * @brief Retrieves a status message pointer based on the given status code.
  *
@@ -44,6 +42,7 @@ StatusPtr get_status(StatusCode statusCode)
     statuses = get_statuses();
     return &statuses[statusCode];
 }
+
 
 /**
  * @brief Prints the status message corresponding to the given status code.

@@ -1,13 +1,10 @@
-/*
- * Created by Yotam Levit on 24/07/2024.
-*/
+
+#include <stdio.h>
+#include <string.h>
 
 #include "../include/logger.h"
 #include "../include/preprocess.h"
 #include "../include/utils.h"
-#include <stdio.h>
-#include <string.h>
-
 
 #define MACRO_START "macr"
 #define MACRO_END "endmacr\n"
@@ -17,9 +14,7 @@
 #define MACRO_OUTPUT_EXTENSION "asm"
 #define SPACE " "
 #define FILE_WRITE_MODE "w"
-
 #define REMOVE_NEW_LINE(str) *strchr(str, NEW_LINE) = EOS
-
 
 /**
  * Checks if a given position in a string is the start of a macro definition.

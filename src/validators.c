@@ -1,10 +1,6 @@
-/*
- * Created by Yotam Levit on 18/07/2024.
-*/
 
 #include "../include/validators.h"
-
-#include "logger.h"
+#include "../include/logger.h"
 #include "../include/status_codes.h"
 
 int validate_input(int argc, char** argv)
@@ -13,6 +9,7 @@ int validate_input(int argc, char** argv)
         return noFilesProvided;
     return success;
 }
+
 
 int validate_memory(int IC, int DC)
 {
