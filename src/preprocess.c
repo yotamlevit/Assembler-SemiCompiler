@@ -12,7 +12,7 @@
 #define NEW_LINE '\n'
 #define ASM_COMMENT ';'
 #define MACRO_OUTPUT_EXTENSION "asm"
-#define SPACE " "
+#define STR_SPACE " "
 #define REMOVE_NEW_LINE(str) *strchr(str, NEW_LINE) = EOS
 
 /**
@@ -39,7 +39,7 @@ int count_macro_occurrences(FILE* file) {
 
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
         pos = delete_first_spaces(buffer);
-        strtok(pos, SPACE);
+        strtok(pos, STR_SPACE);
 
         if (is_macro_definition(buffer))
             count++;
@@ -259,7 +259,7 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
             }
             return TRUE;
         }
-    } while((pos = strtok(NULL, SPACE)) != NULL && macro_content == NULL);
+    } while((pos = strtok(NULL, STR_SPACE)) != NULL && macro_content == NULL);
 
 
     /* If no macro found, write the original line to the output file */
@@ -296,7 +296,7 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         strcpy(temp_buffer, buffer);
         strcpy(original_line, buffer);
         pos = delete_first_spaces(temp_buffer);
-        pos = strtok(pos, SPACE);
+        pos = strtok(pos, STR_SPACE);
 
         if (is_macro_definition(temp_buffer)) {
             result = result && handle_new_macro(file, macro_map, pos, line_count);
