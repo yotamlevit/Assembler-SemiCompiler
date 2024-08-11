@@ -195,7 +195,7 @@ int iterate_input_files(int argc, char** argv)
  */
 int main(int argc, char** argv)
 {
-    int validate_input_result = validate_input(argc, argv);
+    int validate_input_result = validate_input(argc);
     if (validate_input_result != success) {
         error_log(get_status_message(validate_input_result));
         return error;
