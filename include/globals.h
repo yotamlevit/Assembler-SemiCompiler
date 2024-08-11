@@ -15,6 +15,7 @@
 #define SPACE ' '
 #define NEW_LINE '\n'
 #define LABEL_SYMBOL ':'
+#define FILE_WRITE_MODE "w"
 
 typedef enum { FALSE, TRUE } boolean;
 extern char line[MAX_LINE_LENGTH];
@@ -26,7 +27,6 @@ extern int D;
 extern int IC;
 /*index of code_table, index of data_table, instruction counter, data counter.*/
 extern int DC;
-/*Globals*/
-extern int line_counter;
+
 #endif
 

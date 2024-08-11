@@ -17,11 +17,10 @@ int is_stop(char*);
 boolean is_register(char* str);
 char* find_next_symbol_in_str(char* line, char symbol);
 char* delete_first_spaces(char*);
-void add_extension_2_file_name(char*);
 void add_file_name_extension(char* filename,char* extension);
 void clean_line(char*);
 void clean_label_name(char*);
 boolean ends_with_newline(const char *str);
 boolean is_label(char* asm_line);
 
-#endif //ASSEMBLER_SEMICOMPILER_UTILS_H
+#endif

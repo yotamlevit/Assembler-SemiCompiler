@@ -13,7 +13,6 @@
 #define ASM_COMMENT ';'
 #define MACRO_OUTPUT_EXTENSION "asm"
 #define SPACE " "
-#define FILE_WRITE_MODE "w"
 #define REMOVE_NEW_LINE(str) *strchr(str, NEW_LINE) = EOS
 
 /**

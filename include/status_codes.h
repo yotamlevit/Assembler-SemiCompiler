@@ -24,4 +24,4 @@ typedef struct {
 StatusPtr get_status(StatusCode statusCode);
 char* get_status_message(StatusCode statusCode);
 
-#endif /*ASSEMBLER_SEMICOMPILER_STATUS_CODES_H*/
+#endif

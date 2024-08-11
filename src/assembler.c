@@ -1,7 +1,3 @@
-
-/*About the program: This program simulates an assembler. It gets a list of files names, (using the arguments in command line). Each file contains an assembly language code. It reads and analyzes the code line by line from each file, so at the end of reading proccess, the program prints detailed error messages, if any, or alternatively export files as required: object file (=contains the memory image of the machine code), entries file, externals file, (as detailed later in the program).
-Assumptions: *Source files names with '.as' extension. *Each source program provided as input has a possible maximum size. *Excess "white spaces" are ignored in an assembly language input file. *Lowercase and upper case letters are considered different in the assembly language. *Assembly language supports the representation of integers on a decimal base only. *There must be a white character separating (one or more) between command/label and operands, except commas.*/
-
 #include <stdio.h>
 #include <string.h>
 
@@ -19,14 +15,11 @@ Assumptions: *Source files names with '.as' extension. *Each source program prov
 #define FILE_READ "r"
 
 /*Array to get line by line*/
-char line[MAX_LINE_LENGTH]; 
-char* file_name;
+char line[MAX_LINE_LENGTH];
 FILE* fd;
 
 int DC;
 int IC;
-
-int line_counter;
 
 /**
  * @brief Prepares the assembler for the second pass.
@@ -44,7 +37,6 @@ void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array
     /*Return fd to point on the begining of the file.*/
     rewind(file_handle);
     /*Zero the parameters before the next analize*/
-    line_counter = 0;
     clean_line(line);
     I = 0;
     /*Update the address of the guide labels in the symbal table*/
@@ -68,9 +60,7 @@ void reset_assembler()
     I = 0;
     DC = DC_INITIAL_VALUE;
     IC = IC_INITIAL_VALUE;
-    line_counter = 0;
     /*Clean & Free all tables.*/
-    free(file_name);
     free_data_table();
     free_code_table();
     free_symbol_table();
@@ -93,6 +83,7 @@ void reset_assembler()
  */
 StatusCode process_file(char* asm_file_name)
 {
+    char* file_name;
     int line_index = 0;
     boolean result;
     HashMapPtr macro_map = NULL;
@@ -121,13 +112,14 @@ StatusCode process_file(char* asm_file_name)
     if (fd == NULL)
         return openFileError;
 
-    result = first_pass_exec(fd, macro_map);
+    result = first_pass_exec(fd, macro_map, &line_index);
     hashMapFree(macro_map);
     if (!result){
         fclose(fd);
         return failedFirstPass;
     }
     info_log("Finished first pass sucessfully on %s", file_name);
+    line_index = 0;
 
     prep_second_pass(fd);
     rewind(fd);
@@ -136,7 +128,7 @@ StatusCode process_file(char* asm_file_name)
 
     result = second_pass_exec(fd, &line_index);
 
-    create_output_files(&line_index);
+    create_output_files(file_name, &line_index);
 
     fclose(fd);
 
