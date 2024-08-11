@@ -297,9 +297,10 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         line_count++;
         strcpy(temp_buffer, buffer);
         strcpy(original_line, buffer);
-        info_log("Processing line %d", line_count);
         pos = delete_first_spaces(temp_buffer);
         pos = strtok(pos, STR_SPACE);
+
+        info_log("Processing line %d", line_count);
 
         if (is_macro_definition(temp_buffer)) {
             result = result && handle_new_macro(file, macro_map, pos, line_count);
