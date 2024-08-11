@@ -115,9 +115,9 @@ void create_external_file()
 }
 
 
-void create_output_files(int* line_counter)
+void create_output_files(int* line_index)
 {
-    I = *line_counter;
+    I = *line_index;
     create_object_file();
     create_entry_file();
     create_external_file();

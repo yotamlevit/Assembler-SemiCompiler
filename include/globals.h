@@ -26,7 +26,6 @@ extern int D;
 extern int IC;
 /*index of code_table, index of data_table, instruction counter, data counter.*/
 extern int DC;
-/*Globals*/
-extern int line_counter;
+
 #endif
 

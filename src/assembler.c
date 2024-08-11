@@ -26,8 +26,6 @@ FILE* fd;
 int DC;
 int IC;
 
-int line_counter;
-
 /**
  * @brief Prepares the assembler for the second pass.
  *
@@ -44,7 +42,6 @@ void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array
     /*Return fd to point on the begining of the file.*/
     rewind(file_handle);
     /*Zero the parameters before the next analize*/
-    line_counter = 0;
     clean_line(line);
     I = 0;
     /*Update the address of the guide labels in the symbal table*/
@@ -68,7 +65,6 @@ void reset_assembler()
     I = 0;
     DC = DC_INITIAL_VALUE;
     IC = IC_INITIAL_VALUE;
-    line_counter = 0;
     /*Clean & Free all tables.*/
     free(file_name);
     free_data_table();
