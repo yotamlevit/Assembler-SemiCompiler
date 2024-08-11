@@ -121,7 +121,7 @@ StatusCode process_file(char* asm_file_name)
     if (fd == NULL)
         return openFileError;
 
-    result = first_pass_exec(fd, macro_map);
+    result = first_pass_exec(fd, macro_map, &line_index);
     hashMapFree(macro_map);
     if (!result){
         fclose(fd);
