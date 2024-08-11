@@ -352,18 +352,21 @@ boolean process_line(char* asm_line, code_word_fields_ptr code_word, int* line_i
  */
 boolean second_pass_exec(FILE* file_handle, int* line_index)
 {
+    char asm_line[MAX_LINE_LENGTH];
+    int line_count = 0;
     /*Second pass*/
     while (!feof(file_handle))
     {
+        line_count++;
+        /*Get one line from the file V */
+        fgets(asm_line, MAX_LINE_LENGTH, file_handle);
         /*Second analize*/
-        if (!process_line(line, &code_table[*line_index].c, line_index))
+        if (!process_line(asm_line, &code_table[*line_index].c, line_index))
         {
-            error_log("Second pass failed on line: %s", delete_first_spaces(line));
+            error_log("Second pass failed on line (Line NO. %d): %s", line_count, delete_first_spaces(asm_line));
             return FALSE;
         }
-        line_counter++;
-        /*Get one line from the file V */
-        fgets(line, MAX_LINE_LENGTH, file_handle);
+        line_count++;
     }
 
     return TRUE;
