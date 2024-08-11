@@ -2,6 +2,7 @@
 #include "../include/validators.h"
 #include "../include/logger.h"
 #include "../include/status_codes.h"
+#include "../include/globals.h"
 
 
 /**
@@ -21,15 +22,24 @@ int validate_input(int argc)
 }
 
 
+/**
+ * Validates the memory usage based on instruction count (IC) and data count (DC).
+ *
+ * @param IC The instruction count.
+ * @param DC The data count.
+ * @return An integer indicating the result of the validation:
+ *         - 0 if the memory limit is exceeded.
+ *         - 1 if the memory usage is within the limit.
+ */
 int validate_memory(int IC, int DC)
 {
     /*Checking memory limit exceeded.*/
     if (IC + DC > MEMORY_SIZE)
     {
         error_log("The program has exceeded the memory limits.\n");
-        return 0;
+        return FALSE;
     }
 
-    return 1;
+    return TRUE;
 }
 
