@@ -21,6 +21,7 @@
  *
  * @param asm_line A pointer to the assembly line to be analyzed and processed.
  * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
  */
@@ -258,6 +259,7 @@ boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map, int* line_index
  *
  * @param asm_line A pointer to the assembly line to be processed.
  * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
  */
@@ -433,6 +435,7 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
  * @param operand_src The addressing mode of the source operand.
  * @param operand_dst The addressing mode of the destination operand.
  * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating whether the opcode is valid with the given operands.
  *         Returns TRUE if both the source and destination operands are valid for the opcode, FALSE otherwise.
  */
@@ -480,6 +483,7 @@ boolean validate_opcode_with_operands(char operand_src, char operand_dst, int* l
  * @param temp A pointer to the `machine_word` structure to be configured and linked.
  * @param operand_src The addressing mode of the source operand ('3' for direct register, '2' for indirect register).
  * @param operand_dst The addressing mode of the destination operand ('3' for direct register, '2' for indirect register).
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE) or failure (FALSE). Currently always returns TRUE.
  */
 boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst, int* opcode) {
@@ -529,6 +533,7 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
  *        - '1': Direct addressing mode
  *        - '2': Indirect register addressing mode
  *        - Any other value is treated as direct register addressing mode.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE). Currently, the function always returns TRUE.
  */
 boolean configure_destination_operand(machine_word* temp, char operand_dst, int* opcode) {
@@ -559,6 +564,7 @@ boolean configure_destination_operand(machine_word* temp, char operand_dst, int*
  * It assigns the role, address, and operation code fields, and ensures that no additional memory is allocated
  * by setting the `next` pointer to `NULL`. The instruction counter (IC) is incremented after the address is assigned.
  *
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE). The function always returns TRUE.
  */
 boolean handle_no_operands(int* opcode) {
@@ -590,6 +596,7 @@ boolean handle_no_operands(int* opcode) {
  *        - '1': Direct addressing mode
  *        - '2': Indirect register addressing mode
  *        - Any other value is treated as direct register addressing mode.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE) or failure (FALSE) due to memory allocation issues.
  */
 boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst, int* opcode) {
@@ -643,6 +650,7 @@ boolean configure_dual_operand_instruction(machine_word* temp, char operand_src,
  *
  * @param asm_line A pointer to the assembly line to be processed.
  * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
  */
