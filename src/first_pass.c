@@ -11,8 +11,6 @@
 #include "../include/globals.h"
 #include "../include/logger.h"
 
-int opcode;
-
 /**
  * @brief Analyzes and processes an assembly line.
  *
@@ -22,30 +20,32 @@ int opcode;
  * If the line contains an unrecognized command, an error is logged.
  *
  * @param asm_line A pointer to the assembly line to be analyzed and processed.
+ * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
  */
-boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
+boolean analyze_input_line(char* asm_line, HashMapPtr macro_map, int* line_index, int* opcode)
 {
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
-		return ext(asm_line + strlen(EXTERN_LABEL));
+		return ext(asm_line + strlen(EXTERN_LABEL), line_index);
 	if (!strncmp(asm_line, DATA_LABEL, strlen(DATA_LABEL)))
-		return insert_numerical_data(asm_line + strlen(DATA_LABEL));
+		return insert_numerical_data(asm_line + strlen(DATA_LABEL), line_index);
 	if (!strncmp(asm_line, STRING_LABEL, strlen(STRING_LABEL)))
-		return insert_string_data(asm_line + strlen(STRING_LABEL));
+		return insert_string_data(asm_line + strlen(STRING_LABEL), line_index);
 	if(*asm_line == ';' || *asm_line == '\0' || *asm_line == '\n' || (!strncmp(asm_line, ENTRY_LABEL, strlen(ENTRY_LABEL))))
 		return TRUE;
-	opcode = is_operation(asm_line);
-    if (opcode != -1)
-		return operation(asm_line + 3);
-	opcode = is_stop(asm_line);
-	if (opcode != -1)
-		return operation(asm_line + 4);
+	*opcode = is_operation(asm_line);
+    if (*opcode != -1)
+		return operation(asm_line + 3, line_index, opcode);
+	*opcode = is_stop(asm_line);
+	if (*opcode != -1)
+		return operation(asm_line + 4, line_index, opcode);
 	if (is_label(asm_line))
-		return label_actions(asm_line, macro_map);
+		return label_actions(asm_line, macro_map, line_index, opcode);
 
-	error_log("line %d: The command was not found\n", line_counter);
+	error_log("line %d: The command was not found\n", *line_index);
 	return FALSE;
 }
 
@@ -59,17 +59,18 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
  *
  * @param li A pointer to the operand string.
  * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating whether the immediate address is valid.
  *         Returns TRUE if valid, FALSE otherwise.
  */
-boolean immediate_address(char* li, char* addressing_mode) {
+boolean immediate_address(char* li, char* addressing_mode, int* line_index) {
 	int i = 2;
 	boolean result = TRUE;
 	if (li[1] < 47 || li[1]>58)
 	{
 		if (li[1] != '-' && li[1] != '+')
 		{
-			error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+			error_log("line %d: Invalid parameter for the instant address\n", *line_index);
 			result = FALSE;
 		}
 	}
@@ -80,7 +81,7 @@ boolean immediate_address(char* li, char* addressing_mode) {
 			/*If after # does not appear a number - throw an error*/
 			if (li[i] < 47 || li[i]>58)
 			{
-				error_log("line %d: Invalid parameter for the instant address\n", line_counter);
+				error_log("line %d: Invalid parameter for the instant address\n", *line_index);
 				result = FALSE;
 				break;
 			}
@@ -100,20 +101,21 @@ boolean immediate_address(char* li, char* addressing_mode) {
  *
  * @param li A pointer to the operand string.
  * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating whether the indirect register address is valid.
  *         Returns TRUE if valid, FALSE otherwise.
  */
-boolean indirect_register_address(char* li, char* addressing_mode) {
+boolean indirect_register_address(char* li, char* addressing_mode, int* line_index) {
 	boolean result = TRUE;
 	if (!(*(li + 1) == 'r'))
 	{
-		error_log("line %d: Invalid override parameter\n", line_counter);
+		error_log("line %d: Invalid override parameter\n", *line_index);
 		result = FALSE;
 	}
 	/*If the register is not between 0-7*/
 	if (!(*(li + 2) > 47 && *(li + 2) < 56))
 	{
-		error_log("line %d: Invalid indirect address registration\n", line_counter);
+		error_log("line %d: Invalid indirect address registration\n", *line_index);
 		result = FALSE;
 	}
 	*addressing_mode = '2';
@@ -129,15 +131,16 @@ boolean indirect_register_address(char* li, char* addressing_mode) {
  *
  * @param li A pointer to the operand string.
  * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating whether the direct register address is valid.
  *         Returns TRUE if valid, FALSE otherwise.
  */
-boolean direct_register_address(char* li, char* addressing_mode) {
+boolean direct_register_address(char* li, char* addressing_mode, int* line_index) {
 	boolean result = TRUE;
 	/*If the register is not between 0-7*/
 	if (!(*(li + 1) > 47 && *(li + 1) < 56))
 	{
-		error_log("line %d: Invalid direct address registration\n", line_counter);
+		error_log("line %d: Invalid direct address registration\n", *line_index);
 		result = FALSE;
 	}
 	*addressing_mode = '3';
@@ -170,18 +173,19 @@ boolean direct_address(char* addressing_mode) {
  *
  * @param li A pointer to the operand string.
  * @param addressing_mode A pointer to a character where the addressing mode will be stored.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating whether a valid addressing mode was found.
  *         Returns TRUE if a valid addressing mode is found, FALSE otherwise.
  */
-boolean get_addressing_mode(char* li, char* addressing_mode)
+boolean get_addressing_mode(char* li, char* addressing_mode, int* line_index)
 {
 	li = delete_first_spaces(li);
 	if (*li == '#')
-		return immediate_address(li, addressing_mode);
+		return immediate_address(li, addressing_mode, line_index);
 	if (*li == '*')
-		return indirect_register_address(li, addressing_mode);
+		return indirect_register_address(li, addressing_mode, line_index);
 	if (*li == 'r')
-		return direct_register_address(li, addressing_mode);
+		return direct_register_address(li, addressing_mode, line_index);
 	if (*li > 20 && *li < 127)
 		return direct_address(addressing_mode);
 
@@ -222,19 +226,21 @@ void fix_symbol_addresses()
  * of the pass.
  *
  * @param file_handle A pointer to the file to be processed.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating the success of the first pass.
  *         Returns TRUE if the first pass is executed successfully. Otherwise, returns FALSE.
  */
-boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map)
+boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map, int* line_index)
 {
 	boolean result = TRUE, analyze_input_line_result;
-    line_counter = 0;
+	int opcode;
+	*line_index = 0;
     while (!feof(file_handle))
     {
-        analyze_input_line_result = analyze_input_line(line, macro_map);
+        analyze_input_line_result = analyze_input_line(line, macro_map, line_index, &opcode);
     	if (!analyze_input_line_result)
     		result = FALSE;
-        line_counter++;
+        *line_index = *line_index + 1;
         fgets(line, MAX_LINE_LENGTH, file_handle);
     }
     validate_memory(IC, DC);
@@ -252,10 +258,12 @@ boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map)
  * processing to the appropriate handler.
  *
  * @param asm_line A pointer to the assembly line to be processed.
+ * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
  */
-boolean label_actions(char* asm_line, HashMapPtr macro_map)
+boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index, int* opcode)
 {
 	char* p, * label_name;
 	symbol* temp;
@@ -268,13 +276,13 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map)
 			label_name = (char*)malloc((i + 1) * sizeof(char));
 			strncpy(label_name, asm_line, i);
 			if ((hashMapFind(macro_map, label_name)) != NULL) {
-				error_log("line %d: A label cannot be a macro name\n" ,line_counter);
+				error_log("line %d: A label cannot be a macro name\n" ,*line_index);
 				free(label_name);
 				result = FALSE;
 			}
 			if (i > MAX_LABEL_LENGTH)
 			{
-				error_log("line %d: Lable is too long, has more than 30 chars\n", line_counter);
+				error_log("line %d: Lable is too long, has more than 30 chars\n", *line_index);
 				return FALSE;
 			}
 			temp = (symbol*)malloc(sizeof(symbol));
@@ -296,12 +304,12 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map)
 				head_symbol->is_attached_directive = TRUE;
 				head_symbol->is_external = FALSE;
 				if (!strncmp(p, ENTRY_LABEL, strlen(ENTRY_LABEL)))
-					warning_log("line %d: A label defined at the beginig of entry statement is ignored\n" ,line_counter);
+					warning_log("line %d: A label defined at the beginig of entry statement is ignored\n" ,*line_index);
 				else if (!strncmp(p, EXTERN_LABEL, strlen(EXTERN_LABEL)))
-					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", line_counter);
+					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", *line_index);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					return analyze_input_line(p, macro_map);
+					return analyze_input_line(p, macro_map, line_index, opcode);
 			}
 			else
 			{
@@ -310,7 +318,7 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				return analyze_input_line(p, macro_map);
+				return analyze_input_line(p, macro_map, line_index, opcode);
 			}
 		}
 	}
@@ -327,10 +335,11 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map)
  * attempts to correct the line by inserting a missing comma.
  *
  * @param asm_line A pointer to the assembly instruction line to be checked.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating whether the comma placement is valid.
  *         Returns TRUE if commas are correctly placed, FALSE if there is an issue.
  */
-boolean handle_coma(char* asm_line) {
+boolean handle_coma(char* asm_line, int* line_index) {
 	boolean result = TRUE, miss_comma = FALSE;
 	int s, k;
 	char oper[MAX_LINE_LENGTH - 4];
@@ -355,7 +364,7 @@ boolean handle_coma(char* asm_line) {
 			}
 			else if (p[k] != '\0' && p[k] != '\n')
 			{
-				error_log("line %d: Missing comma\n", line_counter);
+				error_log("line %d: Missing comma\n", *line_index);
 				result = FALSE;
 				miss_comma = TRUE;
 			}
@@ -388,20 +397,21 @@ boolean handle_coma(char* asm_line) {
  * @param asm_line A pointer to the assembly instruction line.
  * @param operand_src A pointer to a character where the addressing mode of the source operand will be stored.
  * @param operand_dst A pointer to a character where the addressing mode of the destination operand will be stored.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating whether the operands' addressing modes were successfully identified.
  *         Returns TRUE if successful, FALSE if any errors occurred during parsing.
  */
-boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operand_dst) {
+boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operand_dst, int* line_index) {
 	boolean result = TRUE;
 	int j;
 	/*Discover the address method of source*/
-	result &= get_addressing_mode(asm_line, operand_src);
+	result &= get_addressing_mode(asm_line, operand_src, line_index);
 	for (j = 0; asm_line[j] != '\0'; j++)
 	{
 		/*If thre is a comma, discover the address method of destination*/
 		if (asm_line[j] == ',')
 		{
-			result &= get_addressing_mode(asm_line + j + 1, operand_dst);
+			result &= get_addressing_mode(asm_line + j + 1, operand_dst, line_index);
 			break;
 		}
 	}
@@ -424,36 +434,38 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
  *
  * @param operand_src The addressing mode of the source operand.
  * @param operand_dst The addressing mode of the destination operand.
+ * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating whether the opcode is valid with the given operands.
  *         Returns TRUE if both the source and destination operands are valid for the opcode, FALSE otherwise.
  */
-boolean validate_opcode_with_operands(char operand_src, char operand_dst) {
+boolean validate_opcode_with_operands(char operand_src, char operand_dst, int* line_index, int* opcode) {
 	int i = 0;
 	boolean result = TRUE, is_src = FALSE, is_dst = FALSE;
 
-	while ((operation_mode[opcode][1])[i] != '\0')
+	while ((operation_mode[*opcode][1])[i] != '\0')
 	{
 		/*Checks if the specific op supports the source add method*/
-		if ((operation_mode[opcode][1])[i] == operand_src)
+		if ((operation_mode[*opcode][1])[i] == operand_src)
 			is_src = TRUE;
 		i++;
 	}
 	i = 0;
-	while ((operation_mode[opcode][0])[i] != '\0')
+	while ((operation_mode[*opcode][0])[i] != '\0')
 	{
 		/*Checks whether the specific OP supports the destination add method*/
-		if ((operation_mode[opcode][0])[i] == operand_dst)
+		if ((operation_mode[*opcode][0])[i] == operand_dst)
 			is_dst = TRUE;
 		i++;
 	}
 	if (!is_src)
 	{
-		error_log("line %d: Incorrect method for the source operand\n", line_counter);
+		error_log("line %d: Incorrect method for the source operand\n", *line_index);
 		result = FALSE;
 	}
 	if (!is_dst)
 	{
-		error_log("line %d: Incorrect method for the destination operand\n", line_counter);
+		error_log("line %d: Incorrect method for the destination operand\n", *line_index);
 		result = FALSE;
 	}
 	return result;
@@ -471,9 +483,10 @@ boolean validate_opcode_with_operands(char operand_src, char operand_dst) {
  * @param temp A pointer to the `machine_word` structure to be configured and linked.
  * @param operand_src The addressing mode of the source operand ('3' for direct register, '2' for indirect register).
  * @param operand_dst The addressing mode of the destination operand ('3' for direct register, '2' for indirect register).
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE) or failure (FALSE). Currently always returns TRUE.
  */
-boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst) {
+boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst, int* opcode) {
 	temp->c.next = code_table[I].c.next;
 	code_table[I].c.next = temp;
 	code_table[I].c.role = 4; /*Its absolute*/
@@ -481,7 +494,7 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
 	IC++;
 	code_table[I].c.next->c.address = IC;
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	if (operand_src == '3' && operand_dst == '2')
 	{
 		code_table[I].c.source_direct_register = 1;
@@ -520,9 +533,10 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
  *        - '1': Direct addressing mode
  *        - '2': Indirect register addressing mode
  *        - Any other value is treated as direct register addressing mode.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE). Currently, the function always returns TRUE.
  */
-boolean configure_destination_operand(machine_word* temp, char operand_dst) {
+boolean configure_destination_operand(machine_word* temp, char operand_dst, int* opcode) {
 	temp->c.next = NULL;
 	code_table[I].c.next = temp;
 	code_table[I].c.role = 4; /*Its absolute*/
@@ -530,7 +544,7 @@ boolean configure_destination_operand(machine_word* temp, char operand_dst) {
 	IC++;
 	code_table[I].c.next->c.address = IC;
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	if (operand_dst == '0')
 		code_table[I].c.destination_immidiate = 1;
 	else if (operand_dst == '1')
@@ -550,13 +564,14 @@ boolean configure_destination_operand(machine_word* temp, char operand_dst) {
  * It assigns the role, address, and operation code fields, and ensures that no additional memory is allocated
  * by setting the `next` pointer to `NULL`. The instruction counter (IC) is incremented after the address is assigned.
  *
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE). The function always returns TRUE.
  */
-boolean handle_no_operands() {
+boolean handle_no_operands(int* opcode) {
 	code_table[I].c.role = 4; /*Its absolute*/
 	code_table[I].c.address = IC; /*Give address*/
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	code_table[I].c.next = NULL;
 	return TRUE;
 }
@@ -581,9 +596,10 @@ boolean handle_no_operands() {
  *        - '1': Direct addressing mode
  *        - '2': Indirect register addressing mode
  *        - Any other value is treated as direct register addressing mode.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating success (TRUE) or failure (FALSE) due to memory allocation issues.
  */
-boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst) {
+boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst, int* opcode) {
 	temp->c.next = NULL;
 	code_table[I].c.next = temp;
 	temp = (machine_word*)malloc(sizeof(machine_word));
@@ -601,7 +617,7 @@ boolean configure_dual_operand_instruction(machine_word* temp, char operand_src,
 	IC++;
 	code_table[I].c.next->c.next->c.address = IC;
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	/*For destination*/
 	if (operand_dst == '0')
 		code_table[I].c.destination_immidiate = 1;
@@ -633,19 +649,22 @@ boolean configure_dual_operand_instruction(machine_word* temp, char operand_src,
  * of operations and updates the code table accordingly.
  *
  * @param asm_line A pointer to the assembly line to be processed.
+ * @param line_index A pointer to the line counter.
+ * @param opcode The opcode of the command.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
  */
-boolean operation(char* asm_line)
+boolean operation(char* asm_line, int* line_index, int* opcode)
 {
 	boolean result = TRUE;
+
 	char operand_src;
 	char operand_dst = ' ';
 	machine_word* temp;
 
-	result &= handle_coma(asm_line);
-	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst);
-	result &= validate_opcode_with_operands(operand_src, operand_dst);
+	result &= handle_coma(asm_line, line_index);
+	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst, line_index);
+	result &= validate_opcode_with_operands(operand_src, operand_dst, line_index, opcode);
 
 	temp = (machine_word*)malloc(sizeof(machine_word));
 	if (temp == NULL)
@@ -655,13 +674,13 @@ boolean operation(char* asm_line)
 	}
 
 	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
-		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst);
+		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst, opcode);
 	else if (operand_src == ' ' && operand_dst != ' ')
-		result &= configure_destination_operand(temp, operand_dst);
+		result &= configure_destination_operand(temp, operand_dst, opcode);
 	else if ((operand_src == ' ' && operand_dst == ' '))
-		result &= handle_no_operands();
+		result &= handle_no_operands(opcode);
 	else
-		result &= configure_dual_operand_instruction(temp, operand_src, operand_dst);
+		result &= configure_dual_operand_instruction(temp, operand_src, operand_dst, opcode);
 
 	I++;
 	return result;
@@ -677,11 +696,12 @@ boolean operation(char* asm_line)
  * empty, the label is too long, or memory allocation fails.
  *
  * @param asm_line A pointer to the line to be processed.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line contains a valid external label and is processed
  *         successfully. Otherwise, returns FALSE.
  */
-boolean ext(char* asm_line)
+boolean ext(char* asm_line, int* line_index)
 {
 	boolean result = TRUE;
 	symbol* temp;
@@ -689,14 +709,14 @@ boolean ext(char* asm_line)
 
 	asm_line = delete_first_spaces(asm_line);
 	if (*asm_line == '\0' || *asm_line == '\n') {
-		error_log("line %d: Label is missing", line_counter);
+		error_log("line %d: Label is missing", *line_index);
 		result = FALSE;
 	}
 
 	while (asm_line[i] != '\0' && asm_line[i] != '\n' && asm_line[i] != ' ') { i++; }
 	if (i > MAX_LABEL_LENGTH)
 	{
-		error_log("line %d: Label is too long", line_counter);
+		error_log("line %d: Label is too long", *line_index);
 		result = FALSE;
 	}
 
@@ -725,11 +745,12 @@ boolean ext(char* asm_line)
  * inserts the data into the data table while updating the data counter.
  *
  * @param asm_line A pointer to the line containing numerical data to be processed.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the numerical data is successfully processed and inserted
  *         into the data table. Otherwise, returns FALSE.
  */
-boolean insert_numerical_data(char* asm_line)
+boolean insert_numerical_data(char* asm_line, int* line_index)
 {
 	boolean result = TRUE;
 	int a[MAX_LINE_LENGTH];
@@ -738,7 +759,7 @@ boolean insert_numerical_data(char* asm_line)
 	data_word* temp;
 	asm_line = delete_first_spaces(asm_line);
 	if (*asm_line == '\0' || *asm_line == '\n')
-		error_log("line %d: Missing parameters", line_counter);
+		error_log("line %d: Missing parameters", *line_index);
 	while (*asm_line != '\0')
 	{
 		if (*asm_line == '-')
@@ -748,7 +769,7 @@ boolean insert_numerical_data(char* asm_line)
 			asm_line++;
 			if (!(*(asm_line) > 47 && *(asm_line) < 58))
 			{
-				error_log("line %d: Invalid parameter", line_counter);
+				error_log("line %d: Invalid parameter", *line_index);
 				result = FALSE;
 			}
 		}
@@ -769,7 +790,7 @@ boolean insert_numerical_data(char* asm_line)
 			asm_line = delete_first_spaces(asm_line + 1);
 			if (*(asm_line + 1) == ',')
 			{
-				error_log("line %d: Multiple number of consecutive commas\n", line_counter);
+				error_log("line %d: Multiple number of consecutive commas\n", *line_index);
 				result = FALSE;;
 			}
 		}
@@ -778,7 +799,7 @@ boolean insert_numerical_data(char* asm_line)
 			asm_line = delete_first_spaces(asm_line);
 			if ((*asm_line > 47 && *asm_line < 58))
 			{
-				error_log("line %d: Missing comma\n", line_counter);
+				error_log("line %d: Missing comma\n", *line_index);
 				result = FALSE;
 			}
 			asm_line++;
@@ -832,11 +853,12 @@ boolean insert_numerical_data(char* asm_line)
  * and memory allocation.
  *
  * @param asm_line A pointer to the assembly line containing string data to be processed.
+ * @param line_index A pointer to the line counter.
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the string data is successfully processed and inserted
  *         into the data table. Otherwise, returns FALSE.
  */
-boolean insert_string_data(char* asm_line)
+boolean insert_string_data(char* asm_line, int* line_index)
 {
 	boolean result = TRUE;
 	int i = 0, j = 2, k;
@@ -845,20 +867,20 @@ boolean insert_string_data(char* asm_line)
 	asm_line = delete_first_spaces(asm_line);
 	if (asm_line[0] != '"')
 	{
-		error_log("line %d: Syntax error missing", line_counter);
+		error_log("line %d: Syntax error missing", *line_index);
 		result = FALSE;
 	}
 
 	while (asm_line[i] != '\0' && asm_line[i] != ' ') i++;
 	if (i > MAX_STRING)
 	{
-		error_log("line %d: The string is too long, has more than 75 chars", line_counter);
+		error_log("line %d: The string is too long, has more than 75 chars", *line_index);
 		result = FALSE;
 	}
 
 	if (asm_line[i - 2] != '"')
 	{
-		error_log("line %d: Syntax error missing", line_counter);
+		error_log("line %d: Syntax error missing", *line_index);
 		result = FALSE;
 	}
 	DC += i - 2;
