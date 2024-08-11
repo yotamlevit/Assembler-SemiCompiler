@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../include/hash_map.h"
+#include "../include/logger.h"
 
 #define HASH_PRIME 109951
 
@@ -99,7 +100,12 @@ void hashMapInsert(HashMapPtr map, void *key, void *value) {
  */
 void *hashMapFind(HashMapPtr map, void *key) {
     HashMapEntry *entry;
+    info_log("Before index");
+    if(map->bucketCount == 0)
+        return NULL;
+
     size_t bucket_index = map->hashFunction(key) % map->bucketCount;
+    info_log("After index %d");
 
     if(bucket_index > map->bucketCount)
         return NULL;
