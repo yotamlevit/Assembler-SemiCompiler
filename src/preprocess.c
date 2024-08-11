@@ -294,6 +294,7 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
     asm_file = open_file(asm_filename, FILE_WRITE_MODE);
 
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
+        info_log("Processing line %d", line_count);
         line_count++;
         strcpy(temp_buffer, buffer);
         strcpy(original_line, buffer);
@@ -327,7 +328,7 @@ int macro_exec(FILE* file, char* filename, HashMapPtr* macro_map) {
     rewind(file);
 
     *macro_map = init_macro_hash_map(file);
-    info_log("Asdasdasdasdasd");
+
     if (!*macro_map)
     {
         error_log("Failed to initialize macro hash map");
