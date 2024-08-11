@@ -76,15 +76,6 @@ char* delete_first_spaces(char* line)
 }
 
 
-/*This function gets an extension of a file name and add/change extentsion in the global file_name variable.*/
-void add_extension_2_file_name(char* file_name, char* extension)
-{
-	int i;
-	for (i = 0; file_name[i] != '.'; i++);
-	strcpy((file_name + i), extension);
-}
-
-
 void add_file_name_extension(char* filename,char* extension)
 {
     char* dot = find_next_symbol_in_str(filename, '.');

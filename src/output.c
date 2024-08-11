@@ -24,7 +24,7 @@ void create_object_file(char* file_name)
 	machine_word* temp;
 	data_word* tempD;
 	FILE* fd;
-	add_extension_2_file_name(file_name, ".ob");
+	add_file_name_extension(file_name, "ob");
 	fd = fopen(file_name, "w");
 	if (!fd)
 	{
@@ -73,7 +73,7 @@ void create_entry_file(char* file_name)
 {
 	symbol* entry_symbol = head_entries;
 	FILE* fd;
-	add_extension_2_file_name(file_name, ".ent");
+	add_file_name_extension(file_name, "ent");
 	if (!entry_symbol)
 		return;
 	fd = fopen(file_name, "w");
@@ -97,7 +97,7 @@ void create_external_file(char* file_name)
 {
 	symbol* entry_symbol = head_externals;
 	FILE* fd;
-	add_extension_2_file_name(file_name, ".ext");
+	add_file_name_extension(file_name, "ext");
 	if (!entry_symbol)
 		return;
 	fd = fopen(file_name, "w");
