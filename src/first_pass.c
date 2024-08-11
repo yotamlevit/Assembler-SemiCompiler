@@ -11,8 +11,6 @@
 #include "../include/globals.h"
 #include "../include/logger.h"
 
-int opcode;
-
 /**
  * @brief Analyzes and processes an assembly line.
  *
@@ -26,7 +24,7 @@ int opcode;
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the line is processed successfully. Otherwise, returns FALSE.
  */
-boolean analyze_input_line(char* asm_line, HashMapPtr macro_map, int* line_index)
+boolean analyze_input_line(char* asm_line, HashMapPtr macro_map, int* line_index, int* opcode)
 {
 	asm_line = delete_first_spaces(asm_line);
 	if (!strncmp(asm_line, EXTERN_LABEL, strlen(EXTERN_LABEL)))
@@ -37,14 +35,14 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map, int* line_index
 		return insert_string_data(asm_line + strlen(STRING_LABEL), line_index);
 	if(*asm_line == ';' || *asm_line == '\0' || *asm_line == '\n' || (!strncmp(asm_line, ENTRY_LABEL, strlen(ENTRY_LABEL))))
 		return TRUE;
-	opcode = is_operation(asm_line);
-    if (opcode != -1)
-		return operation(asm_line + 3, line_index);
-	opcode = is_stop(asm_line);
-	if (opcode != -1)
-		return operation(asm_line + 4, line_index);
+	*opcode = is_operation(asm_line);
+    if (*opcode != -1)
+		return operation(asm_line + 3, line_index, opcode);
+	*opcode = is_stop(asm_line);
+	if (*opcode != -1)
+		return operation(asm_line + 4, line_index, opcode);
 	if (is_label(asm_line))
-		return label_actions(asm_line, macro_map, line_index);
+		return label_actions(asm_line, macro_map, line_index, opcode);
 
 	error_log("line %d: The command was not found\n", *line_index);
 	return FALSE;
@@ -234,10 +232,11 @@ void fix_symbol_addresses()
 boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map, int* line_index)
 {
 	boolean result = TRUE, analyze_input_line_result;
+	int opcode;
 	*line_index = 0;
     while (!feof(file_handle))
     {
-        analyze_input_line_result = analyze_input_line(line, macro_map, line_index);
+        analyze_input_line_result = analyze_input_line(line, macro_map, line_index, &opcode);
     	if (!analyze_input_line_result)
     		result = FALSE;
         *line_index = *line_index + 1;
@@ -262,7 +261,7 @@ boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map, int* line_index
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the label is processed successfully. Otherwise, returns FALSE.
  */
-boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index)
+boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index, int* opcode)
 {
 	char* p, * label_name;
 	symbol* temp;
@@ -308,7 +307,7 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index)
 					warning_log("line %d: A label defined at the beginig of extern statement is ignored.\n", *line_index);
 				else
 					/*Sends again to analize to find out if its string or data*/
-					return analyze_input_line(p, macro_map, line_index);
+					return analyze_input_line(p, macro_map, line_index, opcode);
 			}
 			else
 			{
@@ -317,7 +316,7 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index)
 				head_symbol->is_attached_directive = FALSE;
 				head_symbol->is_external = FALSE;
 				/*Go again to analize to find out which instruction statement*/
-				return analyze_input_line(p, macro_map, line_index);
+				return analyze_input_line(p, macro_map, line_index, opcode);
 			}
 		}
 	}
@@ -437,22 +436,22 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
  * @return A boolean value indicating whether the opcode is valid with the given operands.
  *         Returns TRUE if both the source and destination operands are valid for the opcode, FALSE otherwise.
  */
-boolean validate_opcode_with_operands(char operand_src, char operand_dst, int* line_index) {
+boolean validate_opcode_with_operands(char operand_src, char operand_dst, int* line_index, int* opcode) {
 	int i = 0;
 	boolean result = TRUE, is_src = FALSE, is_dst = FALSE;
 
-	while ((operation_mode[opcode][1])[i] != '\0')
+	while ((operation_mode[*opcode][1])[i] != '\0')
 	{
 		/*Checks if the specific op supports the source add method*/
-		if ((operation_mode[opcode][1])[i] == operand_src)
+		if ((operation_mode[*opcode][1])[i] == operand_src)
 			is_src = TRUE;
 		i++;
 	}
 	i = 0;
-	while ((operation_mode[opcode][0])[i] != '\0')
+	while ((operation_mode[*opcode][0])[i] != '\0')
 	{
 		/*Checks whether the specific OP supports the destination add method*/
-		if ((operation_mode[opcode][0])[i] == operand_dst)
+		if ((operation_mode[*opcode][0])[i] == operand_dst)
 			is_dst = TRUE;
 		i++;
 	}
@@ -483,7 +482,7 @@ boolean validate_opcode_with_operands(char operand_src, char operand_dst, int* l
  * @param operand_dst The addressing mode of the destination operand ('3' for direct register, '2' for indirect register).
  * @return A boolean value indicating success (TRUE) or failure (FALSE). Currently always returns TRUE.
  */
-boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst) {
+boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src, char operand_dst, int* opcode) {
 	temp->c.next = code_table[I].c.next;
 	code_table[I].c.next = temp;
 	code_table[I].c.role = 4; /*Its absolute*/
@@ -491,7 +490,7 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
 	IC++;
 	code_table[I].c.next->c.address = IC;
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	if (operand_src == '3' && operand_dst == '2')
 	{
 		code_table[I].c.source_direct_register = 1;
@@ -532,7 +531,7 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
  *        - Any other value is treated as direct register addressing mode.
  * @return A boolean value indicating success (TRUE). Currently, the function always returns TRUE.
  */
-boolean configure_destination_operand(machine_word* temp, char operand_dst) {
+boolean configure_destination_operand(machine_word* temp, char operand_dst, int* opcode) {
 	temp->c.next = NULL;
 	code_table[I].c.next = temp;
 	code_table[I].c.role = 4; /*Its absolute*/
@@ -540,7 +539,7 @@ boolean configure_destination_operand(machine_word* temp, char operand_dst) {
 	IC++;
 	code_table[I].c.next->c.address = IC;
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	if (operand_dst == '0')
 		code_table[I].c.destination_immidiate = 1;
 	else if (operand_dst == '1')
@@ -562,11 +561,11 @@ boolean configure_destination_operand(machine_word* temp, char operand_dst) {
  *
  * @return A boolean value indicating success (TRUE). The function always returns TRUE.
  */
-boolean handle_no_operands() {
+boolean handle_no_operands(int* opcode) {
 	code_table[I].c.role = 4; /*Its absolute*/
 	code_table[I].c.address = IC; /*Give address*/
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	code_table[I].c.next = NULL;
 	return TRUE;
 }
@@ -593,7 +592,7 @@ boolean handle_no_operands() {
  *        - Any other value is treated as direct register addressing mode.
  * @return A boolean value indicating success (TRUE) or failure (FALSE) due to memory allocation issues.
  */
-boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst) {
+boolean configure_dual_operand_instruction(machine_word* temp, char operand_src, char operand_dst, int* opcode) {
 	temp->c.next = NULL;
 	code_table[I].c.next = temp;
 	temp = (machine_word*)malloc(sizeof(machine_word));
@@ -611,7 +610,7 @@ boolean configure_dual_operand_instruction(machine_word* temp, char operand_src,
 	IC++;
 	code_table[I].c.next->c.next->c.address = IC;
 	IC++;
-	code_table[I].c.op_code = opcode;
+	code_table[I].c.op_code = *opcode;
 	/*For destination*/
 	if (operand_dst == '0')
 		code_table[I].c.destination_immidiate = 1;
@@ -647,16 +646,17 @@ boolean configure_dual_operand_instruction(machine_word* temp, char operand_src,
  * @return A boolean value indicating the success of the operation.
  *         Returns TRUE if the operation line is processed successfully. Otherwise, returns FALSE.
  */
-boolean operation(char* asm_line, int* line_index)
+boolean operation(char* asm_line, int* line_index, int* opcode)
 {
 	boolean result = TRUE;
+
 	char operand_src;
 	char operand_dst = ' ';
 	machine_word* temp;
 
 	result &= handle_coma(asm_line, line_index);
 	result &= get_src_and_dst_operands(asm_line, &operand_src, &operand_dst, line_index);
-	result &= validate_opcode_with_operands(operand_src, operand_dst, line_index);
+	result &= validate_opcode_with_operands(operand_src, operand_dst, line_index, opcode);
 
 	temp = (machine_word*)malloc(sizeof(machine_word));
 	if (temp == NULL)
@@ -666,13 +666,13 @@ boolean operation(char* asm_line, int* line_index)
 	}
 
 	if ((operand_src == '3' && operand_dst == '2') || (operand_dst == '3' && operand_src == '2') || (operand_src == '3' && operand_dst == '3') || (operand_dst == '2' && operand_src == '2'))
-		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst);
+		result &= allocate_and_configure_machine_word(temp, operand_src, operand_dst, opcode);
 	else if (operand_src == ' ' && operand_dst != ' ')
-		result &= configure_destination_operand(temp, operand_dst);
+		result &= configure_destination_operand(temp, operand_dst, opcode);
 	else if ((operand_src == ' ' && operand_dst == ' '))
-		result &= handle_no_operands();
+		result &= handle_no_operands(opcode);
 	else
-		result &= configure_dual_operand_instruction(temp, operand_src, operand_dst);
+		result &= configure_dual_operand_instruction(temp, operand_src, operand_dst, opcode);
 
 	I++;
 	return result;

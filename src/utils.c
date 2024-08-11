@@ -8,10 +8,7 @@
 #include "../include/first_pass.h"
 #include "../include/utils.h"
 
-/*Operation code.Reliable only when the action is valid*/
-int opcode;
 extern char* file_name;
-
 
 FILE* open_file(char* file, char* mode)
 {
