@@ -5,8 +5,8 @@
 #include "../include/output.h"
 #include "../include/logger.h"
 #include "../include/utils.h"
+#include "../include/globals.h"
 
-extern char* file_name;
 
 /*Definitions: */
 /*index of code_table, index of data_table, instruction counter, data counter.*/
@@ -16,8 +16,14 @@ data_word* data_table[150]; /*data array*/
 code_word code_table[150];/*code array*/
 
 
-/*End of create_external_file function*//*This function creates an object file that contains the machine code translating to octal base with the appropriate
-memmory addres in decimal base (code divided to 3 bits every time as an octal number). */
+/**
+ * Creates an object file that contains the machine code translated to octal base
+ * with the appropriate memory address in decimal base.
+ *
+ * The code is divided into 3-bit sections and represented as octal numbers.
+ *
+ * @param file_name The base name of the file to which the object code will be written.
+ */
 void create_object_file(char* file_name)
 {
 	int i;
@@ -25,12 +31,10 @@ void create_object_file(char* file_name)
 	data_word* tempD;
 	FILE* fd;
 	add_file_name_extension(file_name, "ob");
-	fd = fopen(file_name, "w");
-	if (!fd)
-	{
-		error_log("Cannot create object file");
+    fd = open_file(file_name, FILE_WRITE_MODE);
+	if (fd == NULL)
 		return;
-	}
+
 	fprintf(fd, "   %d %d\n", IC - IC_INITIAL_VALUE, DC);/*fprint IC and DC*/
 	for (i = 0; i < I; i++)
 	{
@@ -67,8 +71,12 @@ void create_object_file(char* file_name)
 }
 
 
-/*This function creates an enteranl file that contain the labels that defined in the assembly text as an entry label
-with it's appropriate value in the labels table.*/
+/**
+ * Creates an entry file that contains the labels defined as entry labels
+ * in the assembly source with their corresponding addresses.
+ *
+ * @param file_name The base name of the file to which the entry labels will be written.
+ */
 void create_entry_file(char* file_name)
 {
 	symbol* entry_symbol = head_entries;
@@ -76,12 +84,10 @@ void create_entry_file(char* file_name)
 	add_file_name_extension(file_name, "ent");
 	if (!entry_symbol)
 		return;
-	fd = fopen(file_name, "w");
-	if (!fd)
-	{
-		error_log("Cannot create %s file", file_name);
-		return;
-	}
+    fd = open_file(file_name, FILE_WRITE_MODE);
+    if (fd == NULL)
+        return;
+
 	while (entry_symbol)
 	{
 		fprintf(fd, " %s  %d\n", entry_symbol->symbol_name, entry_symbol->address);
@@ -91,8 +97,12 @@ void create_entry_file(char* file_name)
 }
 
 
-/*This function creates an external file that contain the labels that defined as externals and the appropriate
-address that they have been used in the asseembly program.*/
+/**
+ * Creates an external file that contains the labels defined as external labels
+ * in the assembly source with their corresponding addresses where they are used.
+ *
+ * @param file_name The base name of the file to which the external labels will be written.
+ */
 void create_external_file(char* file_name)
 {
 	symbol* entry_symbol = head_externals;
@@ -100,12 +110,10 @@ void create_external_file(char* file_name)
 	add_file_name_extension(file_name, "ext");
 	if (!entry_symbol)
 		return;
-	fd = fopen(file_name, "w");
-	if (!fd)
-	{
-		error_log("Cannot create %s file", file_name);
-		return;
-	}
+    fd = open_file(file_name, FILE_WRITE_MODE);
+    if (fd == NULL)
+        return;
+
 	while (entry_symbol)
 	{
 		fprintf(fd, " %s %d\n", entry_symbol->symbol_name, entry_symbol->address);
@@ -115,6 +123,12 @@ void create_external_file(char* file_name)
 }
 
 
+/**
+ * Creates all necessary output files (object, entry, and external) for the assembly program.
+ *
+ * @param file_name The base name of the files to be created.
+ * @param line_index A pointer to the current line index (instruction counter).
+ */
 void create_output_files(char* file_name, int* line_index)
 {
     I = *line_index;

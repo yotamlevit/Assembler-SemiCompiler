@@ -15,6 +15,7 @@
 #define SPACE ' '
 #define NEW_LINE '\n'
 #define LABEL_SYMBOL ':'
+#define FILE_WRITE_MODE "w"
 
 typedef enum { FALSE, TRUE } boolean;
 extern char line[MAX_LINE_LENGTH];
