@@ -1,12 +1,10 @@
-/*
-Created by Yotam Levit on 26/04/2024.
-*/
+
+#include <stdio.h>
+#include <string.h>
 
 #include "../include/hash_map.h"
 
-
 #define HASH_PRIME 109951
-
 
 /**
  * Default hash function for strings.
@@ -64,6 +62,7 @@ HashMapPtr createHashMap(size_t bucketCount, size_t (*hashFunction)(void *), int
     return map;
 }
 
+
 /**
  * Inserts a key-value pair into the hash map.
  *
@@ -116,6 +115,7 @@ void *hashMapFind(HashMapPtr map, void *key) {
 
     return NULL;
 }
+
 
 /**
  * Frees the memory allocated for the hash map.

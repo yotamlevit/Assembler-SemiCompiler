@@ -1,11 +1,15 @@
-#include "utils.h"
-#include "validators.h"
-#include "tables.h"
-#include "first_pass.h"
-#include "hash_map.h"
-#include "constants_tables.h"
-#include "globals.h"
-#include "logger.h"
+
+#include <stdio.h>
+#include <string.h>
+
+#include "../include/utils.h"
+#include "../include/validators.h"
+#include "../include/tables.h"
+#include "../include/first_pass.h"
+#include "../include/hash_map.h"
+#include "../include/constants_tables.h"
+#include "../include/globals.h"
+#include "../include/logger.h"
 
 int opcode;
 
@@ -44,6 +48,7 @@ boolean analyze_input_line(char* asm_line, HashMapPtr macro_map)
 	error_log("line %d: The command was not found\n", line_counter);
 	return FALSE;
 }
+
 
 /**
  * @brief Checks and sets the addressing mode for an immediate address.
@@ -86,6 +91,7 @@ boolean immediate_address(char* li, char* addressing_mode) {
 	return result;
 }
 
+
 /**
  * @brief Checks and sets the addressing mode for an indirect register address.
  *
@@ -114,6 +120,7 @@ boolean indirect_register_address(char* li, char* addressing_mode) {
 	return result;
 }
 
+
 /**
  * @brief Checks and sets the addressing mode for a direct register address.
  *
@@ -137,6 +144,7 @@ boolean direct_register_address(char* li, char* addressing_mode) {
 	return result;
 }
 
+
 /**
  * @brief Sets the addressing mode for a direct address.
  *
@@ -151,6 +159,7 @@ boolean direct_address(char* addressing_mode) {
 	*addressing_mode = '1';
 	return TRUE;
 }
+
 
 /**
  * @brief Determines and sets the addressing mode for the given operand.
@@ -180,6 +189,7 @@ boolean get_addressing_mode(char* li, char* addressing_mode)
 	return TRUE;
 }
 
+
 /**
  * @brief Adjusts the addresses of symbols in the symbol table.
  *
@@ -201,6 +211,7 @@ void fix_symbol_addresses()
 		temp = temp->next;
 	}
 }
+
 
 /**
  * @brief Executes the first pass of the assembler process on the input file.
@@ -229,6 +240,7 @@ boolean first_pass_exec(FILE* file_handle, HashMapPtr macro_map)
     validate_memory(IC, DC);
 	return result;
 }
+
 
 /**
  * @brief Processes label-related actions in an assembly line.
@@ -305,6 +317,7 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map)
 	return result;
 }
 
+
 /**
  * @brief Handles and validates comma placement in an assembly line.
  *
@@ -363,6 +376,7 @@ boolean handle_coma(char* asm_line) {
 	return result;
 }
 
+
 /**
  * @brief Extracts and determines the addressing modes of source and destination operands.
  *
@@ -399,6 +413,7 @@ boolean get_src_and_dst_operands(char* asm_line, char* operand_src, char* operan
 	}
 	return result;
 }
+
 
 /**
  * @brief Validates the opcode against the provided source and destination operands.
@@ -443,6 +458,7 @@ boolean validate_opcode_with_operands(char operand_src, char operand_dst) {
 	}
 	return result;
 }
+
 
 /**
  * @brief Configures a machine word with addressing modes and links it into the code table.
@@ -489,6 +505,7 @@ boolean allocate_and_configure_machine_word(machine_word* temp, char operand_src
 	return TRUE;
 }
 
+
 /**
  * @brief Configures the machine word for the destination operand in the code table.
  *
@@ -525,6 +542,7 @@ boolean configure_destination_operand(machine_word* temp, char operand_dst) {
 	return TRUE;
 }
 
+
 /**
  * @brief Handles the configuration of a machine word for instructions with no operands.
  *
@@ -542,6 +560,7 @@ boolean handle_no_operands() {
 	code_table[I].c.next = NULL;
 	return TRUE;
 }
+
 
 /**
  * @brief Configures a machine word for an instruction with both source and destination operands.
@@ -604,6 +623,7 @@ boolean configure_dual_operand_instruction(machine_word* temp, char operand_src,
 	return TRUE;
 }
 
+
 /**
  * @brief Processes an operation line in the assembly code.
  *
@@ -646,6 +666,7 @@ boolean operation(char* asm_line)
 	I++;
 	return result;
 }
+
 
 /**
  * @brief Processes a line to check and handle an external label.
@@ -693,6 +714,7 @@ boolean ext(char* asm_line)
 	head_symbol->address = 0;
 	return result;
 }
+
 
 /**
  * @brief Inserts numerical data from a line into the data table.
@@ -799,6 +821,7 @@ boolean insert_numerical_data(char* asm_line)
 	D++;
 	return result;
 }
+
 
 /**
  * @brief Inserts string data from an assembly line into the data table.

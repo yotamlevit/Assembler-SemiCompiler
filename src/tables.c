@@ -1,3 +1,8 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "../include/tables.h"
 
 extern symbol* head_symbol;
@@ -8,7 +13,6 @@ extern data_word* data_table[TABLE_SIZE];
 extern code_word code_table[TABLE_SIZE];
 extern int D;
 extern char* file_name;
-
 
 void free_data_table()
 {
@@ -28,6 +32,7 @@ void free_data_table()
 		data_table[i] = NULL;
 	}
 }
+
 
 void free_code_table()
 {
@@ -54,6 +59,7 @@ void free_code_table()
 }
 /*The following functions release dynamic memory using a temporary pointer to the table: */
 
+
 /*This function frees the dynamic memory for the symbol table */
 void free_symbol_table()
 {
@@ -68,6 +74,7 @@ void free_symbol_table()
 	head_symbol = NULL;
 }
 
+
 /*This function frees the dynamic memory for the entries list*/
 void free_entries_list()
 {
@@ -81,6 +88,7 @@ void free_entries_list()
 	}
 	head_entries = NULL;
 }
+
 
 /*This function frees the dynamic memory for the externals list*/
 void free_externals_list()

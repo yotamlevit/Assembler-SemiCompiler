@@ -2,6 +2,9 @@
 /*About the program: This program simulates an assembler. It gets a list of files names, (using the arguments in command line). Each file contains an assembly language code. It reads and analyzes the code line by line from each file, so at the end of reading proccess, the program prints detailed error messages, if any, or alternatively export files as required: object file (=contains the memory image of the machine code), entries file, externals file, (as detailed later in the program).
 Assumptions: *Source files names with '.as' extension. *Each source program provided as input has a possible maximum size. *Excess "white spaces" are ignored in an assembly language input file. *Lowercase and upper case letters are considered different in the assembly language. *Assembly language supports the representation of integers on a decimal base only. *There must be a white character separating (one or more) between command/label and operands, except commas.*/
 
+#include <stdio.h>
+#include <string.h>
+
 #include "../include/validators.h"
 #include "../include/second_pass.h"
 #include "../include/first_pass.h"
@@ -48,6 +51,7 @@ void prep_second_pass(FILE *file_handle) {/*Tmpty the first element of the array
     fix_symbol_addresses();
 }
 
+
 /**
  * @brief Resets the assembler's state for a new file processing.
  *
@@ -73,6 +77,7 @@ void reset_assembler()
     free_entries_list();
     free_externals_list();
 }
+
 
 /**
  * @brief Processes the specified assembly file through multiple passes.
@@ -142,6 +147,7 @@ StatusCode process_file(char* asm_file_name)
     return success;
 }
 
+
 /**
  * @brief Iterates through input files and processes each one.
  *
@@ -173,6 +179,7 @@ int iterate_input_files(int argc, char** argv)
     }
     return status;
 }
+
 
 /**
  * @brief Main entry point of the program.

@@ -1,6 +1,6 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+
+#ifndef ASSEMBLER_SEMICOMPILER_TABLES_H
+#define ASSEMBLER_SEMICOMPILER_TABLES_H
 
 #include "globals.h"
 
@@ -100,10 +100,11 @@ void free_symbol_table();
 void free_entries_list();
 void free_externals_list();
 
-
 /*Tables and lists*/
 extern symbol* head_symbol;
 extern symbol* head_entries;
 extern symbol* head_externals;
 extern code_word code_table[TABLE_SIZE];
 extern data_word* data_table[TABLE_SIZE];
+
+#endif

@@ -1,14 +1,6 @@
-/*
- * Created by Yotam Levit on 18/07/2024.
-*/
 
 #ifndef ASSEMBLER_SEMICOMPILER_GLOBALS_H
 #define ASSEMBLER_SEMICOMPILER_GLOBALS_H
-
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 #define MAX_LINE_LENGTH 80
 #define MAX_LABEL_LENGTH 31

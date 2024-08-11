@@ -1,6 +1,3 @@
-/*
- * Created by Hadar Nir on 20/07/2024.
- */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -32,6 +29,7 @@ void info_log(const char *format, ...) {
     fprintf(stdout, "\n");
 }
 
+
 /**
  * @brief Logs an error message to stderr.
  *
@@ -57,6 +55,7 @@ void error_log(const char *format, ...) {
 
     fprintf(stderr, "\n");
 }
+
 
 /**
  * @brief Logs a warning message to stdout.

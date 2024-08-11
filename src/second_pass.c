@@ -1,8 +1,12 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "../include/utils.h"
 #include "../include/second_pass.h"
 #include "../include/logger.h"
-#include "globals.h"
-
+#include "../include/globals.h"
 
 /**
  * Calculates the length of a symbol name in an assembly line.
