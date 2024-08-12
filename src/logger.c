@@ -13,15 +13,9 @@
  * @param ... Additional arguments (as in printf).
  */
 void info_log(const char *format, ...) {
-    return;
     va_list args;
-    time_t now;
-    char time_str[20];
 
-    time(&now);
-    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", localtime(&now));
-
-    fprintf(stdout, "[INFO] %s: ", time_str);
+    fprintf(stdout, "[INFO]: ");
 
     va_start(args, format);
     vfprintf(stdout, format, args);
@@ -41,15 +35,9 @@ void info_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void error_log(const char *format, ...) {
-    return;
     va_list args;
-    time_t now;
-    char time_str[20];
 
-    time(&now);
-    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", localtime(&now));
-
-    fprintf(stderr, "[ERROR] %s: ", time_str);
+    fprintf(stderr, "[ERROR]: ");
 
     va_start(args, format);
     vfprintf(stderr, format, args);
@@ -69,15 +57,9 @@ void error_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void warning_log(const char *format, ...) {
-    return;
     va_list args;
-    time_t now;
-    char time_str[20];
 
-    time(&now);
-    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", localtime(&now));
-
-    fprintf(stdout, "[WARNING] %s: ", time_str);
+    fprintf(stdout, "[WARNING]: ");
 
     va_start(args, format);
     vfprintf(stdout, format, args);
