@@ -13,6 +13,7 @@
  * @param ... Additional arguments (as in printf).
  */
 void info_log(const char *format, ...) {
+    return;
     va_list args;
     time_t now;
     char time_str[20];
@@ -40,6 +41,7 @@ void info_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void error_log(const char *format, ...) {
+    return;
     va_list args;
     time_t now;
     char time_str[20];
@@ -67,6 +69,7 @@ void error_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void warning_log(const char *format, ...) {
+    return;
     va_list args;
     time_t now;
     char time_str[20];
