@@ -18,7 +18,7 @@ char *copy_macro_content(FILE *fp, int length);
 char *save_macro_content(FILE *fp, fpos_t *pos, int *line_count);
 boolean add_macro_to_map(FILE* file, HashMapPtr macro_map, char* macro_name, int line_count);
 boolean handle_new_macro(FILE* file, HashMapPtr macro_map, char* macro_name, int line_count);
-boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, HashMapPtr macro_map, int line_count);
+void handle_non_new_macro_line(char* filename, char* pos, char* original_line, HashMapPtr macro_map, int line_count);
 boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename);
 int macro_exec(FILE* file, char* filename, HashMapPtr* macro_map);
 

@@ -109,20 +109,21 @@ StatusCode process_file(char* asm_file_name)
 
     if (result == FALSE)
         return failedPreprocess;
-    info_log("Finished preprocessinf sucessfully");
-    printf("a");
-    sleep(10);
+    info_log("Finished preprocessing successfully");
+
+
     fd = open_file(file_name, FILE_READ);
     if (fd == NULL)
         return openFileError;
-    
+
+    info_log("Starting first pass on %s", file_name);
     result = first_pass_exec(fd, macro_map, &line_index);
     hashMapFree(macro_map);
     if (!result){
         fclose(fd);
         return failedFirstPass;
     }
-    info_log("Finished first pass sucessfully on %s", file_name);
+    info_log("Finished first pass successfully on %s", file_name);
     line_index = 0;
 
     prep_second_pass(fd);

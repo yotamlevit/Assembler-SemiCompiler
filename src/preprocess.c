@@ -241,7 +241,7 @@ boolean handle_new_macro(FILE* file, HashMapPtr macro_map, char* macro_name, int
  * @param line_count The current line number in the file.
  * @return A boolean indicating if the non-new macro line was successfully handled.
  */
-boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, HashMapPtr macro_map, int line_count) {
+void handle_non_new_macro_line(char* filename, char* pos, char* original_line, HashMapPtr macro_map, int line_count) {
     char* macro_content = NULL;
 
     if(ends_with_newline(pos)) {
@@ -252,25 +252,19 @@ boolean handle_non_new_macro_line(FILE* file, char* pos, char* original_line, Ha
         /* Check if the tokenized part of the line matches a macro name in the hash map */
         if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL)
         {
+            write_buffer_to_file(filename, macro_content);
             /* If found, write the macro content to the output file */
-            if (write_line_to_file(file, macro_content) == FALSE) {
-                error_log("Error while writing macro content into output file .asm with line %d", line_count);
-                return FALSE;
-            }
-            return TRUE;
+            //if (write_line_to_file(file, macro_content) == FALSE) {
+            //    error_log("Error while writing macro content into output file .asm with line %d", line_count);
+            //    return FALSE;
+            //}
+            return;
         }
     } while((pos = strtok(NULL, STR_SPACE)) != NULL && macro_content == NULL);
 
 
     /* If no macro found, write the original line to the output file */
-    if (*original_line != '\n') {
-        if (write_line_to_file(file, original_line) == FALSE) {
-            error_log("Error while writing original code into output file .asm with line %d", line_count);
-            return FALSE;
-        }
-    }
-
-    return TRUE;
+    write_buffer_to_file(filename, original_line);
 }
 
 
@@ -292,6 +286,7 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
 
 
     asm_file = open_file(asm_filename, FILE_WRITE_MODE);
+    fclose(asm_file);
 
     while (fgets(buffer, MAX_LINE_LENGTH, file) != NULL) {
         line_count++;
@@ -306,11 +301,10 @@ boolean process_macro_file(FILE* file, HashMapPtr macro_map, char* asm_filename)
         else {
             pos = delete_first_spaces(buffer);
             if (*pos != ASM_COMMENT && *pos != EOS && *pos != NEW_LINE)
-                result = result && handle_non_new_macro_line(asm_file, pos, original_line, macro_map, line_count);
+                handle_non_new_macro_line(asm_filename, pos, original_line, macro_map, line_count);
         }
     }
 
-    fclose(asm_file);
     return result;
 }
 

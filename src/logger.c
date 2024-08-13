@@ -13,16 +13,15 @@
  * @param ... Additional arguments (as in printf).
  */
 void info_log(const char *format, ...) {
-    return;
     va_list args;
 
-    fprintf(stdout, "[INFO]: ");
+    fprintf(stdout, "\033[1;34m[INFO]: ");
 
     va_start(args, format);
     vfprintf(stdout, format, args);
     va_end(args);
 
-    fprintf(stdout, "\n");
+    fprintf(stdout, "\033[0m\n");
 }
 
 
@@ -36,16 +35,15 @@ void info_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void error_log(const char *format, ...) {
-    return;
     va_list args;
 
-    fprintf(stderr, "[ERROR]: ");
+    fprintf(stderr, "\033[1;31m[ERROR]: ");
 
     va_start(args, format);
     vfprintf(stderr, format, args);
     va_end(args);
 
-    fprintf(stderr, "\n");
+    fprintf(stderr, "\033[0m\n");
 }
 
 
@@ -59,14 +57,13 @@ void error_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void warning_log(const char *format, ...) {
-    return;
     va_list args;
 
-    fprintf(stdout, "[WARNING]: ");
+    fprintf(stdout, "\033[1;33m[WARNING]: ");
 
     va_start(args, format);
     vfprintf(stdout, format, args);
     va_end(args);
 
-    fprintf(stdout, "\n");
+    fprintf(stdout, "\033[0m\n");
 }
