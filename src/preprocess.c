@@ -253,11 +253,6 @@ void handle_non_new_macro_line(char* filename, char* pos, char* original_line, H
         if ( (macro_content = (char *)hashMapFind(macro_map, pos)) != NULL)
         {
             write_buffer_to_file(filename, macro_content);
-            /* If found, write the macro content to the output file */
-            //if (write_line_to_file(file, macro_content) == FALSE) {
-            //    error_log("Error while writing macro content into output file .asm with line %d", line_count);
-            //    return FALSE;
-            //}
             return;
         }
     } while((pos = strtok(NULL, STR_SPACE)) != NULL && macro_content == NULL);
