@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "../include/validators.h"
 #include "../include/second_pass.h"
@@ -87,6 +88,7 @@ StatusCode process_file(char* asm_file_name)
     int line_index = 0;
     boolean result;
     HashMapPtr macro_map = NULL;
+    FILE* as_file;
 
     file_name = (char*)malloc(strlen(asm_file_name) + 4);
     if (file_name == NULL)
@@ -96,22 +98,24 @@ StatusCode process_file(char* asm_file_name)
     /*Using strcat()- because the user sends the file name without extension*/
     strcat(file_name, INPUT_FILE_EXTENSION);
 
-    fd = open_file(file_name, FILE_READ);
-    if (fd == NULL)
+    as_file = open_file(file_name, FILE_READ);
+    if (as_file == NULL)
         return openFileError;
 
     info_log("Starting preprocessing on %s", file_name);
-    result = macro_exec(fd, file_name, &macro_map);
+    result = macro_exec(as_file, file_name, &macro_map);
 
-    fclose(fd);
+    fclose(as_file);
 
     if (result == FALSE)
         return failedPreprocess;
-
+    info_log("Finished preprocessinf sucessfully");
+    printf("a");
+    sleep(10);
     fd = open_file(file_name, FILE_READ);
     if (fd == NULL)
         return openFileError;
-
+    
     result = first_pass_exec(fd, macro_map, &line_index);
     hashMapFree(macro_map);
     if (!result){

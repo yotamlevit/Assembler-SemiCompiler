@@ -13,6 +13,7 @@
  * @param ... Additional arguments (as in printf).
  */
 void info_log(const char *format, ...) {
+    return;
     va_list args;
 
     fprintf(stdout, "[INFO]: ");
@@ -35,6 +36,7 @@ void info_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void error_log(const char *format, ...) {
+    return;
     va_list args;
 
     fprintf(stderr, "[ERROR]: ");
@@ -57,6 +59,7 @@ void error_log(const char *format, ...) {
  * @param ... Additional arguments (as in printf).
  */
 void warning_log(const char *format, ...) {
+    return;
     va_list args;
 
     fprintf(stdout, "[WARNING]: ");

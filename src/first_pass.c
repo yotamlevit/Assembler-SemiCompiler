@@ -273,13 +273,14 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index, int
 	{
 		if (asm_line[i] == ':')
 		{
-			label_name = (char*)malloc((i + 1) * sizeof(char));
-			strncpy(label_name, asm_line, i);
-			if ((hashMapFind(macro_map, label_name)) != NULL) {
-				error_log("line %d: A label cannot be a macro name\n" ,*line_index);
-				free(label_name);
-				result = FALSE;
-			}
+//			label_name = (char*)malloc((i + 1) * sizeof(char));
+//			strncpy(label_name, asm_line, i);
+		//	if ((hashMapFind(macro_map, label_name)) != NULL) {
+		//		error_log("line %d: A label cannot be a macro name\n" ,*line_index);
+		//		free(label_name);
+		//		result = FALSE;
+		//	}
+
 			if (i > MAX_LABEL_LENGTH)
 			{
 				error_log("line %d: Lable is too long, has more than 30 chars\n", *line_index);
