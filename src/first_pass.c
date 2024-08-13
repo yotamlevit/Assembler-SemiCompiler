@@ -277,9 +277,9 @@ boolean label_actions(char* asm_line, HashMapPtr macro_map, int* line_index, int
 			strncpy(label_name, asm_line, i);
 			if ((hashMapFind(macro_map, label_name)) != NULL) {
 				error_log("line %d: A label cannot be a macro name\n" ,*line_index);
-				free(label_name);
 				result = FALSE;
 			}
+            free(label_name);
 			if (i > MAX_LABEL_LENGTH)
 			{
 				error_log("line %d: Lable is too long, has more than 30 chars\n", *line_index);
