@@ -51,6 +51,27 @@ For each processed file, the assembler generates several output files:
 - **(`.ent`)**: Contains the entry labels (if any).
 - **(`.ext`)**: Contains the external labels (if any).
 
+For the command line there is colored output with logging for INFO,WARNING,ERROR messages
+
+## Examples
+### 1. Executing Base Test
+* Cmd:
+![Base Test Screenshot](execution_pics/booklet_script_logs.png)
+* Output:
+  ![Base Test Screenshot](execution_pics/booklet_script_output_file.png)
+
+### 2. Executing Macro Test
+* Cmd:
+![Macro Test Screenshot](execution_pics/macro_script_logs.png)
+* Output:
+ ![Macro Test Screenshot](execution_pics/macro_script_output_file.png)
+
+### 3. Executing Macro Error Test
+* Cmd:
+![Macro Error Test Screenshot](execution_pics/macro_errors_logs.png)
+
+### 4. Executing Error Test
+![Error Test Screenshot](execution_pics/errors_script_logs.png)
 
 ## Key Functions
 
